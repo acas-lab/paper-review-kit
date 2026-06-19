@@ -1,0 +1,24 @@
+# 원논문 PDF는 저작권상 저장소에 포함하지 않습니다 — 각자 적법하게 입수
+rawpaper/
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+.venv/
+
+# 중간 산출물 / 백업
+*.bak
+*.before_*
+
+# Claude Code 로컬 설정
+.claude/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
