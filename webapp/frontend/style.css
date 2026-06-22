@@ -86,7 +86,17 @@ body {
 .papers { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .papers li { font-size: 13px; padding: 7px 9px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
 .papers li.muted { color: var(--muted); border: none; background: none; padding: 4px 0; }
-.papers .out { color: var(--accent); cursor: pointer; text-decoration: underline; display: block; margin-top: 3px; font-size: 12px; }
+.papers .paper-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.papers .paper-name { font-weight: 600; word-break: break-all; }
+.papers .edit { flex-shrink: 0; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-pale); border-radius: 7px; padding: 3px 9px; font-size: 12px; cursor: pointer; }
+.papers .edit:hover { background: var(--accent); color: #fff; }
+.papers .out { color: var(--accent); cursor: pointer; text-decoration: underline; display: block; margin-top: 4px; font-size: 12px; }
+
+/* 작업 대상 논문 배너 */
+.active-paper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 14px; background: var(--accent-soft); border-top: 1px solid var(--accent-pale); font-size: 13px; }
+.active-paper[hidden] { display: none; }
+.active-paper .ap-label { font-weight: 700; color: var(--accent); }
+.active-paper .ap-name { font-family: ui-monospace, monospace; color: var(--ink); margin-right: auto; word-break: break-all; }
 .preview-card { flex: 1; display: flex; flex-direction: column; min-height: 280px; }
 .preview-card iframe { flex: 1; width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 220px; }
 .preview-card a { margin-top: 8px; align-self: flex-start; }

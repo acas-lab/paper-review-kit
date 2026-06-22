@@ -44,6 +44,17 @@ DISALLOWED_TOOLS = [
     "Bash(git push *)", "Bash(git commit *)", "Bash(git reset *)",
 ]
 
+# 웹앱 세션 전용 추가 지침 — Claude Code 기본 프롬프트에 append
+WEBAPP_APPEND = (
+    "이 세션은 Paper Review 웹 대시보드(로컬)에서 실행된다.\n"
+    "- 분석·검수(번역 점검, 카운트 비교 등)는 **임시 스크립트 파일을 만들지 말고** "
+    "`python -c \"...\"` 인라인으로 실행한다. `cat > _chk.py` 같은 스크래치 파일 생성 금지.\n"
+    "- 부득이 임시 파일이 필요하면 시스템 임시 폴더에 만들고, papers/·samples/ 같은 "
+    "콘텐츠 폴더에는 `_chk`·`_tmp`·`_pairs` 등 잔여 파일을 남기지 않는다 "
+    "(이 폴더들에서는 rm이 차단되어 정리도 안 된다).\n"
+    "- JSON(번역·분석)을 고친 뒤 HTML에 반영하려면 해당 논문 폴더의 `_build.py`를 다시 실행해야 한다."
+)
+
 Emit = Callable[[dict], Awaitable[None]]
 
 
@@ -58,6 +69,7 @@ def make_options(resume_session_id: Optional[str] = None) -> ClaudeAgentOptions:
     return ClaudeAgentOptions(
         cwd=str(PROJECT_DIR),
         permission_mode="acceptEdits",
+        system_prompt={"type": "preset", "preset": "claude_code", "append": WEBAPP_APPEND},
         allowed_tools=ALLOWED_TOOLS,
         disallowed_tools=DISALLOWED_TOOLS,
         setting_sources=["user", "project", "local"],  # CLAUDE.md/rules 로드 보장

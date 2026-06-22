@@ -2,7 +2,7 @@
 const $ = (s) => document.querySelector(s);
 const log = $("#log"), input = $("#input"), sendBtn = $("#send"), stopBtn = $("#stop");
 
-let ws = null, busy = false, curAssistant = null;
+let ws = null, busy = false, curAssistant = null, selectedPaper = null;
 
 /* ---------- 채팅 렌더 ---------- */
 function scroll() { log.scrollTop = log.scrollHeight; }
@@ -59,14 +59,38 @@ function setBusy(b) {
   sendBtn.textContent = b ? "작업 중…" : "전송";
 }
 
-function send() {
-  const text = input.value.trim();
+function send(textOverride) {
+  const text = (textOverride != null ? textOverride : input.value).trim();
   if (!text || busy || !ws || ws.readyState !== 1) return;
-  addMsg("user", text);
+  // 선택된 논문이 있으면 그 논문을 작업 대상으로 명시(Claude가 어느 논문을 고칠지 알도록)
+  const payload = selectedPaper
+    ? `[작업 대상 논문: papers/${selectedPaper}] ${text}`
+    : text;
+  addMsg("user", (selectedPaper ? `→ [${selectedPaper}] ` : "") + text);
   curAssistant = null;
-  ws.send(JSON.stringify({ type: "user", text }));
-  input.value = ""; setBusy(true);
+  ws.send(JSON.stringify({ type: "user", text: payload }));
+  if (textOverride == null) input.value = "";
+  setBusy(true);
 }
+
+/* ---------- 작업 대상 논문 (기존 HTML 수정) ---------- */
+function selectPaper(folder) {
+  selectedPaper = folder;
+  $("#apName").textContent = folder;
+  $("#activePaper").hidden = false;
+  input.placeholder = `"${folder}" 수정 요청 (예: 이 번역 어색한 곳 고쳐줘 / fig_2 다시 잘라줘)`;
+  input.focus();
+}
+function clearPaper() {
+  selectedPaper = null;
+  $("#activePaper").hidden = true;
+  input.placeholder = "요청을 입력하세요 (Shift+Enter 줄바꿈, Enter 전송)";
+}
+$("#apClear").addEventListener("click", clearPaper);
+$("#apRebuild").addEventListener("click", () => {
+  if (!selectedPaper) return;
+  send("이 논문 폴더의 `_build.py`를 실행해서 출력 HTML을 다시 빌드해줘. 수정한 JSON이 HTML에 반영되도록.");
+});
 
 $("#composer").addEventListener("submit", (e) => { e.preventDefault(); send(); });
 input.addEventListener("keydown", (e) => {
@@ -102,10 +126,18 @@ async function refreshPapers() {
     if (!list.length) { ul.innerHTML = '<li class="muted">아직 논문이 없어요.</li>'; return; }
     for (const p of list) {
       const li = document.createElement("li");
-      li.textContent = p.folder;
+      const head = document.createElement("div");
+      head.className = "paper-head";
+      const name = document.createElement("span");
+      name.className = "paper-name"; name.textContent = p.folder;
+      const edit = document.createElement("button");
+      edit.type = "button"; edit.className = "edit"; edit.textContent = "✎ 수정";
+      edit.onclick = () => selectPaper(p.folder);
+      head.appendChild(name); head.appendChild(edit);
+      li.appendChild(head);
       for (const out of p.outputs) {
         const a = document.createElement("span");
-        a.className = "out"; a.textContent = "▸ " + out;
+        a.className = "out"; a.textContent = "▸ " + out + " (미리보기)";
         a.onclick = () => preview(p.folder, out);
         li.appendChild(a);
       }
@@ -140,7 +172,8 @@ async function upload(file) {
     if (j.error) { uploadMsg.className = "upload-msg err"; uploadMsg.textContent = j.error; return; }
     uploadMsg.className = "upload-msg"; uploadMsg.textContent = "✓ 저장됨: " + j.saved;
     $("#dropText").textContent = file.name;
-    input.value = `방금 "${j.saved}" 를 올렸어. 이 논문으로 새 papers 폴더를 만들고 workflow.md 10단계로 6탭 학습 HTML을 만들어줘. 디자인은 SGL 정본을 따르고 ⑤⑥은 셸만.`;
+    clearPaper();
+    input.value = `방금 "${j.saved}" 를 올렸어. 이 논문으로 새 papers 폴더를 만들고 workflow.md 단계대로 6탭 학습 HTML을 만들어줘. 디자인·구성은 samples/free_example 정본을 따르고 ⑤⑥은 셸만.`;
     input.focus();
   } catch (e) {
     uploadMsg.className = "upload-msg err"; uploadMsg.textContent = "업로드 실패: " + e;

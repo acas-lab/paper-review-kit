@@ -46,8 +46,13 @@ def fail(msg, fix=""):
 
 def main():
     if os.name == "nt":
-        os.system("")  # 윈도우 콘솔 ANSI 색 활성화
-    say("\n  📄 Paper Review 대시보드 — 시작 준비\n", C_OK)
+        os.system("")                       # ANSI 색 활성화
+        os.system("chcp 65001 >nul 2>&1")   # 콘솔 UTF-8 (한국어 Windows의 CP949에서 이모지/한글 출력 크래시 방지)
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    say("\n  Paper Review 대시보드 — 시작 준비\n", C_OK)
 
     # 1) Python 버전
     if sys.version_info < (3, 10):
@@ -89,7 +94,7 @@ def main():
     say("  ✓ 준비 완료", C_OK)
 
     # 6) 서버 기동 + 브라우저
-    say(f"\n  🚀 대시보드 시작 → {URL}", C_OK)
+    say(f"\n  >> 대시보드 시작 → {URL}", C_OK)
     say("     (종료: 이 창에서 Ctrl+C)\n", C_DIM)
     env = dict(os.environ)
     env.pop("ANTHROPIC_API_KEY", None)  # OAuth 폴백 보장

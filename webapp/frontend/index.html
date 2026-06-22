@@ -18,8 +18,15 @@
       <div id="log" class="log">
         <div class="msg system">
           <p>안녕하세요! 논문 PDF를 올리고, 아래에 자연어로 요청하면 6탭 학습 HTML을 만들어 드려요.</p>
-          <p class="hint">예: <em>"방금 올린 PDF로 papers 폴더를 만들고 workflow 10단계로 6탭 HTML을 만들어줘. 디자인은 SGL 정본, ⑤⑥은 셸만."</em></p>
+          <p class="hint">예: <em>"방금 올린 PDF로 papers 폴더를 만들고 workflow 10단계로 6탭 HTML을 만들어줘. 디자인은 samples/free_example 정본, ⑤⑥은 셸만."</em></p>
+          <p class="hint">이미 만든 논문은 오른쪽 목록에서 <em>✎ 수정</em>을 눌러 대상으로 잡고 고칠 수 있어요.</p>
         </div>
+      </div>
+      <div id="activePaper" class="active-paper" hidden>
+        <span class="ap-label">✎ 작업 대상</span>
+        <span id="apName" class="ap-name"></span>
+        <button type="button" id="apRebuild" class="btn-ghost small">🔄 HTML 다시 빌드</button>
+        <button type="button" id="apClear" class="btn-ghost small">해제</button>
       </div>
       <form id="composer" class="composer">
         <textarea id="input" rows="2" placeholder="요청을 입력하세요 (Shift+Enter 줄바꿈, Enter 전송)"></textarea>
