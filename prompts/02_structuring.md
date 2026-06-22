@@ -155,7 +155,7 @@ structured.json 작성 완료
 
 ## 출력 스키마 (5세대 정본 = `rules/parsing_rules.md` §3-1-bis)
 
-문단은 `text` 통짜가 아니라 **문장 배열(`sentences`)**로 담는다(문장 단위 페어링·hotspot의 기반). 캡션은 가상 문단으로 두지 **않고** `config.json#captions`에 둔다. 정본 예: `samples/free_example/structured.json`, `papers/1. voila_a/structured.json`.
+문단은 `text` 통짜가 아니라 **문장 배열(`sentences`)**로 담는다(문장 단위 페어링·hotspot의 기반). 캡션은 가상 문단으로 두지 **않고** `config.json#captions`에 둔다. 정본 예: `samples/free_example/structured.json`.
 
 ```json
 {

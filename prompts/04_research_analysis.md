@@ -53,7 +53,7 @@ Your role is to **reconstruct the author's research thinking process**.
 | 7 | `diss-extend` | Research Expansion | 자연스럽게 이어지는 후속 질문은? |
 | **8** | **`diss-summary`** | **논문 총정리** | **위 1~7을 한 카드에 압축. 9-row 정형 + 한 장 overview 이미지** |
 
-### 8번 카드 — `diss-summary` 세부 규약 (정본 = `papers/1. voila_a`)
+### 8번 카드 — `diss-summary` 세부 규약 (정본 = `samples/free_example`)
 
 > **갱신 정책 (2026-05-12)**: 기존 4-row(관찰/방법/차별/결과) 정형은 **9-row 정형**으로 확장. \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해할 수 있는 깊이</em>\"가 기준. 기존 4-row paper(SAFE/FrameFusion/SGL/SparseVLM 등)는 점진적 마이그레이션 권장.
 

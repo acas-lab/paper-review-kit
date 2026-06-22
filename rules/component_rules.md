@@ -836,7 +836,7 @@ btn.addEventListener('click', e => {
 
 ### 13.6 정본 사례
 
-- `papers/1. voila_a/_build.py` — CSS·JS·BODY 컨테이너 통합 정본
+- `samples/free_example/_build.py` — CSS·JS·BODY 컨테이너 통합 정본
 - 적용 대상: 모든 신규 빌드 + 기존 paper도 점진적 마이그레이션 권장
 
 ---
@@ -899,7 +899,7 @@ return (
 
 ### 14.4 정본 사례·데이터 소스
 
-- 정본 사례: `papers/1. voila_a/assets/generated/dissection_overview.png` (1536×1024, 한글 5단 라벨)
+- 정본 사례: `samples/free_example/assets/generated/dissection_overview.png` (1536×1024, 한글 5단 라벨)
 - 생성 방법: codex CLI 6계명 (§11.2). prompt 표준 구성은 `prompts/04_research_analysis.md` 참조.
 - summary 카드 9-row 정형과 한 셋트 (Stage 4 정본 갱신, 2026-05-12)
 
@@ -1021,7 +1021,7 @@ return (
 
 정본 사례 = `samples/free_example/_build.py`.
 
-> 안티패턴 (이전 정본의 잘못된 관성): 과거 빌드는 2-column + tag-옆 본문이었다. 사용자 지적(2026-05-13)에 따라 수직 적층으로 재작성. 신규 논문은 `samples/free_example` 또는 `papers/1. voila_a`의 CSS를 베이스로 한다.
+> 안티패턴 (이전 정본의 잘못된 관성): 과거 빌드는 2-column + tag-옆 본문이었다. 사용자 지적(2026-05-13)에 따라 수직 적층으로 재작성. 신규 논문은 `samples/free_example`의 CSS를 베이스로 한다.
 
 ---
 

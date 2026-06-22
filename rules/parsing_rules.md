@@ -259,7 +259,7 @@ for pno in range(doc.page_count):
 
 조정은 PDF pt 단위로 한 자리 수씩 (4~8pt). 한 번에 큰 폭으로 조정하지 말 것.
 
-**정본 구현**: `papers/1. voila_a/_crop.py` (캡션 anchor 기반 자산별 PDF pt bbox 표) + 좌표 검출 도구 `tools/detect_assets.py`. 신규 vector PDF는 detect_assets로 좌표를 뽑아 이 패턴에 자산 표만 갈아끼운다.
+**정본 구현**: `samples/free_example/_crop.py` (캡션 anchor 기반 자산별 PDF pt bbox 표) + 좌표 검출 도구 `tools/detect_assets.py`. 신규 vector PDF는 detect_assets로 좌표를 뽑아 이 패턴에 자산 표만 갈아끼운다.
 
 **Per-paper 사용 패턴**:
 
@@ -301,7 +301,7 @@ python tools/detect_assets.py "rawpaper/<논문>.pdf" --pages 4,5,8
 - **이미지 top anchor**: Figure y_top은 `images()`가 보고한 본체 이미지의 y0(헤더 제외 ≥60pt)에서 4~8pt 위. column top 64pt를 무턱대고 쓰면 페이지 중간 figure의 상단이 잘린다.
 - **column band**: 캡션 x중심·이미지 x로 full/left/right 판별. 좌/우 단 figure를 full-width로 자르면 옆 단 본문이 섞인다(단, 본문폭을 꽉 채우는 표는 full-width가 정상).
 
-> 정본 학습 사례 (실패→복구): `papers/1. voila_a` 1차 빌드(웹앱)는 위 도구 없이 좌표를 하드코딩해 **fig_2 상단이 잘리고**(이미지 y0=279인데 crop y_top=300), **table_1 하단에 본문 한 줄이 섞였다**. detect_assets로 캡션 block_y·이미지 bbox를 뽑아 fig_2=(300,272,512,478)·table_1=(100,78,510,176)로 재크롭 후 12개 자산 전부 본체+캡션 깨끗.
+> 정본 학습 사례 (실패→복구): 한 웹앱 빌드에서 위 도구 없이 좌표를 하드코딩한 결과, **figure 상단이 잘리고**(본체 이미지 y0보다 crop y_top을 아래로 잡음), **table 하단에 본문 한 줄이 섞였다**(멀티라인 캡션 끝을 첫 줄로 오인). `detect_assets.py`로 캡션 `block_y`·이미지 bbox를 뽑아 재크롭한 뒤 전 자산 본체+캡션 깨끗. 교훈: 좌표는 추측하지 말고 검출 도구로 anchor.
 
 ### OCR'd 스캔본 — 3-pass 알고리즘
 정본 도구: `tools/crop_assets.py` (이 배포본에는 OCR 스캔 예제 논문은 미포함, 도구만 제공).

@@ -21,4 +21,4 @@
 
 `SAFE_output.html` / `FrameFusion_output.html` / `SGL_output.html` 세 견본은 **결과물의 동결된 사본**이며, 그 원본 빌드 데이터(PDF·구조화 JSON 등)는 이 배포본에 포함하지 않는다(디자인·인터랙션을 베끼는 기준으로만 사용).
 
-빌드 데이터 → HTML 조립의 실제 예시가 필요하면 **`free_example/`**(워크드 예제)와 **`papers/1. voila_a/`**(실제 빌드 사례)를 본다. 신규 논문의 코드/CSS/JS는 이 둘을 베이스로 한다.
+빌드 데이터 → HTML 조립의 실제 예시가 필요하면 **`free_example/`**(완성 워크드 예제)를 본다. 신규 논문의 코드/CSS/JS는 이걸 베이스로 한다.
