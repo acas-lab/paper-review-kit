@@ -14,6 +14,10 @@ venv/
 *.bak
 *.before_*
 
+# 빌드 디버그 산출물 (페이지 렌더·콘택트 시트 — 크롭 검증용, 공유 불필요)
+**/assets/pages/
+**/_contact.png
+
 # Claude Code 로컬 설정
 .claude/
 

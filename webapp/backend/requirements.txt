@@ -1,0 +1,8 @@
+# Paper Review 웹 대시보드 — 백엔드 의존성
+# (start.py 런처가 webapp/.venv 에 자동 설치)
+claude-agent-sdk>=0.2.106
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+# 논문 자산 크롭 — Claude의 Bash가 부르는 python(=이 venv)에서 쓰임
+PyMuPDF>=1.24

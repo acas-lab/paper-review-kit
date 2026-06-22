@@ -15,19 +15,10 @@
 ## 함께 있는 파일
 
 - `design/` — 로고 등 디자인 자산 (acas-logo.png 외).
-
-## 관련 자료의 보관 위치
-
-- v2(beige+maroon) 백업 `*.before_v3` 3편 — `_archive/v2_backups/` (회복용 historical record)
-- 리컬러 스크립트 `_recolor_v3.py` — `_archive/`의 `samples_recolor_v3.py`, `sgl_recolor_v3.py` (실행 완료)
-- pre-SAFE 시기 디자인 영감 자료 (Focus_analysis, VLA-Cache_analysis_v3) — `_archive/personal_study/`
+- `free_example/` — 완성 **워크드 예제**(FREE 논문). 입력 JSON(config/structured/analysis/tabs_data) → `_build.py` → 단일 HTML 조립의 전 과정을 담은 유일한 빌드-데이터 예제.
 
 ## 작업 데이터는 어디?
 
-각 정본 논문의 원본 PDF·구조화 JSON·번역·자산 등 빌드 데이터는 `papers/[N. shortname]/`에 보관:
+`SAFE_output.html` / `FrameFusion_output.html` / `SGL_output.html` 세 견본은 **결과물의 동결된 사본**이며, 그 원본 빌드 데이터(PDF·구조화 JSON 등)는 이 배포본에 포함하지 않는다(디자인·인터랙션을 베끼는 기준으로만 사용).
 
-- `papers/1. safe_learning/`
-- `papers/2. frame_fusion/`
-- `papers/3. sgl/`
-
-여기 `samples/`의 HTML은 **그 결과물의 동결된 사본**이다. 데이터를 다시 다듬어 재빌드하더라도, 정본은 명시적 결정 없이는 갱신되지 않는다.
+빌드 데이터 → HTML 조립의 실제 예시가 필요하면 **`free_example/`**(워크드 예제)와 **`papers/1. voila_a/`**(실제 빌드 사례)를 본다. 신규 논문의 코드/CSS/JS는 이 둘을 베이스로 한다.

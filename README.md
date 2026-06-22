@@ -24,6 +24,15 @@
 
 ---
 
+## 두 가지 사용법
+
+- **🌐 웹앱 (비개발자 권장)** — `webapp/start.bat` 더블클릭 → 브라우저에서 PDF 올리고 채팅으로 빌드. 각자 본인 Claude 구독으로 동작(별도 API 키 없음). 준비물·사용법: **`webapp/README.md`**.
+- **⌨️ CLI 대화형** — 터미널에서 Claude Code를 열고 이 폴더에서 대화하며 단계별로 빌드. 흐름: **`SETUP.md`** → `workflow.md`.
+
+전제: 두 방식 모두 **Claude Code 설치 + 로그인**이 필요합니다.
+
+---
+
 ## 키트 구성
 
 ```
@@ -35,17 +44,19 @@ paper-review-kit/
 ├── workflow.md            ← 10단계 작업 흐름
 ├── prompts/               ← 단계별 프롬프트 (01_cleaning … 10_qa)
 ├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 규약
-├── tools/                 ← 재사용 도구 (PDF 크롭·재파싱 등)
-├── samples/               ← 정본 견본 3편 (디자인·인터랙션 기준 — 베껴 시작)
+├── tools/                 ← 재사용 도구 (PDF 크롭·캡션 좌표 검출·재파싱)
+├── webapp/                ← 브라우저 대시보드 (비개발자용 — start.bat 더블클릭)
+├── samples/               ← 정본 견본 + 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
 │   ├── SAFE_output.html         (1세대)
 │   ├── FrameFusion_output.html  (2세대)
-│   └── SGL_output.html          (3세대 — 신규 논문은 이걸 베이스로)
-└── papers/
-    └── 22. free/          ← 완성 사례 한 편 (입력 JSON → 출력 HTML 전 과정)
+│   ├── SGL_output.html          (3세대 — 신규 논문은 이걸 베이스로)
+│   └── free_example/            (완성 워크드 예제: 입력 JSON → 단일 HTML 전 과정)
+└── papers/                ← 빌드한 논문이 "1. shortname"부터 순차로 쌓임 (현재: 1. voila_a)
 ```
+> 완성 워크드 예제(FREE)는 `samples/free_example/`, 실제 빌드 사례는 `papers/1. voila_a/`입니다.
 
 `samples/`의 3편이 **"잘 만든 기준"**입니다. 신규 논문은 이 마크업·CSS·인터랙션을 베껴 시작합니다.
-`papers/22. free/`는 *데이터(JSON) → 단일 HTML* 조립이 실제로 어떻게 되는지 보여주는 완성 예시입니다.
+`samples/free_example/`는 *데이터(JSON) → 단일 HTML* 조립이 실제로 어떻게 되는지 보여주는 완성 예시입니다.
 
 > 참고: `CLAUDE.md`/`rules/`는 다른 사례 논문(예: `papers/4. perceptron`, `20. sparse_vlm`, `24. geollava8k`)도 언급하는데, 이 배포본에는 위 견본·예시만 포함됩니다. 나머지는 방법을 이해하는 데 필수가 아닙니다.
 

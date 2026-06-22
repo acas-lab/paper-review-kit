@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paper Review 대시보드</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">📄 Paper Review <span>대시보드</span></div>
+    <div id="auth" class="auth auth-unknown">인증 확인 중…</div>
+  </header>
+
+  <main class="layout">
+    <!-- 좌: 채팅 -->
+    <section class="chat-pane">
+      <div id="log" class="log">
+        <div class="msg system">
+          <p>안녕하세요! 논문 PDF를 올리고, 아래에 자연어로 요청하면 6탭 학습 HTML을 만들어 드려요.</p>
+          <p class="hint">예: <em>"방금 올린 PDF로 papers 폴더를 만들고 workflow 10단계로 6탭 HTML을 만들어줘. 디자인은 SGL 정본, ⑤⑥은 셸만."</em></p>
+        </div>
+      </div>
+      <form id="composer" class="composer">
+        <textarea id="input" rows="2" placeholder="요청을 입력하세요 (Shift+Enter 줄바꿈, Enter 전송)"></textarea>
+        <div class="composer-btns">
+          <button type="button" id="stop" class="btn-ghost" disabled>■ 중지</button>
+          <button type="submit" id="send" class="btn-send" disabled>전송</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 우: 업로드 + 논문 목록 + 미리보기 -->
+    <aside class="side-pane">
+      <div class="card">
+        <h2>① PDF 업로드</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="pdf" accept="application/pdf" hidden />
+          <span id="dropText">클릭하거나 PDF를 끌어다 놓기</span>
+        </label>
+        <div id="uploadMsg" class="upload-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>② 논문 목록</h2>
+        <ul id="papers" class="papers"><li class="muted">불러오는 중…</li></ul>
+        <button type="button" id="refresh" class="btn-ghost small">새로고침</button>
+      </div>
+
+      <div class="card preview-card">
+        <h2>③ 미리보기</h2>
+        <iframe id="preview" title="결과 미리보기"></iframe>
+        <a id="openNew" class="btn-ghost small" target="_blank" style="display:none">새 탭에서 열기 ↗</a>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

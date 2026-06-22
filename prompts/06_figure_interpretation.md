@@ -13,7 +13,7 @@ You are a research assistant.
 - **렌더링 위치:** ① `tab-reading`의 각 자산 카드 바로 아래
   - `.interpretation` 박스 (항상 표시)
   - `<details class="beginner-note">` 토글 (클릭 펼침)
-  - `.study-fab` 떠 있는 버튼 → `.study-modal` 팝업 (정본: SGL §3-rd generation)
+  - `.study-fab` 떠 있는 버튼 → `.study-modal` **오른쪽 사이드 드로어**로 열림 (정본 CSS/JS: `rules/component_rules.md` §12.5/§12.6. 풀스크린 팝업은 폐기 — SGL은 historical reference로만)
 
 ## Referenced Rules
 

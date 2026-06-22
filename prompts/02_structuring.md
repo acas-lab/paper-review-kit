@@ -23,7 +23,7 @@ You are a research paper structure analyzer.
 1. 섹션 분리 (Front Matter, Abstract, 1 Introduction, 2 Related Work, …)
 2. 문단 유지 (재구성 금지)
 3. 수식 분리 및 보존 (가능하면 LaTeX 유지, MathJax 인식 가능한 `$...$` / `$$...$$` 형태)
-4. Figure/Table 자산은 별도 객체로 분리하되, **caption은 가상 문단(`fig_N_caption`, `table_N_caption`)으로 본문에 삽입**해 자산 위치 추적이 가능하도록 한다 (`add_captions.py`가 자동 수행 가능).
+4. Figure/Table **caption은 structured.json에 넣지 않는다** — 원문 캡션은 `config.json#captions`, 자산↔문단 위치는 `config.json#asset_layout`으로 관리한다 (가상 캡션 문단·`is_caption` 폐기, `rules/parsing_rules.md` §3-2 정본).
 
 ---
 
@@ -150,37 +150,40 @@ structured.json 작성 완료
 ## ID 규약 (필수)
 
 - `section_id`: `s1`, `s2`, ... (논문 전체 유일)
-- `paragraph_id`: `p1`, `p2`, ... (논문 전체 유일, 캡션 가상 문단 포함)
-- `sentence_id`: `{paragraph_id}_s{n}` (Stage 3에서 자동 부여)
+- `paragraph_id`: `p1`, `p2`, ... (논문 전체 유일)
+- `sentence_id`: `{paragraph_id}_s{n}` (**이 단계(Stage 2)에서 부여** — Stage 3 번역·④ hotspot이 이 ID를 그대로 받는다)
 
-## 출력 스키마
+## 출력 스키마 (5세대 정본 = `rules/parsing_rules.md` §3-1-bis)
+
+문단은 `text` 통짜가 아니라 **문장 배열(`sentences`)**로 담는다(문장 단위 페어링·hotspot의 기반). 캡션은 가상 문단으로 두지 **않고** `config.json#captions`에 둔다. 정본 예: `samples/free_example/structured.json`, `papers/1. voila_a/structured.json`.
 
 ```json
 {
-  "source_pdf": "rawpaper/...pdf",
-  "chunking_mode": "section_paragraph",
-  "paragraph_id_scheme": "p1, p2, p3, ...",
+  "title": "Paper Title",
   "sections": [
     {
       "section_id": "s1",
-      "title": "Front Matter",
+      "title": "3 Method",
       "paragraphs": [
-        { "paragraph_id": "p1", "page": 1, "text": "..." }
+        {
+          "paragraph_id": "p1",
+          "section_subtitle": "3.1 Overview",
+          "sentences": [
+            { "sentence_id": "p1_s1", "text": "..." },
+            { "sentence_id": "p1_s2", "text": "..." }
+          ]
+        }
       ]
     }
   ]
 }
 ```
 
-각 figure/table은 본문 본 문단 옆에 다음 형태의 가상 문단을 둔다:
+캡션은 **가상 문단으로 만들지 않는다.** 원문 캡션 텍스트는 `config.json#captions`(Stage 0에서 detect_assets가 추출)에, 자산↔문단 위치는 `config.json#asset_layout`에 둔다 (`rules/parsing_rules.md` §3-2 정본).
 
-```json
-{ "paragraph_id": "p20", "page": 4, "text": "Figure 2: ...", "is_caption": true, "asset_id": "fig_2" }
-```
+## 자산 매핑 — config.json#asset_layout 채우기
 
-## 자산 매핑은 별도 단계
-
-자산의 **paragraph_id ↔ asset_id** 매핑은 `papers/[name]/config.json#asset_layout`에서 수동 작성한다 (이 단계의 책임 아님).
+`config.json` 자체는 **Stage 0 (PDF Parsing)에서 생성**된다(`metadata`·captions·wide_assets 포함 — workflow.md Stage 0 참조). 단 `asset_layout`의 **paragraph_id**는 이 단계(Stage 2)에서 문단 ID가 확정돼야 정해지므로, **structured.json 발행 직후 `config.json#asset_layout`을 `[[asset_id, paragraph_id, kind], ...]` 형태로 채운다**. 자산 등장 순서는 원본 번호 순(CLAUDE.md "자산 등장 순서" 정책).
 
 ## 금지
 

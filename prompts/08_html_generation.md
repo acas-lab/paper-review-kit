@@ -52,33 +52,19 @@ You are Claude, building a learning HTML directly in conversation with the user.
 
 ---
 
-## 디자인 토큰 (정본 — `CLAUDE.md`와 동일)
+## 디자인 토큰 (정본 — `CLAUDE.md`)
 
-```css
-:root {
-  --bg: #f5f1e8;          /* warm beige */
-  --paper: #fffdf7;
-  --ink: #1f1b16;
-  --muted: #6c6358;
-  --line: #ddd2bf;
-  --accent: #8b3d2c;      /* maroon */
-  --accent-soft: #f5e3da;
-  --sage: #2f5948;
-  --sage-soft: #dfeae0;
-  --gold: #9c6b18;
-  --gold-soft: #fbe8c8;
-  --indigo: #2c4f7c;
-  --indigo-soft: #dde8f5;
-  --plum: #5e3a8b;
-  --plum-soft: #e6dcf5;
-}
-```
+🔴 **토큰의 단일 출처는 `CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록이다. 그 `:root{...}`를 그대로 복사해 쓴다.** (이전에 여기 박혀 있던 v2 beige+maroon 블록은 폐기 — 드리프트 방지를 위해 인라인 사본을 두지 않는다.)
+
+- 팔레트: 흰색 위주 배경 + 라벤더(`--accent #8b75c0`)/하늘색(`--azure`)/더스티로즈(`--rose`) 파스텔.
+- deep tone(`--accent`/`--azure`/`--rose`)은 글자·보더·강조선 전용 — box/카드 배경엔 `--*-soft` 또는 `--paper`.
+- v2 변수명(`--sage`/`--gold`/`--indigo`/`--plum`)은 CLAUDE.md `:root`에 alias로 살아 있어 기존 마크업을 베껴도 v3 색이 적용된다.
 
 **폰트:** `Pretendard Variable`, `Noto Sans KR`, `Segoe UI`, sans-serif
 **본문 라인 높이:** 1.72
 **최대 너비:** `.app { max-width: 1280px; margin: 0 auto; }`
 
-디자인 토큰의 정본은 **`CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록**이다. 신규 논문은 v3 팔레트(흰색 + 라벤더/하늘색/로즈 파스텔)로 빌드한다. `samples/SAFE_output.html`의 `<style>` 블록은 v2 팔레트(beige + maroon)로 동결되어 있어 색 정본으로 쓰지 말 것 — 마크업 셸·문장 페어링 패턴·기타 컴포넌트 구조만 모방한다.
+`samples/SAFE_output.html`의 `<style>`는 색 정본이 아니다 — 마크업 셸·문장 페어링·컴포넌트 구조만 모방하고 색은 CLAUDE.md v3를 따른다.
 
 ---
 
@@ -99,7 +85,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
 - 헤더 `<h3 class="diss-title">{title}</h3>` + `<p class="diss-lead">{lead}</p>`
 - `rows`는 `<dl class="diss-rows">` + `<dt class="diss-tag">{tag}</dt>` / `<dd class="diss-body">{body}</dd>`
 - 상단(선택): `<svg class="diss-flow">` 요약 다이어그램 또는 `assets/generated/dissection_flow_*.png` 삽입
-- **마지막 카드 `diss-summary`** — 정본은 SGL(`samples/SGL_output.html`의 `diss-summary` 카드). rows는 정확히 4행 (`관찰 과정` / `해결 방법` / `다른 논문과의 차별점` / `결과 및 결론`). 각 body는 `<b>`로 sub-tag 강조한 한 단락(3~6 문장). 자세한 규약은 `prompts/04_research_analysis.md` "8번 카드 — diss-summary 세부 규약" 참조.
+- **마지막 카드 `diss-summary`** — **9-row 정형** (2026-05-12 정본 갱신): ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 각 body 300~600자, `<strong>`·`<em>` 강조. 헤더 아래·rows 위에 `assets/generated/dissection_overview.png` 한 장 인포그래픽을 `<figure class="diss-overview-figure">`로 base64 인라인. 레이아웃은 단일 컬럼 수직 적층(§16). 자세한 규약: `prompts/04_research_analysis.md` Stage 4 + `rules/component_rules.md` §14·§16. (이전 4-row 카드는 폐기)
 
 ### ③ `tab-knowledge`
 - `primer`: 다이어그램 SVG 또는 `assets/generated/knowledge_*.png` + `.knw-grid > .fund-card`

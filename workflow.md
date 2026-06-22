@@ -6,6 +6,11 @@
 > 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link, fig-hotspot, glossary), SGL(3세대 — study-fab 모달, 3-Part Simulator)
 >
 > 표준 템플릿/디자인 토큰/디렉토리 규약: `CLAUDE.md` 참조
+>
+> ⚠️ **프롬프트 파일 번호 ≠ 스테이지 번호** (역사적 이유). 매핑:
+> Stage 1→`prompts/01_cleaning`, 2→`02_structuring`, 3→`03_translation`, 4→`04_research_analysis`,
+> 5→`05_coaching`, 6→`06_figure_interpretation`, 7→`07_background_knowledge`,
+> **Stage 8 Simulator→`prompts/09_simulator`**, **Stage 9 QA→`prompts/10_qa`**, **Stage 10 HTML→`prompts/08_html_generation`**.
 
 ---
 
@@ -20,12 +25,17 @@
 - Figure / Table을 PNG로 크롭
 
 **산출물:**
-- 정제된 plain text 또는 페이지별 블록 텍스트
+- 정제된 plain text 또는 페이지별 블록 텍스트 → `papers/[name]/fulltext.txt`
 - `papers/[name]/assets/fig_N.png`, `assets/table_N.png`
+- 🔴 **`papers/[name]/config.json`** — 이 단계에서 **생성한다** (Stage 10 HTML 생성이 필수로 요구하는데 다른 단계가 안 만들므로 여기서 책임진다). 4개 키:
+  - `metadata` — title / short_name / venue / year / authors / affiliation / source_pdf (PDF 첫 페이지에서). 키 이름은 `metadata` (정본; `_build.py`가 `config.get("metadata")` 우선. 일부 구 예제는 `meta` — 신규는 `metadata`로 통일)
+  - `asset_layout` — `[[asset_id, paragraph_id, kind], ...]` 자산↔문단 매핑. paragraph_id는 Stage 2 산출 후 확정되므로, **Stage 2 완료 시점에 이 키를 채워 넣는다** (자산 등장 순서는 번호 순 — CLAUDE.md "자산 등장 순서" 정책)
+  - `captions` — `{asset_id: 원문 캡션}` (detect_assets.py가 뽑은 캡션 텍스트)
+  - `wide_assets` — 본문폭을 꽉 채우는(full-width) 자산 id 배열
 
 **자산 크롭 — PDF 종류별:**
-- **vector PDF** (현대 ML/CV 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본 — `^Figure N\. ` / `^Table N\. ` 정규식으로 캡션 첫 줄을 anchor로 잡고, Figure는 위(`y_top=col_top, y_bot=cap_bottom+padding`) / Table은 아래(`y_top=cap_top-padding, y_bot=data_last_row+padding`) 컨벤션으로 bbox 계산. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패 — 캡션 anchor 방식이 더 안정. 정본 구현: `papers/20. sparse_vlm/_crop.py`. **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 캡션 잘림, 표 아래 본문 누수를 PNG 직접 열어 확인.
-- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py`, 정본 사례 `papers/4. perceptron/_recrop.py`
+- **vector PDF** (현대 ML/CV 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본. 먼저 `python tools/detect_assets.py "<pdf>"`로 각 캡션의 `block_y`(멀티라인 블록 전체)·이미지/드로잉 bbox를 뽑은 뒤, 그 좌표를 anchor로 crop rect를 계산한다 — **좌표 하드코딩 금지**. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패. 🔴 **"Figure=캡션 아래 / Table=캡션 위"는 관행일 뿐 자산 유형으로 단정하지 말 것** — 표 데이터가 위·캡션이 아래인 논문도 흔하다(FastVLM). 반드시 좌표로 캡션-본체 상대 위치를 자산별 판별. 정본 구현: `papers/1. voila_a/_crop.py`. **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 멀티라인 캡션 잘림, 옆 단/표 아래 본문 누수를 PNG 직접 열어 확인. 자세히: `rules/parsing_rules.md` §4-A.
+- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py` (이 배포본엔 OCR 예제 논문 미포함, 도구만 제공)
 - per-paper 진입점은 `papers/[name]/_crop.py` 또는 `_recrop.py` 한 장. 일회성 헬퍼 정책
 
 **참조 규칙:** `rules/parsing_rules.md` (§4-A — vector PDF 캡션 좌표 정본 + OCR'd 스캔본 3-pass)
@@ -56,18 +66,22 @@
 
 **산출물:** `papers/[name]/structured.json`
 
-**핵심 스키마:**
+**핵심 스키마** (5세대 정본 = `rules/parsing_rules.md` §3-1-bis — 문단은 `sentences[]`, 캡션은 structured에 넣지 않고 `config.json#captions`):
 ```json
 {
-  "source_pdf": "rawpaper/...pdf",
-  "chunking_mode": "section_paragraph",
-  "paragraph_id_scheme": "p1, p2, p3, ...",
+  "title": "Paper Title",
   "sections": [
     {
       "section_id": "s1",
-      "title": "Front Matter",
+      "title": "3 Method",
       "paragraphs": [
-        { "paragraph_id": "p1", "page": 1, "text": "..." }
+        {
+          "paragraph_id": "p1",
+          "section_subtitle": "3.1 Overview",
+          "sentences": [
+            { "sentence_id": "p1_s1", "text": "..." }
+          ]
+        }
       ]
     }
   ]
@@ -76,8 +90,8 @@
 
 **식별자 규약:**
 - `section_id`: `s1`, `s2`, ...
-- `paragraph_id`: `p1`, `p2`, ... (캡션 가상 문단 포함)
-- `sentence_id`: `{paragraph_id}_s{n}` (Stage 3에서 부여)
+- `paragraph_id`: `p1`, `p2`, ...
+- `sentence_id`: `{paragraph_id}_s{n}` (**Stage 2에서 부여**)
 
 **출력 탭:** ① `tab-reading`
 
@@ -143,9 +157,9 @@
    - `diss-verify` Validation Logic
    - `diss-risk` Hidden Assumptions and Risks
    - `diss-extend` Research Expansion
-   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 5세대 정본: `papers/21. lv_pruning`.
+   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 정본: `papers/1. voila_a`.
 
-   **summary 카드 한 장 overview 이미지 의무**: summary 카드 헤더 아래에 `assets/generated/dissection_overview.png` (1536×864, 5단 PROBLEM→OBSERVATION→METHOD→NOVELTY→RESULTS 인포그래픽)를 `<figure class="diss-overview-figure">`로 동봉. 마크업·CSS·빌더 헬퍼: `rules/component_rules.md` §14.
+   **summary 카드 한 장 overview 이미지 의무**: summary 카드 헤더 아래에 `assets/generated/dissection_overview.png` (가로 와이드 ~1536×1024, 5단 **문제→관찰→방법→차별→결과** 인포그래픽, 한글 라벨)를 `<figure class="diss-overview-figure">`로 동봉. codex ImageGen 6계명으로 생성. 마크업·CSS·빌더 헬퍼: `rules/component_rules.md` §14.
 
 2. **`analysis.json#callouts`** — 문단 단위 강조 (`warn` / `key`)
 
@@ -195,7 +209,9 @@
 **산출물 — `analysis.json` 세 키:**
 - `interpretations` (전문가, 카드 본문)
 - `beginner_notes` (초보자, 토글)
-- `study_modals` (학습 가이드 모달) — `{title, look, nums≥3, author, check≥2}` 형식. 정본 = `samples/SGL_output.html` fig_1 모달.
+- `study_modals` (학습 가이드 모달) — `{title, look, nums≥3, author, check≥2}` 형식. 마크업·CSS·JS 정본 = `rules/component_rules.md` §12.5/§12.6 (오른쪽 사이드 드로어). SGL은 historical reference로만.
+
+> 🔴 **`analysis.json`은 Stage 4가 먼저 쓴다** (`callouts`·`quizzes`). Stage 6은 위 세 키를 **기존 파일에 병합(merge)** 해야 한다 — 통째로 덮어쓰면 Stage 4의 callouts/quizzes가 사라진다. (파일 읽기 → 키 추가 → 저장)
 
 **렌더 위치:** ① `tab-reading`의 각 자산 카드 바로 아래 + study-fab 클릭 시 떠오르는 `.study-modal`
 
@@ -341,9 +357,9 @@
 - 번역 누락 0건 (회색 placeholder / `—` 미발견)
 - 콜아웃/퀴즈/해석/초보자 노트가 의도한 위치에 표시
 - **모든 figure/table에 `.study-fab` 버튼 + 4-섹션 정형(s-look·s-num·s-author·s-check) 학습 가이드 모달** (interpretation/beginner-note의 단순 복제 ✗ — 한 단계 더 깊은 분해. §12 정본 SGL 패턴)
-- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `papers/21. lv_pruning`)
+- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `papers/1. voila_a`)
 - **`.diss-tag` pill이 본문 한 줄 높이의 작은 알약 모양** — grid cell의 세로 stretch로 큰 타원·이상한 모양이 안 보임. 5개 속성 필수: `align-self:start` / `justify-self:start` / `width:max-content` / `white-space:nowrap` / `line-height:1.4` (`rules/component_rules.md` §15)
-- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `papers/22. free`, 2026-05-13 갱신)
+- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `samples/free_example`, 2026-05-13 갱신)
 - **모든 콘텐츠 이미지(① 자산·② summary overview·③ 학습 보조)에 비율 유지 lightbox 동작** — `cursor:zoom-in` hover, 클릭 시 어두운 배경 모달에 비율 유지하며 확대, 휠/+/− 줌·드래그 pan·더블클릭 토글·ESC 닫기. `study-fab` 클릭은 `e.stopPropagation() + e.preventDefault()`로 lightbox 트리거 차단 (`rules/component_rules.md` §13)
 - ② ③ ④ 탭 콘텐츠가 비어 있지 않음
 - ⑤ ⑥ 탭은 셸만 — `tab-intro` + `.section-empty` placeholder ("이 탭은 별도 요청 시 작성됩니다") 표시

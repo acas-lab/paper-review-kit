@@ -53,7 +53,7 @@ Your role is to **reconstruct the author's research thinking process**.
 | 7 | `diss-extend` | Research Expansion | 자연스럽게 이어지는 후속 질문은? |
 | **8** | **`diss-summary`** | **논문 총정리** | **위 1~7을 한 카드에 압축. 9-row 정형 + 한 장 overview 이미지** |
 
-### 8번 카드 — `diss-summary` 세부 규약 (5세대 정본 = `papers/21. lv_pruning`)
+### 8번 카드 — `diss-summary` 세부 규약 (정본 = `papers/1. voila_a`)
 
 > **갱신 정책 (2026-05-12)**: 기존 4-row(관찰/방법/차별/결과) 정형은 **9-row 정형**으로 확장. \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해할 수 있는 깊이</em>\"가 기준. 기존 4-row paper(SAFE/FrameFusion/SGL/SparseVLM 등)는 점진적 마이그레이션 권장.
 
@@ -73,7 +73,7 @@ Your role is to **reconstruct the author's research thinking process**.
 
 각 row의 `body`는 `<strong>`/`<em>` 활용해 sub-claim을 강조하며 **300~600자**의 풍부한 단락. 다른 7장 카드보다 밀도·길이 모두 높은 종합 글.
 
-**렌더 위치:** 다른 7장과 같은 `diss-grid` 안 마지막 자리(`grid-column:1/-1`로 full-width). 다른 색 카테고리 클래스 없이 `diss-summary` 단독.
+**렌더 위치:** 다른 7장과 같은 `diss-grid` 안 마지막 자리. `.diss-grid`는 단일 컬럼(`grid-template-columns:1fr`, §16)이므로 별도 full-width 지정 불필요(과거 2-column 시절의 `grid-column:1/-1`은 이제 불필요한 잔재). 다른 색 카테고리 클래스 없이 `diss-summary` 단독.
 
 ### 8번 카드 — 한 장 overview 이미지 의무 (정본 `dissection_overview.png`)
 

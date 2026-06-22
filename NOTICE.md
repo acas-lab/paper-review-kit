@@ -34,7 +34,7 @@
 - `samples/SAFE_output.html` — SAFE (NAACL 2025)
 - `samples/FrameFusion_output.html` — FrameFusion (ICCV 2025)
 - `samples/SGL_output.html` — SGL "A Stitch in Time…" (CVPR 2025)
-- `papers/22. free/` — FREE: Fast and Robust VLMs with Early Exits
+- `samples/free_example/` — FREE: Fast and Robust VLMs with Early Exits
 
 ---
 

@@ -184,7 +184,7 @@ assert tabs == sorted(tabs, key=lambda x: int(x.split("_")[1])), f"table 번호 
 - Figure / Table은 절대 문맥에서 분리하지 않는다 (별도 갤러리 탭 금지)
 - `asset_layout`에 등록된 문단 바로 아래에 inline 렌더
 - **자산 등장 순서는 원본 번호 순서 (fig_1→2→…→N, table_1→2→…→N) 보존** — 번호 점프 금지. Appendix figure는 본문 마지막 figure 뒤에 배치 (§3-2-bis)
-- caption은 본문 가상 문단으로 흡수 (`add_captions.py`가 자동 수행 가능)
+- caption은 structured.json에 넣지 않고 `config.json#captions`에 둔다 (가상 문단·`is_caption` 폐기 — §3-2 정본)
 - 이미지 자산은 `papers/[name]/assets/{fig_N|table_N}.png` 경로 고정
 
 ---
@@ -208,10 +208,12 @@ imgs = page.get_images(full=True)
 
 **대신 캡션 텍스트 좌표를 anchor로 삼는다** — 캡션은 ML/CV 학회 PDF에서 위치 컨벤션이 명확하므로 안정적 anchor가 된다:
 
-| 자산 유형 | 캡션 위치 | crop bbox |
+| 자산 유형 | 캡션 위치 (관행) | crop bbox |
 |---|---|---|
-| Figure | 본체 **아래** | y_top = column top, y_bot = caption_bottom + 4~8pt 패딩 |
+| Figure | 본체 **아래** | y_top = 본체 top, y_bot = caption_bottom + 4~8pt 패딩 |
 | Table | 본체 **위** | y_top = caption_top − 3pt 패딩, y_bot = 표 데이터 마지막 행 + 4pt |
+
+> 🔴 **위 "Figure=아래 / Table=위"는 관행일 뿐, 자산 유형으로 단정하지 말 것.** 논문마다 다르다 — Table 데이터가 위, 캡션이 아래인 경우도 흔하다(FastVLM CVPR2025는 표 6개 전부 이 형태). **반드시 좌표로 캡션-데이터 상대 위치를 자산별로 판별**한다: `detect_assets.py`로 캡션 `block_y`를 얻고, 같은 column band에서 캡션 위/아래 어느 쪽에 본체(이미지·드로잉·표 숫자 라인)가 있는지 확인한 뒤 crop 방향을 정한다. 유형만 믿고 관행대로 자르면 캡션+옆 본문만 담기고 본체를 통째로 놓친다.
 
 **검출 절차 (PyMuPDF)**:
 
@@ -257,7 +259,7 @@ for pno in range(doc.page_count):
 
 조정은 PDF pt 단위로 한 자리 수씩 (4~8pt). 한 번에 큰 폭으로 조정하지 말 것.
 
-**정본 구현**: `papers/20. sparse_vlm/_crop.py` (PT_TO_PX 변환 헬퍼 + 자산별 PDF pt bbox 표). 신규 vector PDF는 이 패턴을 그대로 복사해 자산 표만 갈아끼운다.
+**정본 구현**: `papers/1. voila_a/_crop.py` (캡션 anchor 기반 자산별 PDF pt bbox 표) + 좌표 검출 도구 `tools/detect_assets.py`. 신규 vector PDF는 detect_assets로 좌표를 뽑아 이 패턴에 자산 표만 갈아끼운다.
 
 **Per-paper 사용 패턴**:
 
@@ -285,8 +287,24 @@ for fn, pno, box in CROPS:
 
 **`get_image_bbox` 사용이 여전히 OK인 경우**: 자산이 단일 image object로 명확히 분리되는 경우 (스크린샷·사진·photoreal figure 한 장 = 한 image). 캡션 좌표 기반이 항상 더 안전하므로, 의심스러우면 캡션 좌표 우선.
 
+#### 🔴 좌표를 손으로 추측하지 말 것 — 먼저 검출 도구를 돌린다 (정책)
+
+`_crop.py`의 rect를 눈대중·하드코딩으로 적으면 거의 항상 빗나간다. **먼저 `tools/detect_assets.py`를 돌려** 각 캡션의 실제 PDF point 좌표와 이미지/드로잉 bbox를 뽑고, 그 숫자를 anchor로 rect를 계산한다.
+
+```
+python tools/detect_assets.py "rawpaper/<논문>.pdf" --pages 4,5,8
+# → CAP Figure block_y=[438.8, 470.7] x=[306,504] lines=3  | Figure 2: ...
+#   images(n=...): [(310,279,500,429), ...]
+```
+
+- **멀티라인 캡션 주의**: 캡션 정규식이 매치하는 건 **첫 줄**뿐이다. Figure의 y_bot은 첫 줄 y1이 아니라 **캡션 블록 전체의 끝(`block_y[1]`) + 4~8pt**여야 한다. detect_assets는 같은 블록에서 줄간격 ≤7pt로 이어지는 줄을 묶어 `block_y`로 보고하므로 그 값을 쓴다.
+- **이미지 top anchor**: Figure y_top은 `images()`가 보고한 본체 이미지의 y0(헤더 제외 ≥60pt)에서 4~8pt 위. column top 64pt를 무턱대고 쓰면 페이지 중간 figure의 상단이 잘린다.
+- **column band**: 캡션 x중심·이미지 x로 full/left/right 판별. 좌/우 단 figure를 full-width로 자르면 옆 단 본문이 섞인다(단, 본문폭을 꽉 채우는 표는 full-width가 정상).
+
+> 정본 학습 사례 (실패→복구): `papers/1. voila_a` 1차 빌드(웹앱)는 위 도구 없이 좌표를 하드코딩해 **fig_2 상단이 잘리고**(이미지 y0=279인데 crop y_top=300), **table_1 하단에 본문 한 줄이 섞였다**. detect_assets로 캡션 block_y·이미지 bbox를 뽑아 fig_2=(300,272,512,478)·table_1=(100,78,510,176)로 재크롭 후 12개 자산 전부 본체+캡션 깨끗.
+
 ### OCR'd 스캔본 — 3-pass 알고리즘
-정본 구현: `tools/crop_assets.py`. 정본 사례: `papers/4. perceptron/`.
+정본 도구: `tools/crop_assets.py` (이 배포본에는 OCR 스캔 예제 논문은 미포함, 도구만 제공).
 
 **Pass 1 — figure y-범위 (OCR word density)**
 캡션 bbox에서 위(figure ABOVE caption) 또는 아래(table BELOW caption)로 row 단위 스캔.

@@ -46,7 +46,7 @@ cd paper-review-kit
 
 - `samples/SGL_output.html` — 가장 최신(3세대) 인터랙션. **신규 논문은 이걸 베이스로 따라갑니다.**
 - `samples/SAFE_output.html`, `samples/FrameFusion_output.html` — 1·2세대
-- `papers/22. free/FREE_output.html` — 방법을 실제 2025년 논문에 적용한 완성 예시
+- `samples/free_example/FREE_output.html` — 방법을 실제 2025년 논문에 적용한 완성 예시
 
 ---
 
