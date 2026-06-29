@@ -52,7 +52,7 @@ async def list_papers():
     if PAPERS_DIR.exists():
         for d in sorted(PAPERS_DIR.iterdir()):
             if d.is_dir():
-                outputs = sorted(h.name for h in d.glob("*_output.html"))
+                outputs = sorted(h.name for h in d.glob("*.html"))
                 out.append({"folder": d.name, "outputs": outputs})
     return out
 

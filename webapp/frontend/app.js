@@ -3,6 +3,68 @@ const $ = (s) => document.querySelector(s);
 const log = $("#log"), input = $("#input"), sendBtn = $("#send"), stopBtn = $("#stop");
 
 let ws = null, busy = false, curAssistant = null, selectedPaper = null;
+let imageMode = localStorage.getItem("imageMode") || "codex";  // 'codex' | 'claude_svg'
+let codexAvailable = true;
+let turnStart = 0, tickTimer = null, statusPhase = "";
+
+/* ---------- 진행률/생존 표시 (중지 버튼 왼쪽) ---------- */
+function fmtElapsed(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+function renderStatus() {
+  const el = $("#status");
+  if (!el) return;
+  if (busy) {
+    el.className = "status busy";
+    el.innerHTML = '<span class="st-dot"></span><span class="st-text"></span><span class="st-time"></span>';
+    el.querySelector(".st-text").textContent = statusPhase || "작업 중";
+    el.querySelector(".st-time").textContent = turnStart ? fmtElapsed(Date.now() - turnStart) : "";
+    el.title = "작동 중 — 시간이 흐르면 살아 있는 것입니다";
+  } else {
+    el.className = "status idle";
+    el.innerHTML = '<span class="st-dot"></span><span class="st-text">대기</span>';
+  }
+}
+function setPhase(p) { statusPhase = p; renderStatus(); }
+function startTick() {
+  turnStart = Date.now();
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(renderStatus, 1000);  // ticking clock = proof it's alive
+}
+function stopTick() {
+  if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+}
+
+/* ---------- 이미지 생성 방식 토글 ---------- */
+const MODE_NOTE = {
+  codex: "codex CLI로 풀-블리드 일러스트 PNG를 생성합니다.",
+  claude_svg: "Claude가 외부 도구 없이 인라인 SVG 도식을 직접 그립니다.",
+};
+function renderImgMode() {
+  document.querySelectorAll("#imgmode .seg-btn").forEach((b) => {
+    const on = b.dataset.mode === imageMode;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-checked", on ? "true" : "false");
+  });
+  const note = $("#imgmodeNote");
+  if (!codexAvailable) {
+    note.className = "seg-note locked";
+    note.textContent = "codex CLI가 없어 'Claude 자체(SVG)'로 고정됩니다.";
+  } else {
+    note.className = "seg-note";
+    note.textContent = MODE_NOTE[imageMode];
+  }
+}
+function setImageMode(mode) {
+  if (mode === "codex" && !codexAvailable) return;  // 잠김
+  imageMode = mode;
+  localStorage.setItem("imageMode", mode);
+  renderImgMode();
+}
+document.querySelectorAll("#imgmode .seg-btn").forEach((b) => {
+  b.addEventListener("click", () => setImageMode(b.dataset.mode));
+});
 
 /* ---------- 채팅 렌더 ---------- */
 function scroll() { log.scrollTop = log.scrollHeight; }
@@ -28,8 +90,10 @@ function addTool(name, brief) {
 function addResult(ev) {
   const d = document.createElement("div");
   d.className = "result-line" + (ev.is_error ? " err" : "");
-  const cost = ev.cost_usd != null ? ` · ${ev.cost_usd.toFixed(4)} USD 상당` : "";
-  d.textContent = ev.is_error ? "⚠ 오류로 종료" : `✓ 완료${cost}`;
+  // 구독(OAuth) 실행이라 토큰 과금 없음 → 비용 대신 소요 시간 표시
+  const ms = ev.duration_ms != null ? ev.duration_ms : (turnStart ? Date.now() - turnStart : 0);
+  const took = ms ? ` · ${fmtElapsed(ms)} 소요` : "";
+  d.textContent = ev.is_error ? "⚠ 오류로 종료" : `✓ 완료${took}`;
   log.appendChild(d); scroll();
 }
 
@@ -40,10 +104,11 @@ function connect() {
     const ev = JSON.parse(e.data);
     switch (ev.type) {
       case "ready": setBusy(false); break;
-      case "text": appendAssistant(ev.text); break;
-      case "tool_use": curAssistant = null; addTool(ev.name, ev.brief); break;
-      case "tool_result": break;
-      case "thinking": break;
+      case "text": appendAssistant(ev.text); setPhase("응답 작성 중"); break;
+      case "tool_use": curAssistant = null; addTool(ev.name, ev.brief); setPhase("🔧 " + ev.name); break;
+      case "tool_result": setPhase("도구 완료, 이어서 작업 중"); break;
+      case "thinking": setPhase("생각 중"); break;
+      case "summary": renderSummary(ev); break;
       case "result": curAssistant = null; addResult(ev); refreshPapers(); break;
       case "turn_end": setBusy(false); curAssistant = null; break;
       case "error": curAssistant = null; addMsg("system", "⚠ " + ev.message); setBusy(false); break;
@@ -57,19 +122,23 @@ function setBusy(b) {
   busy = b;
   sendBtn.disabled = b; stopBtn.disabled = !b;
   sendBtn.textContent = b ? "작업 중…" : "전송";
+  if (b) { if (!turnStart) startTick(); } else { stopTick(); turnStart = 0; }
+  renderStatus();
 }
 
 function send(textOverride) {
   const text = (textOverride != null ? textOverride : input.value).trim();
   if (!text || busy || !ws || ws.readyState !== 1) return;
   // 선택된 논문이 있으면 그 논문을 작업 대상으로 명시(Claude가 어느 논문을 고칠지 알도록)
-  const payload = selectedPaper
-    ? `[작업 대상 논문: papers/${selectedPaper}] ${text}`
-    : text;
+  // 이미지 생성 모드도 항상 명시 — CLAUDE.md/§11.8 규약대로 Claude가 codex/SVG 중 택일
+  const tags = `[이미지 생성 모드: ${imageMode}]`
+    + (selectedPaper ? ` [작업 대상 논문: papers/${selectedPaper}]` : "");
+  const payload = `${tags} ${text}`;
   addMsg("user", (selectedPaper ? `→ [${selectedPaper}] ` : "") + text);
   curAssistant = null;
   ws.send(JSON.stringify({ type: "user", text: payload }));
   if (textOverride == null) input.value = "";
+  setPhase("요청 전송됨");
   setBusy(true);
 }
 
@@ -104,6 +173,11 @@ stopBtn.addEventListener("click", () => {
 async function loadAuth() {
   try {
     const a = await (await fetch("/api/auth")).json();
+    codexAvailable = !!a.codex_available;
+    const codexBtn = document.querySelector('#imgmode .seg-btn[data-mode="codex"]');
+    if (codexBtn) codexBtn.disabled = !codexAvailable;
+    if (!codexAvailable) imageMode = "claude_svg";  // codex 없으면 자동 폴백
+    renderImgMode();
     const el = $("#auth");
     if (!a.claude_logged_in) {
       el.className = "auth auth-warn";
@@ -154,7 +228,9 @@ $("#refresh").addEventListener("click", refreshPapers);
 
 /* ---------- 업로드 ---------- */
 const pdf = $("#pdf"), drop = $("#drop"), uploadMsg = $("#uploadMsg");
-drop.addEventListener("click", () => pdf.click());
+// NOTE: #drop is a <label> wrapping the hidden <input id="pdf">, so a click already
+// opens the file dialog natively. Do NOT also call pdf.click() here — that fired the
+// dialog a SECOND time. (bugfix: 파일 선택창이 두 번 뜨던 문제)
 pdf.addEventListener("change", () => pdf.files[0] && upload(pdf.files[0]));
 ["dragover", "dragenter"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
@@ -180,6 +256,34 @@ async function upload(file) {
   }
 }
 
+/* ---------- 플로팅 논문 요약 (핵심 관찰 / 방법론) ---------- */
+function fillRows(container, rows) {
+  container.innerHTML = "";
+  if (!rows || !rows.length) { container.innerHTML = '<p class="sum-empty">아직 생성 전…</p>'; return; }
+  for (const r of rows) {
+    const row = document.createElement("div"); row.className = "sum-row";
+    const tag = document.createElement("span"); tag.className = "sum-tag"; tag.textContent = r.tag || "";
+    const body = document.createElement("div"); body.className = "sum-rb"; body.innerHTML = r.body || "";
+    if (r.tag) row.appendChild(tag);
+    row.appendChild(body); container.appendChild(row);
+  }
+}
+function renderSummary(ev) {
+  fillRows($("#sumObserve"), ev.observe);
+  fillRows($("#sumMethod"), ev.method);
+  $("#sumPaper").textContent = ev.paper || "";
+  const fab = $("#sumFab");
+  if (fab.hidden) { fab.hidden = false; fab.classList.add("pulse"); setTimeout(() => fab.classList.remove("pulse"), 4000); }
+}
+function toggleSummary(force) {
+  const panel = $("#sumPanel");
+  const open = force != null ? force : panel.hidden;
+  panel.hidden = !open;
+  $("#sumFab").classList.toggle("active", open);
+}
+$("#sumFab").addEventListener("click", () => toggleSummary());
+$("#sumClose").addEventListener("click", () => toggleSummary(false));
+
 /* ---------- 시작 ---------- */
-connect(); loadAuth(); refreshPapers();
+renderImgMode(); connect(); loadAuth(); refreshPapers();
 setBusy(true);

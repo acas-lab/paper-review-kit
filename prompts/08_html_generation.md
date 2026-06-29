@@ -13,7 +13,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
   - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**, ⑤/⑥ 명시 요청 시에만 사용
   - `papers/[name]/assets/` (원본 PNG), `assets/generated/` (학습 보조 이미지)
 - **정본 레퍼런스 (수정 금지):** `samples/`의 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달)
-- **Output:** `papers/[name]/[ShortName]_output.html` (단일 HTML, Claude가 직접 작성)
+- **Output:** `papers/[name]/[ShortName].html` (단일 HTML, Claude가 직접 작성)
 
 ## Referenced Rules
 
@@ -64,7 +64,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
 **본문 라인 높이:** 1.72
 **최대 너비:** `.app { max-width: 1280px; margin: 0 auto; }`
 
-`samples/SAFE_output.html`의 `<style>`는 색 정본이 아니다 — 마크업 셸·문장 페어링·컴포넌트 구조만 모방하고 색은 CLAUDE.md v3를 따른다.
+`samples/SAFE.html`의 `<style>`는 색 정본이 아니다 — 마크업 셸·문장 페어링·컴포넌트 구조만 모방하고 색은 CLAUDE.md v3를 따른다.
 
 ---
 

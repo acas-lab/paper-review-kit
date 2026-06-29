@@ -31,9 +31,9 @@
 - ✅ 자기 논문을 빌드할 때는, 본인이 **적법하게 입수한 PDF**로 진행하세요.
 
 포함된 견본/예시 논문:
-- `samples/SAFE_output.html` — SAFE (NAACL 2025)
-- `samples/FrameFusion_output.html` — FrameFusion (ICCV 2025)
-- `samples/SGL_output.html` — SGL "A Stitch in Time…" (CVPR 2025)
+- `samples/SAFE.html` — SAFE (NAACL 2025)
+- `samples/FrameFusion.html` — FrameFusion (ICCV 2025)
+- `samples/SGL.html` — SGL "A Stitch in Time…" (CVPR 2025)
 - `samples/free_example/` — FREE: Fast and Robust VLMs with Early Exits
 
 ---

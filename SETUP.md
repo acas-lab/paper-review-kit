@@ -44,9 +44,9 @@ cd paper-review-kit
 
 브라우저로 아래 파일을 열어 "완성형"이 어떤 모습인지 먼저 봅니다.
 
-- `samples/SGL_output.html` — 가장 최신(3세대) 인터랙션. **신규 논문은 이걸 베이스로 따라갑니다.**
-- `samples/SAFE_output.html`, `samples/FrameFusion_output.html` — 1·2세대
-- `samples/free_example/FREE_output.html` — 방법을 실제 2025년 논문에 적용한 완성 예시
+- `samples/SGL.html` — 가장 최신(3세대) 인터랙션. **신규 논문은 이걸 베이스로 따라갑니다.**
+- `samples/SAFE.html`, `samples/FrameFusion.html` — 1·2세대
+- `samples/free_example/FREE.html` — 방법을 실제 2025년 논문에 적용한 완성 예시
 
 ---
 
@@ -82,7 +82,7 @@ Claude에게 이렇게 시작하세요:
 5. **HTML 조립** — `samples/` 정본 + 위 데이터로 단일 HTML 한 장, 그림은 base64 인라인
 
 ### 4-4. 결과 확인
-완성된 `{ShortName}_output.html` 한 장을 브라우저로 엽니다. 마음에 안 드는 부분(이미지·해석·번역)은 그 자리에서 "여기 다시" 하고 다시 요청하면 됩니다.
+완성된 `{ShortName}.html` 한 장을 브라우저로 엽니다. 마음에 안 드는 부분(이미지·해석·번역)은 그 자리에서 "여기 다시" 하고 다시 요청하면 됩니다.
 
 ---
 

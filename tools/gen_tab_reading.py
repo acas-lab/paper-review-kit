@@ -1,6 +1,6 @@
 """
 Generate the inner content of <section id="tab-reading"> for a paper's
-[ShortName]_output.html.
+[ShortName].html.
 
 USAGE:
   python tools/gen_tab_reading.py <paper_name>            # → papers/<name>/_tab_reading.html
@@ -14,10 +14,10 @@ INPUTS (read from papers/<name>/):
   config.json                (asset_layout, wide_assets)
 
 OUTPUT
-  Just the body of the tab-reading section — splice into [ShortName]_output.html
+  Just the body of the tab-reading section — splice into [ShortName].html
   between `<section id="tab-reading" ...>` and its closing `</section>`.
 
-CONVENTIONS (matched to samples/SAFE_output.html and existing v2 outputs)
+CONVENTIONS (matched to samples/SAFE.html and existing v2 outputs)
   - bracketed numeric citations like [3, 20, 49] stripped from EN display
   - hotspot sentences carry `sent hotspot` classes
   - figures: <figure class="asset-card[ asset-wide]" id="fig_N">

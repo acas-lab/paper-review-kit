@@ -47,7 +47,7 @@ You are a research assistant.
 
 ### Layer 3 — `study_modals` (학습 가이드 모달, FAB 클릭 시)
 
-**Layer 1·2와 별도의 한 단계 더 깊은 분해**. 정본 SGL fig_1의 모달이 기준 (samples/SGL_output.html 라인 1054~1078).
+**Layer 1·2와 별도의 한 단계 더 깊은 분해**. 정본 SGL fig_1의 모달이 기준 (samples/SGL.html 라인 1054~1078).
 
 **정형 4-섹션 (s-look / s-num / s-author / s-check)** — 모든 자산이 네 섹션을 다 갖는 것이 원칙:
 

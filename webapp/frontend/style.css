@@ -59,7 +59,48 @@ body {
   padding: 10px 12px; font: inherit; font-size: 14px; background: var(--bg); color: var(--ink);
 }
 .composer textarea:focus { outline: none; border-color: var(--accent-pale); }
-.composer-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.composer-btns { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* 진행률/생존 표시 (중지 버튼 왼쪽) */
+.status { margin-right: auto; display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--muted); max-width: 60%; overflow: hidden; white-space: nowrap; }
+.status .st-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--muted); }
+.status.idle .st-dot { background: #b9b3c4; }
+.status.busy { background: var(--mint-soft); border-color: #bfe0cd; color: #3e7a5c; }
+.status.busy .st-dot { background: var(--mint); animation: st-pulse 1s ease-in-out infinite; }
+.status .st-text { overflow: hidden; text-overflow: ellipsis; }
+.status .st-time { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+@keyframes st-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.55); opacity: .45; } }
+
+/* 플로팅 논문 요약 — FAB(항상 보임) + 드로어 */
+.sum-fab { position: fixed; right: 22px; bottom: 22px; z-index: 400;
+  background: var(--accent); color: #fff; border: none; border-radius: 999px;
+  padding: 11px 18px; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 8px 22px rgba(80,60,140,0.32); }
+.sum-fab:hover { background: #6e54a3; }
+.sum-fab.active { background: #6e54a3; }
+.sum-fab.pulse { animation: st-pulse 0.9s ease-in-out 4; }
+.sum-panel { position: fixed; right: 22px; bottom: 70px; z-index: 400;
+  width: min(440px, 92vw); max-height: 70vh; overflow-y: auto;
+  background: var(--paper); border: 1px solid var(--accent-pale); border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(40,20,70,0.22); padding: 0 0 12px; }
+.sum-head { position: sticky; top: 0; background: var(--paper); display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--line);
+  border-radius: 16px 16px 0 0; }
+.sum-head b { font-size: 14.5px; }
+.sum-paper { font-size: 12px; color: var(--muted); }
+.sum-close { border: none; background: none; font-size: 22px; line-height: 1; color: var(--muted); cursor: pointer; }
+.sum-close:hover { color: var(--accent); }
+.sum-body { padding: 12px 16px 4px; }
+.sum-body h4 { margin: 12px 0 6px; font-size: 12px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--accent); }
+.sum-row { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; margin-bottom: 8px; }
+.sum-tag { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; background: var(--accent);
+  padding: 2px 8px; border-radius: 999px; margin-bottom: 5px; }
+.sum-rb { font-size: 13px; line-height: 1.6; color: var(--ink); }
+.sum-empty { color: var(--muted); font-size: 12.5px; margin: 2px 0; }
+.sum-foot { color: var(--muted); font-size: 11.5px; text-align: center; margin: 6px 16px 0; }
 .btn-send {
   background: var(--accent); color: #fff; border: none; padding: 8px 22px;
   border-radius: 9px; font-weight: 600; cursor: pointer; font-size: 14px;
@@ -75,6 +116,18 @@ body {
 /* 사이드 카드 */
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
 .card h2 { font-size: 14px; margin: 0 0 10px; color: var(--ink); }
+/* 이미지 생성 방식 토글 (segmented) */
+.seg { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+.seg-btn {
+  flex: 1; border: none; background: transparent; color: var(--muted); cursor: pointer;
+  padding: 8px 6px; border-radius: 7px; font: inherit; font-size: 12.5px; font-weight: 600; transition: .15s;
+}
+.seg-btn:hover:not(.active):not(:disabled) { color: var(--accent); }
+.seg-btn.active { background: var(--accent); color: #fff; }
+.seg-btn:disabled { color: var(--line); cursor: not-allowed; }
+.seg-note { font-size: 12px; color: var(--muted); margin: 8px 2px 0; line-height: 1.5; }
+.seg-note.locked { color: #9a4a5a; }
+
 .drop {
   display: flex; align-items: center; justify-content: center; text-align: center;
   border: 2px dashed var(--accent-pale); border-radius: 10px; padding: 22px 10px;

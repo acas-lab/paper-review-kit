@@ -47,9 +47,9 @@ paper-review-kit/
 ├── tools/                 ← 재사용 도구 (PDF 크롭·캡션 좌표 검출·재파싱)
 ├── webapp/                ← 브라우저 대시보드 (비개발자용 — start.bat 더블클릭)
 ├── samples/               ← 정본 견본 + 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
-│   ├── SAFE_output.html         (1세대)
-│   ├── FrameFusion_output.html  (2세대)
-│   ├── SGL_output.html          (3세대 — 신규 논문은 이걸 베이스로)
+│   ├── SAFE.html         (1세대)
+│   ├── FrameFusion.html  (2세대)
+│   ├── SGL.html          (3세대 — 신규 논문은 이걸 베이스로)
 │   └── free_example/            (완성 워크드 예제: 입력 JSON → 단일 HTML 전 과정)
 └── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
 ```

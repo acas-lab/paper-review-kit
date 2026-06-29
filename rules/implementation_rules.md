@@ -91,15 +91,15 @@ papers/[name]/
 ### 작성 원칙
 
 - **정본 모방:**
-  - 디자인 셸·토큰·문장 페어링은 `samples/SAFE_output.html` 또는 `samples/FrameFusion_output.html`의 마크업/CSS를 골격으로 가져온다
-  - 학습 인터랙션(자산 모달, ⑤ Simulator 3-Part, eq-link / fig-hotspot 등)은 `samples/SGL_output.html`을 정본으로 한다 (3세대 — 신규 논문 기본 적용 대상)
+  - 디자인 셸·토큰·문장 페어링은 `samples/SAFE.html` 또는 `samples/FrameFusion.html`의 마크업/CSS를 골격으로 가져온다
+  - 학습 인터랙션(자산 모달, ⑤ Simulator 3-Part, eq-link / fig-hotspot 등)은 `samples/SGL.html`을 정본으로 한다 (3세대 — 신규 논문 기본 적용 대상)
 - **단일 파일:** 모든 CSS는 `<style>`, 모든 JS는 `<script>` 인라인 (외부 분리 금지)
 - **외부 의존성 최소:** MathJax 3 (CDN)만 사용. 외부 JS/CSS 라이브러리 추가 금지
 - **자산:** **base64 인라인이 기본** (`<img src="data:image/png;base64,...">`). 그림/표/생성 이미지를 모두 인라인. 외부 참조는 개발 미리보기 한정 — 최종 산출물에는 반드시 인라인. 동기는 휴대성 (CLAUDE.md 자산 임베딩 정책 참조).
 
 ### CSS / JS
 
-- 디자인 토큰: **`CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록**을 정본으로 (흰색 + 라벤더/하늘색/로즈 파스텔). `samples/SAFE_output.html`의 `:root`는 v2 동결분이므로 색 정본으로 사용하지 말 것 — 마크업 셸만 가져온다.
+- 디자인 토큰: **`CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록**을 정본으로 (흰색 + 라벤더/하늘색/로즈 파스텔). `samples/SAFE.html`의 `:root`는 v2 동결분이므로 색 정본으로 사용하지 말 것 — 마크업 셸만 가져온다.
 - 탭 셸: `<nav class="tabs">` + `<section id="tab-XXX" class="tab-pane">` 패턴
 - 탭 전환 JS는 `<body>` 끝에 인라인
 - ⑤ 시뮬레이터 위젯은 vanilla JS (canvas API)

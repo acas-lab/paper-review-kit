@@ -312,7 +312,7 @@
 - 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대), FrameFusion(2세대), SGL(3세대 — 인터랙션·시뮬레이터 3-Part·자산 모달)
 - 디자인 컨벤션: `rules/component_rules.md`, `rules/implementation_rules.md`
 
-**출력:** `papers/[name]/[ShortName]_output.html` — 단일 HTML
+**출력:** `papers/[name]/[ShortName].html` — 단일 HTML
 
 **핵심 원칙:**
 - 정본 두 파일의 마크업/CSS/탭 셸을 따른다 (디자인 토큰 정확히, 클래스명 임의 변경 금지)
@@ -345,7 +345,7 @@
 
 ## Definition of Done
 
-`papers/[name]/[ShortName]_output.html`이 다음을 모두 만족할 때 완료:
+`papers/[name]/[ShortName].html`이 다음을 모두 만족할 때 완료:
 
 - 6개 탭 버튼이 보이고 클릭 시 패널만 활성화
 - ① 좌(원문) ↔ 우(번역) `data-pair` 호버 동기화 작동

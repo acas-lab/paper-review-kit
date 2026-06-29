@@ -31,6 +31,7 @@
       <form id="composer" class="composer">
         <textarea id="input" rows="2" placeholder="요청을 입력하세요 (Shift+Enter 줄바꿈, Enter 전송)"></textarea>
         <div class="composer-btns">
+          <div id="status" class="status idle"><span class="st-dot"></span><span class="st-text">대기</span></div>
           <button type="button" id="stop" class="btn-ghost" disabled>■ 중지</button>
           <button type="submit" id="send" class="btn-send" disabled>전송</button>
         </div>
@@ -49,18 +50,41 @@
       </div>
 
       <div class="card">
-        <h2>② 논문 목록</h2>
+        <h2>② 학습 보조 이미지 생성 방식</h2>
+        <div id="imgmode" class="seg" role="radiogroup" aria-label="이미지 생성 방식">
+          <button type="button" class="seg-btn active" data-mode="codex" role="radio" aria-checked="true">codex 터미널 (PNG)</button>
+          <button type="button" class="seg-btn" data-mode="claude_svg" role="radio" aria-checked="false">Claude 자체 (SVG)</button>
+        </div>
+        <p id="imgmodeNote" class="seg-note">codex CLI로 풀-블리드 일러스트 PNG를 생성합니다.</p>
+      </div>
+
+      <div class="card">
+        <h2>③ 논문 목록</h2>
         <ul id="papers" class="papers"><li class="muted">불러오는 중…</li></ul>
         <button type="button" id="refresh" class="btn-ghost small">새로고침</button>
       </div>
 
       <div class="card preview-card">
-        <h2>③ 미리보기</h2>
+        <h2>④ 미리보기</h2>
         <iframe id="preview" title="결과 미리보기"></iframe>
         <a id="openNew" class="btn-ghost small" target="_blank" style="display:none">새 탭에서 열기 ↗</a>
       </div>
     </aside>
   </main>
+
+  <!-- 플로팅 논문 요약 (생성 중 핵심 관찰/방법론 미리보기) — 버튼은 항상 보임 -->
+  <button id="sumFab" class="sum-fab" type="button" hidden>📝 논문 요약 보기</button>
+  <aside id="sumPanel" class="sum-panel" hidden>
+    <div class="sum-head">
+      <div><b>이 논문 핵심 요약</b> <span id="sumPaper" class="sum-paper"></span></div>
+      <button id="sumClose" class="sum-close" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="sum-body">
+      <h4>핵심 관찰</h4><div id="sumObserve"></div>
+      <h4>방법론</h4><div id="sumMethod"></div>
+    </div>
+    <p class="sum-foot">생성이 진행되며 자동 업데이트됩니다.</p>
+  </aside>
 
   <script src="/static/app.js"></script>
 </body>
