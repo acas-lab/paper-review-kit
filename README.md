@@ -71,7 +71,22 @@ paper-review-kit/
 1. **Claude Code** + Claude 계정/구독 (엔진)
 2. **Python 3 + PyMuPDF** (`pip install pymupdf`) — PDF 텍스트/그림 추출용
 3. (선택) **codex CLI** — 학습 보조 이미지 생성용
-4. 이 폴더에서 `claude` 실행 → 자기 논문 PDF를 주고 *"workflow.md 10단계로 6탭 HTML 만들어줘"* 라고 대화 시작
+4. 논문 PDF를 **`rawpaper/`** 폴더에 넣고, 이 폴더에서 `claude` 실행 → 아래 시작 명령으로 대화 시작
+
+### 시작 명령 (CLI — 복사해서 `<논문 파일명>`만 채우기)
+
+```
+rawpaper 폴더의 <논문 파일명>을 보고, 기존 지침(CLAUDE.md·workflow.md·rules)에 따라
+학습을 위한 6탭 HTML을 생성해줘.
+학습 보조 이미지가 필요하다고 판단되면, 플러그인 없이 터미널에서 codex를 직접 실행하는
+방식으로 ImageGen을 활용해 이미지를 생성해. 이미지 내부에는 논문 제목·헤더 같은 글자는
+넣지 말고, 내용과 내용을 설명하는 그림(도식)만 나오게 해줘.
+```
+
+- Claude Code가 `rawpaper/`의 PDF를 파악해 `papers/N. shortname/` 폴더를 만들고 단계별로 빌드합니다.
+- 이미지 지시는 정본 **codex 6계명**(`rules/component_rules.md` §11.2)과 동일합니다 — 직접 터미널 제어 / 이미지 안에 제목·헤더·저자명 금지 / 내용 도식만.
+- ⑤ Simulator·⑥ Q&A는 기본적으로 셸만 만듭니다. 더 채우려면 그 탭을 따로 요청하세요.
+- (웹앱에서는 PDF를 업로드하면 이 명령이 자동으로 입력칸에 채워집니다.)
 
 ---
 

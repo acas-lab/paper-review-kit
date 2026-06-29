@@ -249,7 +249,7 @@ async function upload(file) {
     uploadMsg.className = "upload-msg"; uploadMsg.textContent = "✓ 저장됨: " + j.saved;
     $("#dropText").textContent = file.name;
     clearPaper();
-    input.value = `방금 "${j.saved}" 를 올렸어. 이 논문으로 새 papers 폴더를 만들고 workflow.md 단계대로 6탭 학습 HTML을 만들어줘. 디자인·구성은 samples/free_example 정본을 따르고 ⑤⑥은 셸만.`;
+    input.value = `방금 "${j.saved}" 를 올렸어. 기존 지침(CLAUDE.md·workflow.md·rules)에 따라 이 논문으로 새 papers 폴더를 만들고 6탭 학습 HTML을 생성해줘. 디자인·구성은 samples/free_example 정본, ⑤⑥은 셸만. 학습 보조 이미지가 필요하다고 판단되면 위에서 고른 이미지 생성 방식으로 만들고, 이미지 안에는 논문 제목·헤더 같은 글자 없이 내용 도식만 나오게 해줘.`;
     input.focus();
   } catch (e) {
     uploadMsg.className = "upload-msg err"; uploadMsg.textContent = "업로드 실패: " + e;
