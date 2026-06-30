@@ -21,7 +21,7 @@ python --version        # 3.10+ 권장
 ```
 
 > **PyMuPDF는 따로 설치하지 않아도 됩니다.** `tools/`의 도구들이 첫 실행 때 없으면
-> 스스로 `pip install` 합니다(웹앱은 `start.bat`이 venv에 자동 설치). 즉 **Python 본체만**
+> 스스로 `pip install` 합니다(웹앱은 런처 `win_start.bat`/`linux_start.sh`가 venv에 자동 설치). 즉 **Python 본체만**
 > 있으면 됩니다. (수동으로 미리 깔고 싶다면 `pip install pymupdf` — import 이름은 `fitz`.)
 
 ### (선택) codex CLI

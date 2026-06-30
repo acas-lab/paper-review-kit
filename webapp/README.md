@@ -20,8 +20,9 @@
 
 ## 실행
 
-- **Windows**: `webapp/start.bat` 더블클릭
-- **macOS/Linux/수동**: 터미널에서 `python webapp/start.py`
+- **Windows**: `webapp/win_start.bat` 더블클릭
+- **Linux / macOS**: `webapp/linux_start.sh` 실행 (터미널에서 `./webapp/linux_start.sh`, 처음엔 `chmod +x webapp/linux_start.sh` 한 번)
+- **수동 (공통)**: 터미널에서 `python webapp/start.py`
 
 처음 실행하면 가상환경(venv)을 만들고 의존성을 설치합니다(몇 분). 끝나면
 브라우저가 자동으로 `http://127.0.0.1:8765` 를 엽니다. 종료는 창에서 `Ctrl+C`.

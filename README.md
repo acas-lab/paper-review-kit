@@ -26,7 +26,7 @@
 
 ## 두 가지 사용법
 
-- **🌐 웹앱 (비개발자 권장)** — `webapp/start.bat` 더블클릭 → 브라우저에서 PDF 올리고 채팅으로 빌드. 각자 본인 Claude 구독으로 동작(별도 API 키 없음). 준비물·사용법: **`webapp/README.md`**.
+- **🌐 웹앱 (비개발자 권장)** — Windows는 `webapp/win_start.bat` 더블클릭, Linux/macOS는 `webapp/linux_start.sh` 실행 → 브라우저에서 PDF 올리고 채팅으로 빌드. 각자 본인 Claude 구독으로 동작(별도 API 키 없음). 준비물·사용법: **`webapp/README.md`**.
 - **⌨️ CLI 대화형** — 터미널에서 Claude Code를 열고 이 폴더에서 대화하며 단계별로 빌드. 흐름: **`SETUP.md`** → `workflow.md`.
 
 전제: 두 방식 모두 **Claude Code 설치 + 로그인**이 필요합니다.
@@ -45,7 +45,7 @@ paper-review-kit/
 ├── prompts/               ← 단계별 프롬프트 (01_cleaning … 10_qa)
 ├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 규약
 ├── tools/                 ← 재사용 도구 (PDF 크롭·캡션 좌표 검출·재파싱)
-├── webapp/                ← 브라우저 대시보드 (비개발자용 — start.bat 더블클릭)
+├── webapp/                ← 브라우저 대시보드 (비개발자용 — win_start.bat / linux_start.sh)
 ├── samples/               ← 정본 견본 + 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
 │   ├── SAFE.html         (1세대)
 │   ├── FrameFusion.html  (2세대)
@@ -69,7 +69,7 @@ paper-review-kit/
 핵심만 요약하면:
 
 1. **Claude Code** + Claude 계정/구독 (엔진)
-2. **Python 3.10 이상** — PDF 텍스트/그림 추출용 (PyMuPDF 등 라이브러리는 **자동 설치**: 웹앱은 `start.bat`이 venv에, CLI는 `tools/`가 첫 실행 때 스스로 깐다 — Python 본체만 있으면 됨)
+2. **Python 3.10 이상** — PDF 텍스트/그림 추출용 (PyMuPDF 등 라이브러리는 **자동 설치**: 웹앱은 런처(`win_start.bat`/`linux_start.sh`)가 venv에, CLI는 `tools/`가 첫 실행 때 스스로 깐다 — Python 본체만 있으면 됨)
 3. (선택) **codex CLI** — 학습 보조 이미지 생성용
 4. 논문 PDF를 **`rawpaper/`** 폴더에 넣고, 이 폴더에서 `claude` 실행 → 아래 시작 명령으로 대화 시작
 

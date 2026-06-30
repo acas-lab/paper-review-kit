@@ -6,13 +6,13 @@
 https://github.com/acas-lab/paper-review-kit
 
 ## 🚀 사용법 — 두 가지 중 선택
-- **웹앱 (비개발자 권장)** — `webapp/start.bat` 더블클릭 → 브라우저에서 PDF 올리고 채팅으로 빌드. 각자 본인 Claude 구독으로 동작(별도 API 키 불필요).
+- **웹앱 (비개발자 권장)** — Windows는 `webapp/win_start.bat` 더블클릭, Linux/macOS는 `webapp/linux_start.sh` 실행 → 브라우저에서 PDF 올리고 채팅으로 빌드. 각자 본인 Claude 구독으로 동작(별도 API 키 불필요).
 - **CLI 대화형** — 폴더에서 `claude` 실행 후 대화하며 단계별 빌드. 흐름은 `SETUP.md` → `workflow.md` 참고.
 
 ## 🔧 준비물
 1. **Claude Code** + Claude 계정/구독 (엔진 역할)
 2. **Python 3.10 이상** — [python.org](https://python.org)에서 설치
-   - *PyMuPDF 등 라이브러리는 자동 설치되니 따로 깔 필요 없습니다.* (웹앱은 `start.bat`이 venv에, CLI는 `tools/`가 첫 실행 때 스스로 설치 — Python 본체만 있으면 됨)
+   - *PyMuPDF 등 라이브러리는 자동 설치되니 따로 깔 필요 없습니다.* (웹앱은 런처가 venv에, CLI는 `tools/`가 첫 실행 때 스스로 설치 — Python 본체만 있으면 됨)
 3. (선택) **codex CLI** — 학습 보조 이미지 생성용
 
 ## 📖 시작 방법
