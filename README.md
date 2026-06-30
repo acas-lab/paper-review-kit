@@ -69,7 +69,7 @@ paper-review-kit/
 핵심만 요약하면:
 
 1. **Claude Code** + Claude 계정/구독 (엔진)
-2. **Python 3 + PyMuPDF** (`pip install pymupdf`) — PDF 텍스트/그림 추출용
+2. **Python 3.10 이상** — PDF 텍스트/그림 추출용 (PyMuPDF 등 라이브러리는 **자동 설치**: 웹앱은 `start.bat`이 venv에, CLI는 `tools/`가 첫 실행 때 스스로 깐다 — Python 본체만 있으면 됨)
 3. (선택) **codex CLI** — 학습 보조 이미지 생성용
 4. 논문 PDF를 **`rawpaper/`** 폴더에 넣고, 이 폴더에서 `claude` 실행 → 아래 시작 명령으로 대화 시작
 

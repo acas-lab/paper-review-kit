@@ -13,13 +13,16 @@
 - 설치·로그인 방법: 공식 문서 https://docs.claude.com/claude-code 참고
 - 설치 확인: 터미널에서 `claude --version`
 
-### (필수) Python 3 + PyMuPDF
+### (필수) Python 3
 PDF에서 텍스트와 그림/표를 뽑고, 최종 HTML을 조립할 때 씁니다.
 
 ```bash
-python --version        # 3.9+ 권장
-pip install pymupdf      # import 이름은 fitz
+python --version        # 3.10+ 권장
 ```
+
+> **PyMuPDF는 따로 설치하지 않아도 됩니다.** `tools/`의 도구들이 첫 실행 때 없으면
+> 스스로 `pip install` 합니다(웹앱은 `start.bat`이 venv에 자동 설치). 즉 **Python 본체만**
+> 있으면 됩니다. (수동으로 미리 깔고 싶다면 `pip install pymupdf` — import 이름은 `fitz`.)
 
 ### (선택) codex CLI
 ②~⑥ 탭의 학습 보조 일러스트를 생성할 때만 필요합니다. 없으면 그 단계만 건너뛰면 됩니다.

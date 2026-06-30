@@ -32,7 +32,12 @@ import re
 from pathlib import Path
 from typing import Iterable, Optional, Tuple
 
-import fitz
+try:
+    import fitz
+except ModuleNotFoundError:  # 첫 실행 시 자동 설치 (CLI도 webapp venv와 동일한 경험)
+    import subprocess as _sp, sys as _sys
+    _sp.run([_sys.executable, "-m", "pip", "install", "-q", "PyMuPDF>=1.24"], check=True)
+    import fitz
 
 # --- algorithm parameters -----------------------------------------------------
 DPI_SCALE = 2.0

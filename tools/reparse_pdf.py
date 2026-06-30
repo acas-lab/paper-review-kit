@@ -43,7 +43,12 @@ import re
 import sys
 from pathlib import Path
 
-import fitz
+try:
+    import fitz
+except ModuleNotFoundError:  # 첫 실행 시 자동 설치 (CLI도 webapp venv와 동일한 경험)
+    import subprocess as _sp
+    _sp.run([sys.executable, "-m", "pip", "install", "-q", "PyMuPDF>=1.24"], check=True)
+    import fitz
 
 
 BODY_LO, BODY_HI = 9.7, 10.3
