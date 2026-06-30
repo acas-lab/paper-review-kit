@@ -5,7 +5,7 @@
 >
 > **연구실 배포 결정(2026-06-22)**: 중앙 서버 ❌ → 각자 PC 로컬 실행. 엔진이 각자의
 > Claude 구독(OAuth)이라 중앙화하면 계정 공유 문제 발생. 전원 유료 구독 보유 전제 →
-> API 키·공용키 폴백 미사용(백로그). 타깃=비개발자 → `start.py`/`start.bat` 원클릭 런처
+> API 키·공용키 폴백 미사용(백로그). 타깃=비개발자 → `start.py` + OS별 원클릭 런처(`win_start.bat`/`linux_start.sh`)
 > (전제조건 자동점검 + venv 자동생성 + 친절한 에러).
 >
 > **구현 현황**: backend(`main.py` FastAPI: auth·papers·upload·WS 채팅) + runner(`runner.py`
