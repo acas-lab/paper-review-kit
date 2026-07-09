@@ -23,7 +23,7 @@ You are a research paper structure analyzer.
 1. 섹션 분리 (Front Matter, Abstract, 1 Introduction, 2 Related Work, …)
 2. 문단 유지 (재구성 금지)
 3. 수식 분리 및 보존 (가능하면 LaTeX 유지, MathJax 인식 가능한 `$...$` / `$$...$$` 형태)
-4. Figure/Table **caption은 structured.json에 넣지 않는다** — 원문 캡션은 `config.json#captions`, 자산↔문단 위치는 `config.json#asset_layout`으로 관리한다 (가상 캡션 문단·`is_caption` 폐기, `rules/parsing_rules.md` §3-2 정본).
+4. Figure/Table **caption은 structured.json에 넣지 않는다** — 캡션 한국어 번역은 `config.json#captions`(KR), 영어 원문은 `config.json#captions_en`(EN), 자산↔문단 위치는 `config.json#asset_layout`으로 관리한다 (가상 캡션 문단·`is_caption` 폐기, `rules/parsing_rules.md` §3-2 정본).
 
 ---
 
@@ -155,7 +155,7 @@ structured.json 작성 완료
 
 ## 출력 스키마 (5세대 정본 = `rules/parsing_rules.md` §3-1-bis)
 
-문단은 `text` 통짜가 아니라 **문장 배열(`sentences`)**로 담는다(문장 단위 페어링·hotspot의 기반). 캡션은 가상 문단으로 두지 **않고** `config.json#captions`에 둔다. 정본 예: `samples/free_example/structured.json`.
+문단은 `text` 통짜가 아니라 **문장 배열(`sentences`)**로 담는다(문장 단위 페어링·hotspot의 기반). 캡션은 가상 문단으로 두지 **않고** `config.json#captions`에 둔다. 정본 예: `samples/cares/structured.json`.
 
 ```json
 {
@@ -179,7 +179,7 @@ structured.json 작성 완료
 }
 ```
 
-캡션은 **가상 문단으로 만들지 않는다.** 원문 캡션 텍스트는 `config.json#captions`(Stage 0에서 detect_assets가 추출)에, 자산↔문단 위치는 `config.json#asset_layout`에 둔다 (`rules/parsing_rules.md` §3-2 정본).
+캡션은 **가상 문단으로 만들지 않는다.** 캡션 한국어 번역은 `config.json#captions`(KR), 영어 원문은 `config.json#captions_en`(EN, Stage 0에서 detect_assets가 추출)에, 자산↔문단 위치는 `config.json#asset_layout`에 둔다 (`rules/parsing_rules.md` §3-2 정본).
 
 ## 자산 매핑 — config.json#asset_layout 채우기
 

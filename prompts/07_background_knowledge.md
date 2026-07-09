@@ -7,7 +7,7 @@ You are an AI tutor specializing in foundational explanations.
 - **Stage:** 7 (Background Knowledge)
 - **Input:** `structured.json`, Stage 4 산출물, 핵심 수식
 - **Output:** `papers/[name]/tabs_data/knowledge.json`
-- **렌더링 위치:** ③ `tab-knowledge` (Background & 핵심 수식)
+- **렌더링 위치:** ③ `tab-knowledge` (Background — 빌딩 블록·개념 카드) + ③′ `tab-math` (Mathematics — eq-panel; `tools/restyle_dash_v4.py`가 knowledge.json에서 분리)
 
 ## Referenced Rules
 
@@ -70,6 +70,9 @@ You are an AI tutor specializing in foundational explanations.
 - **fund_cards:** 다이어그램의 각 구성 요소를 짧게 풀이하는 카드 4~6개.
 
 ### 2. `equations` — 핵심 수식 카드
+
+> 🔴 `tex`·`where`·`intuition`에 `<`+영문자 금지 — tex는 `\\lt`/`\\gt`, 텍스트는 `&lt;`/`&gt;`
+> (`rules/math_rules.md` § 부등호·꺾쇠). 작성 후 `tools/check_html_escape.py`로 검증.
 
 논문의 핵심 수식 3~5개. 각 수식마다:
 - `eq_id`: `eq1_<keyword>`, `eq2_<keyword>` 식으로 일관된 명명

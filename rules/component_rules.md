@@ -2,9 +2,16 @@
 
 ## 목적
 
-SAFE와 FrameFusion 정본 두 파일의 **마이크로 차이를 봉합**하고, 6탭 모두에 걸쳐 등장하는 공용 컴포넌트의 정식 규약을 정한다.
+모든 탭에 걸쳐 등장하는 공용 컴포넌트의 정식 규약을 정한다 (세대별 마이크로 차이를 봉합한 결과 — 현재 정본은 `samples/cares/`의 v4 8탭).
 
 이 문서는 Stage 10에서 Claude가 단일 HTML을 작성할 때 따라야 할 마크업·CSS 규약이다.
+
+> **🔴 v4 디자인 우선 (2026-07-02)** — 셸(헤더·탭·토큰·라운드·그림자·폰트)은
+> **`rules/design_v4_dashboard.md`**가 이 문서보다 우선한다: hero 카드 → topbar, 숫자 pill 6탭 →
+> 숫자 없는 8탭(Paper Study·Background/Mathematics 분리) + 해시 라우팅, v3 팔레트 → v4 저채도
+> grey-lavender, serif 제목 → sans. 이 문서의 학습 인터랙션 규약(§11 concept-figure, §12 study-drawer,
+> §13 lightbox, §14 diss-summary, §15~16 diss 레이아웃, §17 Paper Study)은 v4에서도 그대로 유효하다
+> (색·라운드만 v4 토큰). 빌드 경로 = `_build.py`(v3 조립) → `tools/restyle_dash_v4.py`(v4 변환) 2단.
 
 ---
 
@@ -77,7 +84,7 @@ SAFE와 FrameFusion 정본 두 파일의 **마이크로 차이를 봉합**하고
 ```
 
 ### 의무
-- 6탭 모두 `.tab-intro` 1개씩 (예외 없음)
+- 8탭 모두 `.tab-intro` 1개씩 (예외 없음 — Paper Study·Mathematics 포함)
 - `<h2>`와 `<p>` 모두 채울 것
 - `<p>`는 100자 이내, 학습 목표를 동사로 시작 (예: "문장 단위 hover 로 ...", "저자의 사고 흐름을 ...")
 
@@ -409,7 +416,7 @@ import base64
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-HTML = ROOT / "<ShortName>.html"
+HTML = ROOT / "<ShortName>_output.html"
 GEN = ROOT / "assets" / "generated"
 
 def b64(png: Path) -> str:
@@ -424,7 +431,7 @@ text = HTML.read_text(encoding="utf-8")
 HTML.write_text(text, encoding="utf-8")
 ```
 
-호출 전에 `Perceptron.html.before_concept_figures` 같은 백업을 남긴다 (Bash `cp` 한 줄).
+호출 전에 `Perceptron_output.html.before_concept_figures` 같은 백업을 남긴다 (Bash `cp` 한 줄).
 
 ### 11.7 파일명 규약 정리
 
@@ -489,7 +496,7 @@ Claude는 래스터 이미지를 직접 렌더할 수 없으므로, "자체 생�
 
 ## 12. Study Modal — 자산별 학습 가이드 모달 (3세대 정본)
 
-각 figure/table 카드 우상단에 떠 있는 `<button class="study-fab">` 버튼을 누르면, 그 자산 전용 깊이 분해 모달이 열린다. 정본 = `samples/SGL.html` (특히 fig_1 모달, 라인 1054~1078).
+각 figure/table 카드 우상단에 떠 있는 `<button class="study-fab">` 버튼을 누르면, 그 자산 전용 깊이 분해 모달이 열린다. 정본 = `samples/cares/CARES_output.html`의 study-fab → 우측 study-drawer (§12.5/§12.6).
 
 ### 12.1 무엇이 들어가는가 (정형 4-섹션)
 
@@ -529,7 +536,7 @@ Claude는 래스터 이미지를 직접 렌더할 수 없으므로, "자체 생�
   </div>
   <figcaption>
     <span class="asset-label">FIG 1</span>
-    <p class="asset-cap">...원문 캡션...</p>
+    <p class="asset-cap">...캡션(한국어 번역 — config#captions · 원문은 config#captions_en)...</p>
 
     <template class="study-guide">
       <div class="study-section s-look">
@@ -566,7 +573,7 @@ Claude는 래스터 이미지를 직접 렌더할 수 없으므로, "자체 생�
 
 ### 12.5 CSS 정본 — 오른쪽 사이드 드로어 (2026-05-19 갱신)
 
-> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(24. geollava8k 학습 중, 2026-05-19). `samples/SGL.html`은 historical reference로 동결 — CSS는 SGL을 복사하지 말고 아래 정본을 사용. cross-ref: `[[feedback_study_modal_drawer]]`.
+> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(24. geollava8k 학습 중, 2026-05-19). 이전 세대(SGL) 풀스크린 모달은 폐기 — 아래 우측 드로어 정본을 사용(SGL 견본 HTML은 배포본 미포함). cross-ref: `[[feedback_study_modal_drawer]]`.
 
 핵심 동작:
 - 폭 `min(440px, 100vw)` 오른쪽 고정 드로어. 백드롭 dim 없음 — 왼쪽의 figure/문장이 항상 보임
@@ -881,7 +888,7 @@ btn.addEventListener('click', e => {
 
 ### 13.6 정본 사례
 
-- `samples/free_example/_build.py` — CSS·JS·BODY 컨테이너 통합 정본
+- `samples/cares/_build.py` — CSS·JS·BODY 컨테이너 통합 정본
 - 적용 대상: 모든 신규 빌드 + 기존 paper도 점진적 마이그레이션 권장
 
 ---
@@ -944,7 +951,7 @@ return (
 
 ### 14.4 정본 사례·데이터 소스
 
-- 정본 사례: `samples/free_example/assets/generated/dissection_overview.png` (1536×864, 한글 5단 라벨)
+- 정본 사례: `samples/cares/assets/generated/dissection_overview.png` (1536×864, 한글 5단 라벨)
 - 생성 방법: codex CLI 6계명 (§11.2). prompt 표준 구성은 아래 §14.5.
 - summary 카드 9-row 정형과 한 셋트 (Stage 4 정본 갱신, 2026-05-12)
 
@@ -1095,16 +1102,97 @@ NO paper title at top, NO standalone header "<ShortName>", NO author names. Only
 - 각 카드 안의 row가 **`[태그 pill, 한 줄]` → `[본문, 그 아래]`** 패턴
 - 본문 들여쓰기 0 (`<dd>` 기본 margin이 제거된 상태)
 
-정본 사례 = `samples/free_example/_build.py`.
+정본 사례 = `samples/cares/_build.py`.
 
-> 안티패턴 (이전 정본의 잘못된 관성): 과거 빌드는 2-column + tag-옆 본문이었다. 사용자 지적(2026-05-13)에 따라 수직 적층으로 재작성. 신규 논문은 `samples/free_example`의 CSS를 베이스로 한다.
+> 안티패턴 (이전 정본의 잘못된 관성): 과거 빌드는 2-column + tag-옆 본문이었다. 사용자 지적(2026-05-13)에 따라 수직 적층으로 재작성. 신규 논문은 `samples/cares`의 CSS를 베이스로 한다.
+
+---
+
+## 17. Paper Study 탭 — 3-Phase 비판적 읽기 워크북 (정본, 2026-07-08)
+
+Translation과 Paper Dissection 사이의 `tab-study`. **사용자가 직접 쓰는 워크북**이라는 점에서
+다른 탭(Claude의 완성 해설)과 역할이 다르다. 콘텐츠 규약·데이터 스키마 = `prompts/11_paper_study.md`,
+탭 등록·라우팅 = `rules/design_v4_dashboard.md` §3-bis. **마크업·CSS·JS 정본 = `samples/cares/_build.py`** (배포본에 실제 데이터와 함께 동봉된 v4 8탭 정본)
+(STUDY_CSS 블록 + `study_write`/`study_reveal`/`ev_chips` 렌더 함수 + Paper Study JS 모듈).
+
+핵심 컴포넌트 11종과 불변 규칙 (2026-07-08 사용자 피드백 3차 반영):
+
+0. **`.memo-fab` + `.memo-drawer` 학습 메모** — **플로팅 버튼**: to-top과 같은 x(`right:26px`),
+   y는 JS가 topbar 하단 +18px로 계산(리사이즈 대응). 내용이 있으면 점 배지 표시, 드로어 열리면 버튼 숨김.
+   드로어(z 300 — 모달들 아래)는 **자유 서식 메모장 textarea 하나** — 추가 버튼 없이 쓰는 대로
+   자동 저장(400ms 디바운스, 글자 수·저장 시각 표시). 저장은 localStorage `prstudy:{SHORT}:memo`에
+   **plain text** — 토글을 닫아도·브라우저를 닫아도 유지되고, 내보내기 파일의 `notes.memo`에 자동 포함.
+   (구버전 JSON 배열 값은 로드 시 텍스트로 자동 마이그레이션.) **⑥ Q&A 작성 시 이 메모의 질문들이
+   1순위 재료** (전용 카테고리 M "내가 남긴 질문" — `prompts/10_qa.md` § 사용자 학습 메모 반영이 정본).
+
+1. **`.study-write` 서술칸** — textarea. `localStorage` 키 `prstudy:{short_name}:{skey}`에 자동 저장(400ms 디바운스),
+   글자 수·저장 시각 표시. 탭 상단 `.study-toolbar`에 **내보내기/가져오기/모두 지우기** 3버튼 의무.
+   **내보내기 = 기억된 폴더에 무다이얼로그 저장** (2026-07-08 2차 갱신): 최초 1회 `showDirectoryPicker`로
+   논문 폴더의 **`study/`**(표준 레이아웃 포함)를 지정하면 디렉터리 핸들이 IndexedDB(`prstudy-fs`,
+   키 `dir:{SHORT}`)에 저장되어, 이후 클릭 즉시 `{SHORT}_study_notes_{YYMMDD}.json`이 그 폴더에 생성/갱신된다
+   (같은 날짜는 덮어쓰기 = 최신 스냅샷). 세션 첫 저장 시 브라우저가 권한 재확인을 한 번 요구할 수 있다
+   (`ensurePerm`이 queryPermission→requestPermission 처리). **가져오기 = 페이지 안 노트 선택창**
+   (`.notes-picker`) — 기억된 폴더의 *.json 목록(파일명+수정시각, 최신순)에서 클릭으로 복원, "다른 파일
+   선택…"으로 OS 파일 다이얼로그 폴백. 다른 논문의 노트면 confirm으로 경고. 툴바의 **저장 위치** 버튼으로
+   폴더 재지정. API 미지원 브라우저는 다운로드 폴더/파일 선택 다이얼로그로 자동 폴백.
+   **Gap(Step 3)은 3분할** — `fields[]`로 ①알려진 것/②빈틈/③이 논문의 답 각각 라벨 붙은 작은 칸(`study-write-sm`).
+2. **`.study-reveal` 잠금 토글** — Claude 분석은 기본 `hidden`. 버튼 라벨은 **"분석 비교하기"**. 내 답이 `data-min`
+   글자 수 이상일 때만 버튼 활성(**소프트 잠금**), `.study-skip`("그래도 열기")으로 우회 가능. `data-skey`는
+   **쉼표 목록 허용** (Gap 3칸 = 합산 글자 수로 판정). 열릴 때 MathJax typeset.
+3. **`.read-panel` 본문 보기 패널 + `.para-reader` 단락 플로팅 리더** — 각 Step 서술칸 직전에
+   그 Step이 읽어야 할 파트의 **단락 칩 목록**(`data-read-pid`). 클릭 시 탭을 떠나지 않고 플로팅
+   리더가 열려 해당 단락의 EN·KR 페어(+콜아웃)를 보여준다 — **Translation 탭 DOM에서 clone**
+   (`.asset-stack`·`.pid-tag`·중복 id 제거, 콘텐츠 중복 임베드 금지). 이전/다음 단락·←/→ 키 내비게이션,
+   읽은 단락은 **sessionStorage** `read:{pid}`에 기록되어 칩에 **✓ + 그룹 진행률(n/m)** 표시 —
+   **세션 한정**(2026-07-08 정책): 파일을 닫았다 다시 열면 체크가 초기화된다(새로고침은 유지).
+   단, 내보내기 파일에는 read:* 키가 포함되어 가져오기로 복원 가능. 같은 pid는
+   Step 간 체크 공유(서론을 Step 2에서 읽으면 Step 3에도 ✓). 데이터는 study.json 각 step의
+   `read: [{sec, label, pids?}]` — 빌더가 structured.json에서 단락을 자동 전개(subtitle 있으면 칩
+   라벨로, 없으면 ¶N). 리더 푸터의 "Translation 탭에서 이 단락 보기"로 원문 컨텍스트 점프 가능.
+   Step 4 가이드 질문의 `.view-chip-sm`도 리더를 연다(다른 Step의 read-group에 있는 pid면 그 그룹
+   리스트를 폴백 탐색) — **위치만 안내하고 답은 노출하지 않는다.**
+3-bis. **`.sent.user-hl` 문장 형광펜** — 플로팅 리더·Translation 탭 공통으로 **문장 클릭 = 하이라이트
+   토글** (텍스트 드래그 선택 중·링크 클릭은 제외). data-pair 기반이라 EN·KR 쌍이 동시에 칠해지고
+   양쪽 어디서든 해제 가능. localStorage `hl:{sentence_id}` — 영구 저장 + 내보내기 포함, 리더 재렌더
+   시 `hlApply()`로 재적용. 색은 저채도 마커(#f5e8b8) — hotspot(amber-soft)·ev-hl(점프 플래시)과 구분.
+   리더 푸터에 "문장 클릭 = 형광펜" 힌트. **호버 페어링(pair-active)은 문서 위임(delegation) 방식
+   의무** — 요소별 바인딩이면 리더의 복제 문장에서 호버 동기화가 죽는다 (2026-07-08 수정).
+3-ter. **`.ev-chip` 근거 점프** — `data-ev`에 sentence_id·자산 id·문단 id·섹션 id. 공용 `jumpToRef()`:
+   문장은 `.ev-hl`(amber 하이라이트 3.6초, EN·KR 동시), 자산/문단은 `flash-target`, 섹션은 상단
+   스크롤 + 헤더 플래시. `#tab-reading` 요소에 `scroll-margin-top`(sticky topbar 가림 방지) 의무.
+   `studyNav`는 v3에서 `activate()`, v4 변환 후 `go()`(해시 라우팅 — 마우스 뒤로 가기로도 복귀).
+   `/*STUDY-NAV*/` 마커 주석은 변환 도구의 앵커이므로 제거 금지.
+4. **`.study-return` 플로팅 돌아가기 버튼** — 점프 직후 하단 중앙에 "↩ Paper Study로 돌아가기" 표시.
+   클릭 시 Study 탭 복귀(탭별 scrollMem으로 스크롤 위치 복원), tab-study 도착 시 자동 숨김.
+5. **`.study-goto` 서론 끝 복귀 버튼** — Translation 탭의 서론(s_intro) 섹션 끝에 "서론 끝 — Paper Study로
+   돌아가기 ↩" 버튼을 빌드 시 주입 (RQ 찾기 동선의 자연 복귀 지점). **서론의 section_id는 `s_intro`
+   관례를 따를 것** — 다른 id면 버튼이 조용히 생략된다(빌드는 성공). 최근 논문들의 semantic id 관례:
+   `s_abs`/`s_intro`/`s_related`/`s_method`/`s_exp`/`s_conc`.
+6. **`.asset-viewer` 도표 뷰어** — Step 1·5 썸네일 클릭 시 열리는 플로팅 창: **이미지 + 원문 캡션(EN) +
+   번역(KR) + `해석 보기` 토글**. 데이터는 `config#captions_en` + `config#captions` + `analysis#interpretations`.
+   레이아웃은 도표 비율로 자동 결정 — 가로형(비율≥1.45)은 텍스트 하단(`av-wide`), 세로/정방형은 우측
+   400px(`av-tall`), 모바일(≤760px)은 항상 상하. 뷰어 안 이미지 클릭 → 기존 lightbox(휠 줌) 중첩.
+   **헤더에 `학습 가이드` 버튼(`.study-fab.av-guide`)** — 클릭 시 Translation과 동일한 우측 study-drawer가
+   4-섹션 가이드로 열리고, 뷰어는 `av-shift`로 왼쪽으로 비켜 도표가 가려지지 않는다(MutationObserver로
+   드로어 open 클래스 감시). 이를 위해 drawer z-index는 1600(> 뷰어 1500, < lightbox 2000).
+   ESC 중첩 처리: lightbox·드로어가 위에 열려 있으면 그 ESC는 그쪽 몫 (capture 단계 검사) — 단계적으로 닫힌다.
+7. **`.study-thumbs` 썸네일** — `<img data-thumb-of="fig_N">`에 JS가 Translation 탭의 동일 자산에서
+   src를 복사한다. **base64 중복 임베드 금지** (파일 크기 2배 방지). 클릭은 lightbox가 아니라 **도표 뷰어**.
+8. **`.verdict-grid` 3열 대조** — 내 결론(`data-mirror`로 Step 5 저장분 자동 표시) | Claude 데이터-only 결론 |
+   저자 주장(`match-support`/`match-partial`/`match-beyond` 판정 태그). `<details class="verdict-details">`로
+   기본 접힘 — Step 5 스포일러 방지.
+
+부수 설명 문구 전면 금지 (2026-07-08 사용자 지적: "문구 삭제. 의미 없음") — 탭 인트로는 h2 한 줄,
+Phase 밴드는 태그+제목 한 줄(구 `.ai-note` 포함 설명 문단 전부 제거), Step 지시문은 Step 4의 한 줄만
+예외. 지시는 read 패널·placeholder가 대신한다. 제목·밴드 정본 문구 표 = `prompts/11_paper_study.md`
+§ 제목·문구 스타일.
 
 ---
 
 ## 검증 체크리스트 (빌드 후)
 
 - [ ] `<header class="hero">` 존재 + 메타데이터 4종 채움
-- [ ] 6탭 모두 `.tab-intro` 1개씩
+- [ ] 8탭 모두 `.tab-intro` 1개씩 (Paper Study·Mathematics 포함)
 - [ ] 본문에 `Eq. N` / `Fig. N` / `Table N` 텍스트가 있으면 `<a class="ref-link">`로 자동 wrap
 - [ ] 핫스팟이 정의되었으면 해당 `<span class="sent hotspot">` 렌더 + 스타일 적용
 - [ ] To-top 버튼이 스크롤 시 노출
@@ -1121,5 +1209,8 @@ NO paper title at top, NO standalone header "<ShortName>", NO author names. Only
 - [ ] **② Dissection의 summary 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **한 장 overview 이미지(`dissection_overview.png`)가 헤더 아래·rows 위에 임베드** (§14, `prompts/04_research_analysis.md` Stage 4 정본)
 - [ ] **`.diss-tag` pill이 작은 알약 모양** — 큰 타원·세로로 늘어진 모양이 안 보임. 정본 CSS(§15) 5개 속성(`align-self:start` / `justify-self:start` / `width:max-content` / `white-space:nowrap` / `line-height:1.4`) 모두 적용 확인
 - [ ] **② Dissection 카드가 단일 컬럼으로 수직 적층** + **각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 패턴**으로 표시 (§16 정본). `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용
+- [ ] **Paper Study ref 실존** — `python tools/check_study_refs.py "papers/N. name"` 통과 (study.json의 evidence/read/guide_questions ref가 모두 문장·섹션·문단·자산 id로 존재 + `captions`가 순수 영문이 아님=KR)
+- [ ] **Paper Study 탭(§17)** — 서술칸 localStorage 자동 저장 + 잠금 토글("분석 비교하기", Gap 3분할 합산) + 근거·단락 칩 전수 점프 확인(모든 `data-ev`/`data-read-pid` 대상이 `id` 또는 `data-pair`로 존재) + 단락 리더 ✓ 세션 한정 + 도표 뷰어(원문 캡션·번역·해석 + 학습 가이드 드로어) + 플로팅 메모 자동 저장 + 노트 내보내기/가져오기 왕복 + 썸네일 base64 중복 임베드 0건 + `study/` 폴더 존재
+- [ ] **콘텐츠 JSON에 이스케이프 안 된 `<`+영문자 없음** — `python tools/check_html_escape.py "papers/N. name"` 통과(FAIL 0건). 수식 표기(`X_{a<i}`, `y_<t`, `0.1<IOU<0.5` 류)가 HTML 태그로 파싱되면 그 지점 이후 문서 전체가 태그 수프가 된다. tex 안은 `\lt`, 일반 텍스트는 `&lt;`로
 
-이 16개 항목 모두 통과 = 정본 일치.
+이 19개 항목 모두 통과 = 정본 일치.

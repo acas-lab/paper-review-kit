@@ -1,0 +1,421 @@
+{
+  "phase1": {
+    "scan": {
+      "title": "훑어보기 — Abstract와 그림/표부터",
+      "checklist": [
+        "Abstract를 읽고 한 문장으로 요약해 봤다 — \"이 논문은 ___를 해서 ___를 얻는다\"",
+        "Figure 1~5를 캡션만으로 훑고, 각 그림이 논문의 어느 주장(문제/방법/결과)을 맡는지 짐작해 봤다",
+        "Table 2(메인 결과)에서 행/열이 무엇인지 — 어떤 모델, 어떤 벤치마크, 어떤 지표인지 확인했다"
+      ],
+      "assets": [
+        "fig_1",
+        "fig_2",
+        "table_1",
+        "table_2",
+        "fig_3",
+        "fig_4",
+        "fig_5",
+        "table_3",
+        "table_4",
+        "table_5",
+        "table_6"
+      ],
+      "evidence": [
+        {
+          "label": "Abstract 첫 문장으로 이동",
+          "ref": "p_abs_1_s1"
+        },
+        {
+          "label": "결과 한 줄 요약 (Abstract 끝)",
+          "ref": "p_abs_1_s6"
+        }
+      ]
+    },
+    "rq": {
+      "title": "핵심 연구 질문(Research Question) 찾기",
+      "read": [
+        {
+          "sec": "s_abs",
+          "label": "Abstract"
+        },
+        {
+          "sec": "s_intro",
+          "label": "§1 Introduction"
+        }
+      ],
+      "placeholder": "이 논문의 핵심 질문은 … 인가? 라고 생각한다. 왜냐하면 …",
+      "min_chars": 30,
+      "claude_html": "<p>저자가 서론에서 명시적으로 던지는 질문은 한 문장이다 — <em>\"입력 granularity를 전처리 단계에서 고를 수 있는가?\"</em> (§1 두 번째 문단 끝). 이를 실행 가능한 형태로 좁히면 이렇게 된다: <strong>이미지–질의 쌍이 주어졌을 때, target VLM의 답이 정확해지는 최소 충분 해상도 r_s를, 저해상도 한 번의 패스만으로 예측할 수 있는가?</strong> (§3.1의 형식화).</p><p>여기에 supervision이라는 하위 질문이 따라붙는다 — <em>\"각 예시에 대해 어떤 해상도가 진짜 충분한지, 그 정답 레이블을 어떻게 얻는가?\"</em> (§1 네 번째 문단 첫 문장). 논문 전체가 이 두 질문(예측기 설계 + 레이블링 전략)에 대한 답으로 구성돼 있다.</p>",
+      "evidence": [
+        {
+          "label": "§1 — 명시적 RQ 문장",
+          "ref": "p_intro_2_s5"
+        },
+        {
+          "label": "§3.1 — 형식화된 목표",
+          "ref": "p_m_problem_s5"
+        },
+        {
+          "label": "§1 — supervision 하위 질문",
+          "ref": "p_intro_4_s1"
+        }
+      ]
+    },
+    "gap": {
+      "title": "Gap 파악",
+      "read": [
+        {
+          "sec": "s_intro",
+          "label": "§1 Introduction"
+        },
+        {
+          "sec": "s_related",
+          "label": "§2 Related Work"
+        }
+      ],
+      "fields": [
+        {
+          "key": "gap_known",
+          "label": "① 이미 알려진 것",
+          "placeholder": "이 분야에서 이미 확립된 사실·관찰은 …"
+        },
+        {
+          "key": "gap_hole",
+          "label": "② 빈틈 — 기존 방법이 못 하는 것",
+          "placeholder": "기존 방법들은 …를 못 한다 / …축은 미개척이다"
+        },
+        {
+          "key": "gap_fill",
+          "label": "③ 이 논문의 답",
+          "placeholder": "이 논문은 그 빈틈을 …로 채운다"
+        }
+      ],
+      "min_chars": 30,
+      "claude_html": "<p><strong>이미 알려진 것</strong> — 시각 토큰이 prefill 전체 토큰의 최대 99%까지 차지해 비용을 지배한다는 사실, 질의마다 필요한 시각 granularity가 다르다는 관찰(개 품종 vs 목줄의 이름), 그리고 토큰화 <em>이후</em> 단계의 압축 기법(pruning · pooling · merging · Q-former 계열)이 이미 풍부하다는 것.</p><p><strong>빈틈</strong> — 기존 기법은 vision encoder 출력 위에서 작동하므로 텍스트 질의를 모른다. 입력 해상도 자체를 질의 조건부로 고르는 축은 미개척이다. vision-only 분류에서 dynamic-resolution 선행 연구(Zhu et al., 2021)가 있지만 질의 조건이 없고 멀티모달 QA로 확장되지 않았다.</p><p><strong>채우는 방식</strong> — ① query- &amp; image-conditioned resolution selection이라는 과제 자체를 정의하고, ② multi-resolution rollout + 수렴 규칙으로 예시별 충분 해상도 정답을 자동 생성하며, ③ target VLM을 전혀 건드리지 않는 frozen plug-in 선택기를 그 앞에 세운다.</p>",
+      "evidence": [
+        {
+          "label": "최대 99% 토큰 지배",
+          "ref": "p_abs_1_s2"
+        },
+        {
+          "label": "기존 방법 = 토큰화 이후",
+          "ref": "p_intro_2_s3"
+        },
+        {
+          "label": "질의를 모르는 기존 방법",
+          "ref": "p_intro_2_s4"
+        },
+        {
+          "label": "vision-only 선행 연구",
+          "ref": "p_rel_adapt_s1"
+        },
+        {
+          "label": "Contribution ① 과제 정의",
+          "ref": "p_intro_contrib_s1"
+        },
+        {
+          "label": "Contribution ② 레이블링",
+          "ref": "p_intro_contrib_s2"
+        }
+      ]
+    }
+  },
+  "phase2": {
+    "method": {
+      "title": "방법론 평가: 연구도구 파악",
+      "prompt": "이 방법론이 연구 질문에 답하기에 적절한 도구인지, 강점과 약점을 균형 있게 적는다. 아래 가이드 질문은 출발점 — 각 질문의 단락 버튼으로 해당 부분만 골라 읽고 와도 된다.",
+      "read": [
+        {
+          "sec": "s_method",
+          "label": "§3 CARES"
+        },
+        {
+          "sec": "s_results",
+          "label": "§4.1 실험 설정",
+          "pids": [
+            "p_r_intro",
+            "p_r_data",
+            "p_r_train",
+            "p_r_train_ar",
+            "p_r_eval"
+          ]
+        }
+      ],
+      "guide_questions": [
+        {
+          "q": "\"최소 충분 해상도\"라는 정답 레이블은 어떻게 정의되나(τ=0.85, δ=0.1)? 이 정의는 임의적이지 않은가?",
+          "ref": "p_m_label",
+          "label": "§3.2 보기"
+        },
+        {
+          "q": "384px 저해상도 특징만 보고 \"고해상도가 필요한가\"를 판단할 수 있다는 전제 — 저해상도에서 아예 안 보이는 세부는 어떻게 되나?",
+          "ref": "p_m_problem",
+          "label": "§3.1 보기"
+        },
+        {
+          "q": "학습 데이터 4종(TextVQA/ChartQA/DocVQA/LLaVA-Multi)과 평가 벤치마크 9종의 도메인 구성은 공정한가?",
+          "ref": "p_r_data",
+          "label": "§4.1 보기"
+        },
+        {
+          "q": "비교 대상이 고정 해상도(384/768/1024/native)뿐이다 — 이 비교만으로 충분한가? 빠진 베이스라인은 없나?",
+          "ref": "p_r_main",
+          "label": "§4.2 보기"
+        }
+      ],
+      "placeholder": "이 방법론의 강점은 … / 약점 또는 의문은 … / 내가 심사위원이라면 …를 물을 것이다.",
+      "min_chars": 80,
+      "claude_html": "<p><strong>도구–질문 정합성.</strong> \"전처리 단계에서 해상도를 고를 수 있는가\"라는 질문에 대해, 문제를 K-way 분류로 환원하고 multi-resolution rollout으로 감독 신호를 자동 생성한 것은 실용적인 설계다. 특히 supervision 문제(정답 해상도를 누가 알려주나)를 별도 사람 라벨 없이 target VLM 자신의 수렴 거동으로 푼 것이 이 논문의 방법론적 핵심이다.</p><p><strong>실험 설계의 강점.</strong> ① 9개 벤치마크 × 4개 target VLM(2B 오픈 모델부터 GPT-4o API까지)으로 \"model-agnostic\" 주장에 걸맞은 폭을 확보했다. ② ablation이 설계 선택을 하나씩 격리 검증한다 — backbone·레이어 깊이(Table 3), 해상도 메뉴 크기(Table 4), 이산 vs 연속(Table 5), label smoothing(Table 6). ③ §4.3 cross-teacher 검증은 \"레이블이 특정 teacher의 편향 아닌가\"라는 반론을 스스로 제기하고 데이터(일치율 95%, Pearson 0.908)로 응답한, 보기 드문 자기 검증이다.</p><p><strong>약점과 열린 의문.</strong> ① <em>순환 전제</em> — 384px 특징만으로 고해상도 필요 여부를 판단하는데, 저해상도에서 판단 근거 자체가 소실되는 경우(밀집 OCR, 의료 영상)가 원리적으로 존재한다. 저자도 Limitations에서 인정하지만, 이 실패 모드의 빈도와 비용을 정량화한 실험은 없다. ② <em>레이블 정의의 자의성</em> — τ=0.85, δ=0.1이라는 임계값에 대한 민감도 분석이 없고, 레이블링 지표가 ANLS 하나인데 평가 벤치마크 일부는 exact-match 계열이라 지표 불일치 가능성이 있다. ③ <em>베이스라인 공백</em> — 비교가 고정 해상도와만 이루어진다. \"orthogonal\"이라 주장하는 토큰화-이후 방법(SparseVLM, PyramidDrop 등)과의 직접 비교나 결합 실험 수치가 본문 표에 없어, 직교성 주장은 논리 수준에 머문다. ④ <em>도메인 치우침</em> — 학습 데이터 4종 중 3종이 문서·차트 계열이다. Table 2 캡션 스스로 \"다른 도메인에서는 절감폭이 덜 공격적\"이라고 인정한다. ⑤ <em>비용 계상 범위</em> — 절감률은 prefill 한정 지표이고, CARES 자신의 350M 패스 오버헤드가 총비용에 어떻게 들어가는지는 Fig 3의 TTFT로 간접 확인될 뿐 명시적 분해가 없다.</p>",
+      "evidence": [
+        {
+          "label": "레이블 수렴 규칙 (τ, δ)",
+          "ref": "p_m_label_s11"
+        },
+        {
+          "label": "저해상도 패스 전제",
+          "ref": "p_m_problem_s5"
+        },
+        {
+          "label": "학습 데이터 80K 구성",
+          "ref": "p_r_data_s2"
+        },
+        {
+          "label": "평가 벤치마크 9종",
+          "ref": "p_r_eval_s1"
+        },
+        {
+          "label": "cross-teacher 95% 일치",
+          "ref": "p_r_teacher_s4"
+        },
+        {
+          "label": "Limitations — 미세 단서 도메인",
+          "ref": "p_lim_1_s1"
+        },
+        {
+          "label": "Table 2 — 메인 결과",
+          "ref": "table_2"
+        },
+        {
+          "label": "Table 3 — backbone ablation",
+          "ref": "table_3"
+        }
+      ]
+    },
+    "conclusion": {
+      "title": "결론 도출하기: Results 분석",
+      "read": [
+        {
+          "sec": "s_results",
+          "label": "§4.2~4.4 결과·어블레이션",
+          "pids": [
+            "p_r_main",
+            "p_r_main2",
+            "p_r_teacher",
+            "p_r_abl",
+            "p_r_abl_feat",
+            "p_r_abl_menu",
+            "p_r_abl_disc",
+            "p_r_abl_ls"
+          ]
+        }
+      ],
+      "result_assets": [
+        "table_2",
+        "fig_3",
+        "fig_4",
+        "fig_5",
+        "table_3",
+        "table_4",
+        "table_5",
+        "table_6"
+      ],
+      "placeholder": "데이터만 보면 … 라고 결론 내릴 수 있다. 다만 …는 이 표만으로 말할 수 없다.",
+      "min_chars": 80,
+      "claude_html": "<p><em>아래는 Claude가 §5 Discussion을 인용하지 않고, §4의 표·그림만 근거로 독립적으로 내린 결론이다 — 내 결론과 같은 조건의 비교 대상.</em></p><p><strong>① 방법은 목적을 달성했다.</strong> Table 2에서 4개 모델 모두 정확도를 거의 유지(±1점 이내)하면서 prefill 연산이 큰 폭으로 줄었다. Fig 3은 이것이 단순 절충이 아니라 Pareto 우월임을 보여준다 — TTFT를 349ms 줄이면서 점수가 오히려 +1.11pts 올랐다.</p><p><strong>② 흥미로운 부산물: native가 항상 최선이 아니다.</strong> Fig 3에서 CARES가 native보다 점수가 높다는 것은, 일부 예시에서는 고해상도 타일링이 오히려 해롭다는 뜻이다. 이것은 \"절감\"을 넘어 \"고해상도 기본값 자체가 준최적\"이라는 더 강한 명제의 증거다.</p><p><strong>③ 분류 정확도는 낮아도 된다.</strong> Table 4에서 3-way 분류 정확도는 67.2%에 불과한데 다운스트림 성능은 이진(96.2%)보다 오히려 높다(0.80 vs 0.76). 해상도 선택 오류의 비용이 비대칭이기 때문이라고 읽힌다 — 과대 할당은 낭비일 뿐 정확도를 해치지 않고, 과소 할당만 아프다. 즉 이 문제는 \"맞히는 문제\"가 아니라 \"제어 문제\"다.</p><p><strong>④ 연속화는 공짜 절감을 준다.</strong> Table 5에서 같은 분류기를 연속 모드로 돌리면 정확도 손실 없이 절감이 -46%→-63%로 커진다. Fig 4의 히스토그램(예측 해상도가 400~600에 집중)이 그 메커니즘을 보여준다.</p><p><strong>⑤ 단, 증거의 무게는 문서 쪽에 쏠려 있다.</strong> 학습 데이터가 문서·차트 중심이고 Fig 4도 OCRBench 한정이라, 자연 이미지 도메인에서의 일반화 증거는 상대적으로 얇다. Fig 5(teacher 일치 95%)는 레이블의 재현성을 지지하지만, 이것이 \"충분 해상도의 보편성\"까지 보장하는지는 표만으로 단정할 수 없다.</p>",
+      "evidence": [
+        {
+          "label": "Table 2 — 메인 결과",
+          "ref": "table_2"
+        },
+        {
+          "label": "Fig 3 — Pareto frontier",
+          "ref": "fig_3"
+        },
+        {
+          "label": "Fig 4 — 연속 해상도 분포",
+          "ref": "fig_4"
+        },
+        {
+          "label": "Table 4 — 분류 정확도 역전",
+          "ref": "table_4"
+        },
+        {
+          "label": "Table 5 — 이산 vs 연속",
+          "ref": "table_5"
+        },
+        {
+          "label": "Fig 5 — teacher 일치",
+          "ref": "fig_5"
+        }
+      ]
+    }
+  },
+  "phase3": {
+    "verdict": {
+      "title": "결론 대조",
+      "read": [
+        {
+          "sec": "s_conclusion",
+          "label": "§5 Discussion"
+        }
+      ],
+      "claude_dataonly_summary": "<p>질의 조건부 해상도 선택은 실용적으로 거의 공짜에 가깝다 — 정확도 유지(때로 상승) + prefill 연산 대폭 절감이 4개 모델에서 일관된다. 고해상도 기본값 자체가 준최적이라는 부산물 증거(Fig 3)와, 분류 정확도가 낮아도 다운스트림이 유지되는 비대칭 구조(Table 4)가 특히 흥미롭다. 단, 증거의 무게가 문서 도메인에 쏠려 있어 자연 이미지 일반화는 상대적으로 얇다.</p>",
+      "author_claims": [
+        {
+          "match": "support",
+          "claim": "대부분의 사용자 질의는 고해상도 입력을 필요로 하지 않는데, 현재 배포는 기본값으로 native/타일 해상도를 쓴다.",
+          "note": "Fig 4의 히스토그램(예측 해상도 400~600 집중)이 직접 지지한다. 단 그 그림은 OCRBench 한정이므로 \"대부분의 사용자 질의\"라는 일반화는 벤치마크 분포에 의존한다.",
+          "evidence": [
+            {
+              "label": "§5 원문",
+              "ref": "p_c_1_s2"
+            },
+            {
+              "label": "Fig 4",
+              "ref": "fig_4"
+            }
+          ]
+        },
+        {
+          "match": "support",
+          "claim": "넓은 범위의 모델·벤치마크에서 정확도 손실 최소~없음으로 연산과 지연을 줄인다.",
+          "note": "Table 2(4개 모델 × 9개 벤치마크)와 Fig 3(TTFT -349ms, 점수 +1.11)이 정면으로 지지한다. 데이터와 일치하는 주장.",
+          "evidence": [
+            {
+              "label": "§5 Key Takeaways",
+              "ref": "p_c_takeaways_s1"
+            },
+            {
+              "label": "Table 2",
+              "ref": "table_2"
+            },
+            {
+              "label": "Fig 3",
+              "ref": "fig_3"
+            }
+          ]
+        },
+        {
+          "match": "partial",
+          "claim": "VLM을 전혀 바꾸지 않는 plug-in 구성이라 실전 파이프라인에 통합하기 쉽다.",
+          "note": "\"무변경 plug-in\"은 설계상 참이고 GPT-4o API 실험이 방증한다. 다만 \"통합이 쉽다\"는 배포 경험 명제는 실험으로 측정된 것이 아니라 설계 속성에서 추론된 것이다.",
+          "evidence": [
+            {
+              "label": "§5 Key Takeaways",
+              "ref": "p_c_takeaways_s2"
+            },
+            {
+              "label": "GPT-4o 포함 실험",
+              "ref": "p_r_main_s1"
+            }
+          ]
+        },
+        {
+          "match": "partial",
+          "claim": "단일 저비용 패스로 질의별 필요 시각 세부 수준을 결정한다.",
+          "note": "동작 자체는 사실이나, \"저비용\"의 총계 — 프록시 350M 패스가 end-to-end 비용에 얼마나 얹히는지 — 는 Fig 3의 TTFT 우위로 간접 확인될 뿐 명시적 비용 분해표는 없다.",
+          "evidence": [
+            {
+              "label": "§5 Key Takeaways",
+              "ref": "p_c_takeaways_s3"
+            },
+            {
+              "label": "Fig 3",
+              "ref": "fig_3"
+            }
+          ]
+        },
+        {
+          "match": "beyond",
+          "claim": "adaptive pixel allocation은 기존 토큰 압축 기법들과 상보적이며, 대규모 실전 배포의 새 경로를 연다.",
+          "note": "\"상보적\"은 그럴듯한 논리지만(작동 지점이 토큰화 앞뒤로 다름) 결합 실험 수치가 본문에 없다 — 데이터가 보여준 것보다 반 발 앞선 주장. 내 결론과 대조해 볼 지점.",
+          "evidence": [
+            {
+              "label": "§5 마무리",
+              "ref": "p_c_end_s2"
+            },
+            {
+              "label": "Contribution ④의 직교성 주장",
+              "ref": "p_intro_contrib_s4"
+            }
+          ]
+        }
+      ]
+    },
+    "alternatives": {
+      "title": "대안 설명: 다른 설명 찾아보기",
+      "read": [
+        {
+          "sec": "s_conclusion",
+          "label": "§5 Discussion"
+        },
+        {
+          "sec": "s_limitations",
+          "label": "Limitations"
+        }
+      ],
+      "placeholder": "이 결과는 …때문일 수도 있다. 그 경우 저자의 결론은 …로 약화된다.",
+      "min_chars": 30,
+      "claude_items": [
+        {
+          "title": "벤치마크 구성 효과",
+          "body": "\"대부분의 질의는 중간 해상도로 충분\"이라는 결론은 9개 벤치마크의 질의 분포가 만든 산물일 수 있다. 문서·차트 QA는 답이 국소 텍스트에 있어 해상도 수요가 이산적으로 갈리는 반면, 실서비스의 질의 분포(멀티턴, 모호한 지시, 복합 추론)는 다를 수 있다.",
+          "evidence": [
+            {
+              "label": "벤치마크 목록",
+              "ref": "p_r_eval_s1"
+            }
+          ]
+        },
+        {
+          "title": "teacher 일치의 다른 해석",
+          "body": "두 teacher의 95% 일치(Fig 5)를 저자는 \"충분 해상도라는 개념이 모델 보편적\"이라고 읽지만, 두 모델이 유사한 데이터·훈련 관행을 공유해서 나온 상관일 가능성도 있다. 정말 이질적인 모델(예: 순수 OCR 특화 모델)에서도 일치할지는 열려 있다.",
+          "evidence": [
+            {
+              "label": "저자의 해석 문장",
+              "ref": "p_r_teacher_s6"
+            },
+            {
+              "label": "Fig 5",
+              "ref": "fig_5"
+            }
+          ]
+        },
+        {
+          "title": "native 대비 점수 상승의 정체",
+          "body": "Fig 3에서 CARES가 native보다 +1.11pts 높은 것은 라우팅이 똑똑해서가 아니라, 고해상도 타일링이 특정 예시에서 노이즈나 토큰 희석을 유발한다는 별개 현상의 반사이익일 수 있다. 그렇다면 공은 CARES가 아니라 \"고해상도의 해로움\"에 있다.",
+          "evidence": [
+            {
+              "label": "Fig 3",
+              "ref": "fig_3"
+            }
+          ]
+        },
+        {
+          "title": "연속화 이득의 메커니즘",
+          "body": "이산 -46% → 연속 -63%의 추가 절감은 연속 예측이 \"더 정확해서\"가 아니라, softmax 기댓값이 확신 없는 예측을 중간 해상도로 끌어내리는 통계적 효과일 수 있다. 정확도가 유지되므로 결과적으로 무해하지만, \"세밀한 제어\"라는 서사와 \"평균으로의 회귀\"라는 서사는 다른 이야기다.",
+          "evidence": [
+            {
+              "label": "Table 5",
+              "ref": "table_5"
+            },
+            {
+              "label": "기댓값 보간 (Eq. 3)",
+              "ref": "p_m_cont_s3"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

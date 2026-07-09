@@ -130,7 +130,11 @@ Stage 2 구조화는 **`python tools/structure_paper.py "<pdf>" "papers/N. name/
      ],
      "wide_assets": ["fig_2", "table_1", "table_2"],
      "captions": {
-       "fig_1": "Original caption text from the paper...",
+       "fig_1": "그림 1: 자산 캡션의 한국어 번역...",
+       "table_1": "..."
+     },
+     "captions_en": {
+       "fig_1": "Figure 1: Original English caption from the paper...",
        "table_1": "..."
      }
    }
@@ -139,7 +143,15 @@ Stage 2 구조화는 **`python tools/structure_paper.py "<pdf>" "papers/N. name/
    - 형식: `[[asset_id, paragraph_id, kind], ...]`. 한 paragraph에 여러 자산이 붙을 때는 같은 paragraph_id로 여러 줄을 추가.
    - `kind`: `"figure"` 또는 `"table"`.
    - `wide_assets`: 가로로 넓어 `asset-wide` 클래스로 페이지 폭을 살짝 넘게 렌더할 자산 ID 리스트.
-   - `captions`: 자산별 원문 캡션 — 빌더가 `<figcaption>`의 `asset-cap`로 렌더.
+   - 🔴 **`captions` = 자산별 캡션의 한국어 번역** (원문 아님 — 2026-07-08 정정). 빌더가 `<figcaption>`의
+     `asset-cap`로 렌더하고, **Paper Study 도표 뷰어에서 "번역"으로 표시**된다. 학습자 대면 텍스트이므로
+     반드시 한국어여야 한다 (`prompts/03_translation.md` 무리한 한국어 변환 금지 정책 적용 — ML 표준 용어는 영문 유지).
+   - 🔴 **`captions_en` = 자산별 영어 원문 캡션** — Paper Study 도표 뷰어의 "원문 캡션"으로 표시.
+     `detect_assets.py` 추출(Stage 0) 또는 fulltext.txt에서 추출(Stage 11, `prompts/11_paper_study.md`).
+   - ⚠️ **정의 충돌 정정 이력**: 2026-07-08 이전 이 문서는 `captions`를 "원문 캡션"(영어)으로 정의했다.
+     v4 대시보드·Paper Study 뷰어는 `captions`를 번역(KR)으로 해석하므로, 영어가 든 논문은 뷰어 "번역"에
+     원문이 그대로 노출된다. 신규·마이그레이션 논문은 반드시 `captions`=KR / `captions_en`=EN 규약을 따른다.
+     검증: `tools/check_study_refs.py`.
 
 ### 3-2-bis. 🔴 자산 등장 순서 — 번호 순(numerical order) 정본
 
@@ -284,7 +296,7 @@ for pno in range(doc.page_count):
 
 조정은 PDF pt 단위로 한 자리 수씩 (4~8pt). 한 번에 큰 폭으로 조정하지 말 것.
 
-**정본 구현**: `tools/autocrop_assets.py` (콘텐츠 인식 자동 bbox — 신규 빌드 1순위). 진단/디버깅 보조: `tools/detect_assets.py`(캡션 좌표·드로잉 bbox 덤프). 수동 좌표 fallback 예시: `samples/free_example/_crop.py`. 신규 vector PDF는 `autocrop_assets.py`를 먼저 돌리고, 출력 PNG를 눈으로 검증한 뒤 어긋나는 자산만 수동 보정한다. 적용 사례: `papers/1. fastvlm/_crop.py`(autocrop 호출 + 사용 자산만 선별).
+**정본 구현**: `tools/autocrop_assets.py` (콘텐츠 인식 자동 bbox — 신규 빌드 1순위). 진단/디버깅 보조: `tools/detect_assets.py`(캡션 좌표·드로잉 bbox 덤프). 수동 좌표 fallback 예시: `samples/cares/_crop.py`. 신규 vector PDF는 `autocrop_assets.py`를 먼저 돌리고, 출력 PNG를 눈으로 검증한 뒤 어긋나는 자산만 수동 보정한다. 적용 사례: `papers/1. fastvlm/_crop.py`(autocrop 호출 + 사용 자산만 선별).
 
 **Per-paper 사용 패턴**:
 

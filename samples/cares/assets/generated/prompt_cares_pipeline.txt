@@ -1,0 +1,31 @@
+교육용 학술 다이어그램. 정사각형 1024x1024.
+
+주제: "CARES 3단계 파이프라인 — 저해상도 예측 → 해상도 분포 → 리사이즈 후 동결 VLM 전달"
+
+구성: 위에서 아래로 흐르는 세로 흐름도(flow chart). 화살표로 단계 연결.
+
+[입력] 맨 위 두 개의 회색 상자: 왼쪽 "Image", 오른쪽 "Query". 둘 다 아래로 화살표.
+
+[STEP 1 — Low-res proxy pass] 파란(azure) 상자 "Low-res pass (<=384px)" 안에 작은 트랜스포머 블록 스택 아이콘. 옆에 작은 라벨 "SmolVLM, frozen, layer 16 feature z". 흐릿하고 작은 이미지 썸네일이 이 상자로 들어가는 모습.
+
+[STEP 2 — Lightweight classifier] lavender 상자 "Classifier". 여기서 나오는 작은 막대그래프: 세 막대에 각각 "384", "768", "1024" 라벨, 높이가 다른 확률 분포.
+
+[STEP 3 — Expected resolution] amber 게이지/다이얼 아이콘과 수식 느낌의 라벨 "r = sum p_k r_k" (확률 가중 평균). 여기서 나온 하나의 값이 리사이즈로 연결.
+
+[리사이즈] 큰 이미지가 화살표를 지나며 중간 크기로 축소되는 그림 "Resize".
+
+[출력 — Target VLM] 맨 아래 큰 그라디언트(lavender→pink) 상자 "Target VLM (frozen)". 자물쇠 아이콘으로 "동결(unchanged)" 강조. 리사이즈된 이미지와 Query가 이 상자로 함께 들어감.
+
+옆쪽에 초록 체크 배지 하나: "No changes to VLM".
+
+색상 팔레트: v3 흰색-아이보리 배경 + lavender(#8b75c0) / azure(#6b95b3) / amber(#ad8e4e) / mint green(#75ad8e) 강조.
+
+스타일 지시 (중요):
+- 풀 블리드 일러스트 — 배경 가득
+- 절대로 투명 배경 컷아웃이 아닐 것 (NOT a transparent cutout)
+- Scientific American / 학술 교과서 스타일, 깔끔한 플랫 벡터 흐름도
+- 화살표로 위→아래 데이터 흐름이 명확
+- 텍스트 라벨은 영어로 깔끔하게: Image, Query, Low-res pass, Classifier, 384/768/1024, Resize, Target VLM (frozen), No changes to VLM
+- 1024x1024 정사각형
+
+NO paper title at top, NO standalone header, NO author names. Only the vertical pipeline flow-chart content with English labels.
