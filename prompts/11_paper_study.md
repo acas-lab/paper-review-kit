@@ -205,6 +205,12 @@ claude_html·note·body 안의 수식 표기에서 `<`+영문자 금지 — `&lt
 `prompts/03_translation.md` § 🔴 무리한 한국어 변환 금지 전면 적용. supervision·rollout·
 ablation·baseline·plug-in 같은 용어는 한국 ML 커뮤니티 표준 표기 그대로.
 
+### 8. 감성 온도 0 · 논리 최대
+
+claude_html·claude_items·note·author_claims 등 모든 분석 서술은 CLAUDE.md "🔴 감성 온도 0 ·
+논리 최대" 적용. 감탄·평가·응원·과장 수사(흥미롭게도·훌륭한·우아한·보기 드문·정말·매우 남발 등)
+금지 — 근거→함의 논리 사슬만. Step 5 데이터-only 결론과 Step 6 판정 note도 동일.
+
 ## 분량 가이드
 
 - rq/gap claude_html: 문단 2~3개 (각 200~400자)

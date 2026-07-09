@@ -8,7 +8,7 @@ JSON으로 정제된 콘텐츠 + 정본 샘플의 디자인 + 규칙 문서를 �
 
 ## 표준 학습 템플릿
 
-모든 논문은 다음 8개 탭으로 구성된다. **신규 논문은 v4 대시보드 디자인(저채도 grey-lavender · topbar · 숫자 없는 8탭 · 해시 라우팅)을 따른다** (정본·전체 규약 = `rules/design_v4_dashboard.md`, 2026-07-02 제정). 이전 v3(white+lavender, hero+6탭)·v2(베이지+마룬)는 폐기. (이 배포 툴킷은 논문 데이터를 포함하지 않는다 — 셸·토큰·인터랙션 정본은 `samples/`에, 빌드/변환 도구는 `tools/`에 있다. 모체 작업 폴더는 papers 4~26 전부 v4 + Paper Study 완비·캡션 KR.) 기존 v4 논문에 Paper Study 소급: `tools/paper_study_retrofit.py`(세대 자동 감지 — GEN A/B + lightbox 유무), `tools/paper_study_retrofit_groupc.py`(single-brace 구식 빌더 전용 bespoke). Stage 11 데이터 + 캡션 번역 후 검증: `tools/check_study_refs.py`(ref 실존 + 캡션 KR) · `tools/check_html_escape.py`.
+모든 논문은 다음 8개 탭으로 구성된다. **신규 논문은 v4 대시보드 디자인(저채도 grey-lavender · topbar · 숫자 없는 8탭 · 해시 라우팅)을 따른다** (정본·전체 규약 = `rules/design_v4_dashboard.md`, 2026-07-02 제정). 이전 v3(white+lavender, hero+6탭)·v2(베이지+마룬)는 폐기. (이 배포 툴킷은 논문 데이터를 포함하지 않는다 — 셸·토큰·인터랙션 정본은 `samples/`에, 빌드/변환 도구는 `tools/`에 있다. 모체 작업 폴더는 papers 4~26 전부 v4 + Paper Study 완비·캡션 KR.) 기존 v4 논문에 Paper Study 소급: `tools/paper_study_retrofit.py`(세대 자동 감지 — GEN A/B + lightbox 유무), `tools/paper_study_retrofit_groupc.py`(single-brace 구식 빌더 전용 bespoke). **`_build.py`가 없는 대화형·수작업 빌드**(빌더 기반 소급 불가)에는 빌더리스 직접 주입: `tools/study_inject.py`(CARES Region A 렌더 이식 + 자산 id 소급 + nav/패널/뷰어 주입) + `tools/study_runtime.py`(자립형 런타임 — 근거 점프·플로팅 리더·도표 뷰어·노트 내보내기·형광펜) + `tools/memo_inject.py`(자립형 학습 메모). Stage 11 데이터 + 캡션 번역 후 검증: `tools/check_study_refs.py`(ref 실존 + 캡션 KR — 단, 문장이 structured.json이 아닌 translations/manual.json에 있는 구세대 논문에서는 DOM ref 대조로 대체) · `tools/check_html_escape.py`. LLM 서술 톤 점검: `tools/tone_lint.py`(감성 온도 0 안티패턴 탐지·`--fix`).
 
 **정본 레퍼런스 (수정 금지 — 신규 논문이 따라갈 기준)**
 - **디자인 정본 (v4, 신규 논문 기준)** — `samples/cares/CARES_output.html`(4세대 — 대시보드 topbar·숫자 없는 8탭(Paper Study 포함)·해시 라우팅·저채도 팔레트) + **범용 변환 도구 `tools/restyle_dash_v4.py`**(config#meta 기반 — 논문별 수정 0곳). 전체 규약: `rules/design_v4_dashboard.md`
@@ -40,6 +40,18 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 - **학습 메모(플로팅)**: 우측 상단 플로팅 "메모" 버튼(to-top의 x · topbar 바로 아래 y) → 자유 서식 메모장 드로어. 쓰는 대로 자동 저장(localStorage), 내보내기 JSON의 `notes.memo`(plain text)에 포함되며, **⑥ Q&A 탭을 작성할 때 이 메모의 질문들이 1순위 재료가 된다** (전용 카테고리 "내가 남긴 질문" — 정본 규칙: `prompts/10_qa.md` § 사용자 학습 메모 반영).
 - 데이터 = `tabs_data/study.json` (작성 규칙 `prompts/11_paper_study.md`), 컴포넌트 = `rules/component_rules.md` §17, 탭 규약 = `rules/design_v4_dashboard.md` §3-bis. study.json이 없으면 빌더가 자동으로 셸 렌더.
 - 정본 사례: `samples/cares` (첫 적용, 2026-07-08).
+
+### 🔴 메모 → ⑥ Q&A 온디맨드 생성 (로컬 브릿지, 2026-07-09 신설)
+
+학습 중 메모 드로어에 남긴 질문으로 **그 자리에서 ⑥ Q&A 카드를 증분 생성**하는 기능. 메모 드로어 안 **"🤖 Q&A 생성" 버튼**(amber `.qa-gen-bar`). 브라우저는 CLI를 직접 못 부르므로 **로컬 다리 서버**를 경유한다.
+
+- **브릿지 `tools/qa_bridge.py`** (사용자가 미리 `python tools/qa_bridge.py` 실행, 기본 `127.0.0.1:8787`, stdlib만): 버튼 → `POST /gen-qa {short, memo}` → 헤드리스 `claude -p`(`--permission-mode acceptEdits --allowedTools Bash Edit MultiEdit Write Read Glob Grep`) spawn → **Stage 9+10 자동 수행**(prompts/10_qa.md 지침대로 qa.json 카테고리 M "내가 남긴 질문"에 append + `<section id="tab-qa">`에 `.qa-mem-card` 주입 + 필요 시 codex 보조 이미지 base64 인라인). 모델 지정 `QA_BRIDGE_MODEL=sonnet`, 권한 우회 `QA_BRIDGE_SKIP_PERMS=1`.
+- **증분 + 중복 방지**: `study/.qa_state.json`에 (a) 마지막 메모 sha256 (b) 이미 생성한 질문 원문 목록 기록. 동일 해시면 claude 미실행 `nochange`. 다르면 이미 생성한 질문 목록을 프롬프트로 넘겨 **의미 겹침 dedup + 새 질문만 append**. HTML `data-qid` 레벨에서도 중복 카드 방지. 클라이언트도 djb2 해시로 선차단(+'그래도 다시 생성' 우회).
+- **자동 JSON 저장**: 생성 직전 메모를 `study/{Short}_study_notes_YYMMDD.json`으로 저장(Stage 9 입력 형식).
+- **내용 무손실 + 우아한 실패**: 메모 textarea/localStorage는 절대 비우지 않고 새로고침 전에도 확정 저장. 브릿지가 꺼져 있고 자동 시작도 실패하면 실행 방법 안내(다른 PC의 self-contained HTML에서도 버튼만 무해하게 존재).
+- **버튼 클릭 = 브릿지 자동 시작 (`qabridge://` 프로토콜, 2026-07-09)**: 브라우저는 CLI를 직접 못 켜므로, 버튼이 `/ping` 실패를 감지하면 숨김 iframe 으로 `qabridge://start` 를 열고 → Windows 가 `tools/qa_bridge_start.bat`(ASCII 전용 런처)을 실행 → 브릿지 기동 → 클라이언트가 최대 16초 폴링 후 진행. 공용 헬퍼 `window.__qaBridgeEnsure(onReady,onStatus)`(두 주입 스크립트가 가드로 1회 정의)가 담당. **최초 1회 등록**: `python tools/qa_bridge_register.py`(HKCU\Software\Classes\qabridge, 관리자 불필요 · `--unregister`/`--status`). 브릿지는 프로토콜 재실행·URL 인자(`parse_known_args`)·포트 사용중(graceful exit)에 견딤.
+- **버튼 주입기 `tools/qa_button_inject.py`**: `.memo-drawer`(자립형·CARES-통합형 공통 DOM)에 런타임 JS로 버튼 + `.qa-mem-*` 카드 CSS를 additive 주입. 헤더 주석으로 구버전 블록을 식별해 **제거 후 재주입(업데이터)** — `--all`로 일괄 갱신. z-index는 드로어(1650) 상속.
+- 정본 사례: `samples/cares` (버튼 주입 완료). 배포 킷은 논문 데이터를 포함하지 않으므로, 신규 논문은 빌드 후 `python tools/qa_button_inject.py "papers/N. name"`로 주입. ⑥ 실제 채움은 사용자가 버튼을 눌러 온디맨드.
 
 ### 기본 빌드 범위 — ⑤ ⑥은 셸만 (사용자 명시 정책)
 
@@ -143,6 +155,34 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 정본 규칙·전체 안티패턴 표·자동 점검 정규식: `prompts/03_translation.md § 🔴 무리한 한국어 변환 금지`. cross-ref: `rules/knowledge_rules.md §2`, `rules/analysis_rules.md § Forbidden`, `rules/coaching_rules.md § 절대 금지`.
 
 > 정본 학습 사례 (실패→복구): `papers/24. geollava8k` 1차 빌드에서 위 안티패턴 다수 사용. 사용자 지적 후 manual.json·analysis.json·dissection.json·knowledge.json·config.json·HTML 18곳 일괄 정리. 동일 실수 재발 방지가 이 정책의 직접 동기.
+
+### 🔴 감성 온도 0 · 논리 최대 — 모든 LLM 서술 prose에 적용 (정책, 2026-07-09 신설)
+
+번역(①)을 제외하고 **Claude가 직접 한국어를 쓰는 모든 자리**(② dissection · ③ knowledge · ④ coaching · ①′ study.json 분석 · figure interpretations · beginner_notes · study_modals · callouts · ⑤⑥ 콘텐츠 · 메모 Q&A · Study 검토 피드백)에 적용. **감성 온도 = 0, 논리적 사고 = 최대.**
+
+**원칙** — 문장은 근거 → 함의의 논리 사슬로만 진행한다. 사실·수치·인과·조건·한계만 남기고, 필자의 감정·감탄·평가적 수사는 제거한다. "이 문장에서 형용사/부사를 빼도 논리가 그대로인가? 그렇다면 뺀다."
+
+**제거 대상 (감성 안티패턴)**
+- 감탄·평가 수식어: `흥미롭게도`, `흥미로운`, `놀랍게도`, `인상적인`, `인상적이다`, `우아한`, `우아하게`, `훌륭한`, `강력한`(강조용), `매력적인`, `아름다운`, `보기 드문`, `특히 흥미롭다`, `주목할 만한`, `눈길을 끄는`, `압도적인`
+- 응원·친근체: `~해봅시다`, `함께 ~`, `살펴봅시다`, `알아봅시다`, `잘 하고 있어요`, `훌륭해요`, `좋습니다`, `걱정 마세요`
+- 과장 강조 부사: `정말`, `매우`(남용), `굉장히`, `엄청난`, `대단히`, `무척`
+- prose 내 이모지·느낌표 남발
+
+**유지 대상 (논리 어휘)** — `따라서`, `즉`, `반면`, `그러나`, `조건부로`, `~에 한해`, `~인 한`, `전제`, `귀결`, `반례`, `필요·충분`, `상관 대 인과`. 분석적 내용을 담은 형용사는 감성이 아니므로 유지: `비대칭(구조)`, `준최적`, `직교(적)`, `단조(증가)`.
+
+- **적용 범위**: 신규 논문 생성(위 모든 Stage)에 기본 적용. 정본 사례 `samples/cares`는 이 정책으로 정리 완료(tone_lint 0건).
+- 교차 참조: `prompts/03_translation.md`, `rules/analysis_rules.md`, `rules/coaching_rules.md`, `rules/knowledge_rules.md`, `prompts/10_qa.md`, `prompts/11_paper_study.md`.
+- 검출·수정 도구: `tools/tone_lint.py "papers/N. name"`(단일) / `--all`(전체 리포트) / `--fix`(안전한 치환만 자동 적용).
+
+### 🔴 Study 답변 검토 + 보완 학습 (로컬 브릿지, 2026-07-09 신설)
+
+Paper Study 탭에서 학습자가 쓴 답변(skey: rq·gap_*·method·conclusion·alt)을 study.json 의 Claude 분석과 대조해 **정합도·놓친 관점**을 그 탭 위에서 피드백하고, 약한 부분을 ⑥ Q&A 에 **보완 학습 카드**로 보충하는 기능.
+
+- **버튼**: Paper Study 툴바의 "검토 결과 파악하기"(`#study-review-btn`). 클릭 → `.study-write[data-skey]` 값 수집 → 브릿지 `POST /review-study`.
+- **브릿지 `tools/qa_bridge.py`**(`/review-study`): 헤드리스 `claude -p` 가 각 답변을 대응 Claude 분석과 비교 → 단계별 `{match(정합도 0~100), aligned, misread(관점+근거), missing, verdict}` 피드백 JSON 산출 + 약한 skey 에 대해 ⑥ tab-qa 에 카테고리 **W "보완 학습"** 카드를 `data-review-supp` 컨테이너에 **교체 주입**(누적 아님). 마커 `STUDY_REVIEW_RESULT: {...}`.
+- **렌더**: 피드백은 `#tab-study` 상단 패널에 즉시 렌더(파일 재작성 없이) + `prstudy:{SHORT}:study_review` localStorage 저장(재오픈 시 복원). 근거는 기존 `.ev-chip`(data-ev) 재사용 → Translation 점프.
+- **주입기 `tools/study_review_inject.py`**: 버튼 + 패널 + `.sr-*` CSS 를 additive·idempotent 주입(#tab-study·study-write 있는 논문 대상). 문체는 위 "감성 온도 0" 정책을 따른다.
+- 정본 사례: `samples/cares` (첫 적용, 2026-07-09).
 
 ### 🔴 Stage 2 완전성 — 원문 1:1 보존 (정책)
 

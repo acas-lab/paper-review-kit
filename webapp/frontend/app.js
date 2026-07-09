@@ -249,7 +249,7 @@ async function upload(file) {
     uploadMsg.className = "upload-msg"; uploadMsg.textContent = "✓ 저장됨: " + j.saved;
     $("#dropText").textContent = file.name;
     clearPaper();
-    input.value = `방금 "${j.saved}" 를 올렸어. 기존 지침(CLAUDE.md·workflow.md·rules)에 따라 이 논문으로 새 papers 폴더를 만들고 v4 대시보드 8탭 학습 HTML을 생성해줘. 본문 구조화는 tools/structure_paper.py, figure/표 크롭은 tools/autocrop_assets.py(+--verify)로 결정적으로 처리하고, 디자인은 rules/design_v4_dashboard.md 정본을 따라 _build.py 조립 → tools/restyle_dash_v4.py 변환의 2단으로 만들어 (빌더 출발점 samples/cares/_build.py). 캡션은 config.json#captions(한국어 번역)+captions_en(영어 원문)을 둘 다 채워. ①′ Paper Study(tab-study)는 tabs_data/study.json이 있으면 채우고 없으면 셸로 둬, ⑤ Code·⑥ Q&A도 셸만. 학습 보조 이미지가 필요하다고 판단되면 위에서 고른 이미지 생성 방식으로 만들고, 이미지 안에는 논문 제목·헤더 같은 글자 없이 내용 도식만 나오게 해줘.`;
+    input.value = `방금 "${j.saved}" 를 올렸어. 기존 지침(CLAUDE.md·workflow.md·rules)에 따라 이 논문으로 새 papers 폴더를 만들고 v4 대시보드 8탭 학습 HTML을 생성해줘. 본문 구조화는 tools/structure_paper.py, figure/표 크롭은 tools/autocrop_assets.py(+--verify)로 결정적으로 처리하고, 디자인은 rules/design_v4_dashboard.md 정본을 따라 _build.py 조립 → tools/restyle_dash_v4.py 변환의 2단으로 만들어 (빌더 출발점 samples/cares/_build.py). 캡션은 config.json#captions(한국어 번역)+captions_en(영어 원문)을 둘 다 채워. ①′ Paper Study(tab-study)는 tabs_data/study.json이 있으면 채우고 없으면 셸로 둬, ⑤ Code·⑥ Q&A도 셸만. 빌드가 끝나면 tools/qa_button_inject.py와 tools/study_review_inject.py로 메모→Q&A 온디맨드 버튼과 Study 답변 검토 버튼을 주입해줘. 번역을 뺀 모든 한국어 서술은 감성 온도 0(흥미롭게도·훌륭한·우아한·정말·~해봅시다 같은 감탄·평가·응원 수사 금지, 근거→함의 논리만) 원칙을 지키고 필요하면 tools/tone_lint.py로 점검해줘. 학습 보조 이미지가 필요하다고 판단되면 위에서 고른 이미지 생성 방식으로 만들고, 이미지 안에는 논문 제목·헤더 같은 글자 없이 내용 도식만 나오게 해줘.`;
     input.focus();
   } catch (e) {
     uploadMsg.className = "upload-msg err"; uploadMsg.textContent = "업로드 실패: " + e;
