@@ -1,16 +1,11 @@
-# Workflow — 10단계 대화형 작업 흐름
+# Workflow — 단계별 대화형 작업 흐름 (Stage 0~11)
 
-> 한 편의 논문 PDF를 **6탭 학습용 HTML**로 변환하는 단계별 흐름.
+> 한 편의 논문 PDF를 **8탭 학습용 HTML**(v4 대시보드 디자인 — `rules/design_v4_dashboard.md`, Paper Study 탭 포함)로 변환하는 단계별 흐름.
 > **자동화 빌드 없이** — Claude와 대화하며 한 단계씩 콘텐츠를 정제하고, 마지막 단계에서 HTML 한 장으로 조립한다.
 >
 > 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link, fig-hotspot, glossary), SGL(3세대 — study-fab 모달, 3-Part Simulator)
 >
 > 표준 템플릿/디자인 토큰/디렉토리 규약: `CLAUDE.md` 참조
->
-> ⚠️ **프롬프트 파일 번호 ≠ 스테이지 번호** (역사적 이유). 매핑:
-> Stage 1→`prompts/01_cleaning`, 2→`02_structuring`, 3→`03_translation`, 4→`04_research_analysis`,
-> 5→`05_coaching`, 6→`06_figure_interpretation`, 7→`07_background_knowledge`,
-> **Stage 8 Simulator→`prompts/09_simulator`**, **Stage 9 QA→`prompts/10_qa`**, **Stage 10 HTML→`prompts/08_html_generation`**.
 
 ---
 
@@ -25,17 +20,12 @@
 - Figure / Table을 PNG로 크롭
 
 **산출물:**
-- 정제된 plain text 또는 페이지별 블록 텍스트 → `papers/[name]/fulltext.txt`
+- 정제된 plain text 또는 페이지별 블록 텍스트
 - `papers/[name]/assets/fig_N.png`, `assets/table_N.png`
-- 🔴 **`papers/[name]/config.json`** — 이 단계에서 **생성한다** (Stage 10 HTML 생성이 필수로 요구하는데 다른 단계가 안 만들므로 여기서 책임진다). 4개 키:
-  - `metadata` — title / short_name / venue / year / authors / affiliation / source_pdf (PDF 첫 페이지에서). 키 이름은 `metadata` (정본; `_build.py`가 `config.get("metadata")` 우선. 일부 구 예제는 `meta` — 신규는 `metadata`로 통일)
-  - `asset_layout` — `[[asset_id, paragraph_id, kind], ...]` 자산↔문단 매핑. paragraph_id는 Stage 2 산출 후 확정되므로, **Stage 2 완료 시점에 이 키를 채워 넣는다** (자산 등장 순서는 번호 순 — CLAUDE.md "자산 등장 순서" 정책)
-  - `captions` — `{asset_id: 원문 캡션}` (detect_assets.py가 뽑은 캡션 텍스트)
-  - `wide_assets` — 본문폭을 꽉 채우는(full-width) 자산 id 배열
 
 **자산 크롭 — PDF 종류별:**
-- **vector PDF** (현대 ML/CV 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본. 먼저 `python tools/detect_assets.py "<pdf>"`로 각 캡션의 `block_y`(멀티라인 블록 전체)·이미지/드로잉 bbox를 뽑은 뒤, 그 좌표를 anchor로 crop rect를 계산한다 — **좌표 하드코딩 금지**. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패. 🔴 **"Figure=캡션 아래 / Table=캡션 위"는 관행일 뿐 자산 유형으로 단정하지 말 것** — 표 데이터가 위·캡션이 아래인 논문도 흔하다(FastVLM). 반드시 좌표로 캡션-본체 상대 위치를 자산별 판별. 정본 구현: `samples/free_example/_crop.py`. **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 멀티라인 캡션 잘림, 옆 단/표 아래 본문 누수를 PNG 직접 열어 확인. 자세히: `rules/parsing_rules.md` §4-A.
-- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py` (이 배포본엔 OCR 예제 논문 미포함, 도구만 제공)
+- **vector PDF** (현대 ML/CV 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본 — `^Figure N\. ` / `^Table N\. ` 정규식으로 캡션 첫 줄을 anchor로 잡고, Figure는 위(`y_top=col_top, y_bot=cap_bottom+padding`) / Table은 아래(`y_top=cap_top-padding, y_bot=data_last_row+padding`) 컨벤션으로 bbox 계산. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패 — 캡션 anchor 방식이 더 안정. 정본 구현: `papers/20. sparse_vlm/_crop.py`. **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 캡션 잘림, 표 아래 본문 누수를 PNG 직접 열어 확인.
+- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py`, 정본 사례 `papers/4. perceptron/_recrop.py`
 - per-paper 진입점은 `papers/[name]/_crop.py` 또는 `_recrop.py` 한 장. 일회성 헬퍼 정책
 
 **참조 규칙:** `rules/parsing_rules.md` (§4-A — vector PDF 캡션 좌표 정본 + OCR'd 스캔본 3-pass)
@@ -66,22 +56,18 @@
 
 **산출물:** `papers/[name]/structured.json`
 
-**핵심 스키마** (5세대 정본 = `rules/parsing_rules.md` §3-1-bis — 문단은 `sentences[]`, 캡션은 structured에 넣지 않고 `config.json#captions`):
+**핵심 스키마:**
 ```json
 {
-  "title": "Paper Title",
+  "source_pdf": "rawpaper/...pdf",
+  "chunking_mode": "section_paragraph",
+  "paragraph_id_scheme": "p1, p2, p3, ...",
   "sections": [
     {
       "section_id": "s1",
-      "title": "3 Method",
+      "title": "Front Matter",
       "paragraphs": [
-        {
-          "paragraph_id": "p1",
-          "section_subtitle": "3.1 Overview",
-          "sentences": [
-            { "sentence_id": "p1_s1", "text": "..." }
-          ]
-        }
+        { "paragraph_id": "p1", "page": 1, "text": "..." }
       ]
     }
   ]
@@ -90,8 +76,8 @@
 
 **식별자 규약:**
 - `section_id`: `s1`, `s2`, ...
-- `paragraph_id`: `p1`, `p2`, ...
-- `sentence_id`: `{paragraph_id}_s{n}` (**Stage 2에서 부여**)
+- `paragraph_id`: `p1`, `p2`, ... (캡션 가상 문단 포함)
+- `sentence_id`: `{paragraph_id}_s{n}` (Stage 3에서 부여)
 
 **출력 탭:** ① `tab-reading`
 
@@ -157,9 +143,9 @@
    - `diss-verify` Validation Logic
    - `diss-risk` Hidden Assumptions and Risks
    - `diss-extend` Research Expansion
-   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 정본: `samples/free_example`.
+   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 5세대 정본: `papers/21. lv_pruning`.
 
-   **summary 카드 한 장 overview 이미지 의무**: summary 카드 헤더 아래에 `assets/generated/dissection_overview.png` (가로 와이드 ~1536×1024, 5단 **문제→관찰→방법→차별→결과** 인포그래픽, 한글 라벨)를 `<figure class="diss-overview-figure">`로 동봉. codex ImageGen 6계명으로 생성. 마크업·CSS·빌더 헬퍼: `rules/component_rules.md` §14.
+   **summary 카드 한 장 overview 이미지 의무**: summary 카드 헤더 아래에 `assets/generated/dissection_overview.png` (1536×864, 5단 PROBLEM→OBSERVATION→METHOD→NOVELTY→RESULTS 인포그래픽)를 `<figure class="diss-overview-figure">`로 동봉. 마크업·CSS·빌더 헬퍼: `rules/component_rules.md` §14.
 
 2. **`analysis.json#callouts`** — 문단 단위 강조 (`warn` / `key`)
 
@@ -209,9 +195,7 @@
 **산출물 — `analysis.json` 세 키:**
 - `interpretations` (전문가, 카드 본문)
 - `beginner_notes` (초보자, 토글)
-- `study_modals` (학습 가이드 모달) — `{title, look, nums≥3, author, check≥2}` 형식. 마크업·CSS·JS 정본 = `rules/component_rules.md` §12.5/§12.6 (오른쪽 사이드 드로어). SGL은 historical reference로만.
-
-> 🔴 **`analysis.json`은 Stage 4가 먼저 쓴다** (`callouts`·`quizzes`). Stage 6은 위 세 키를 **기존 파일에 병합(merge)** 해야 한다 — 통째로 덮어쓰면 Stage 4의 callouts/quizzes가 사라진다. (파일 읽기 → 키 추가 → 저장)
+- `study_modals` (학습 가이드 모달) — `{title, look, nums≥3, author, check≥2}` 형식. 정본 = `samples/cares/CARES_output.html`의 study-drawer.
 
 **렌더 위치:** ① `tab-reading`의 각 자산 카드 바로 아래 + study-fab 클릭 시 떠오르는 `.study-modal`
 
@@ -297,26 +281,55 @@
 
 ---
 
+## Stage 11 — Paper Study Content Design ✅ 기본 빌드 포함
+
+> 번호는 프롬프트 파일 기준(`prompts/11_paper_study.md`) — **실행 순서는 Stage 7 다음, Stage 10 이전.**
+> ⑤⑥과 달리 **기본 빌드 범위에 포함**된다 (①′ `tab-study`는 풀 빌드).
+
+**프롬프트:** `prompts/11_paper_study.md`
+
+**목표:** 3-Phase 비판적 읽기 워크북(Aerial View → Interrogation → Verdict)의 콘텐츠 설계.
+사용자가 직접 쓰는 서술칸의 대조 상대가 될 Claude 분석 + 근거 sentence_id + 단락 읽기(read) 배정.
+
+**산출물:**
+- `papers/[name]/tabs_data/study.json` — 7-Step 콘텐츠 (RQ/Gap/방법론 평가/데이터-only 결론/저자 주장 판정/대안 가설 + read 패널 배정)
+- `papers/[name]/config.json#captions_en` — 도표 뷰어용 원문 캡션 (fulltext에서 수동 정제)
+- `papers/[name]/study/` 폴더 생성 (노트 내보내기 저장소, `.gitkeep`)
+
+**핵심 규칙 (정본 = prompts/11):**
+- Step 5 Claude 분석은 **Discussion 인용 금지** (데이터-only — 사용자와 같은 조건의 비교 상대)
+- 방법론 평가는 강점·약점 균형 (약점 최소 3개, 특정 표/절/수치 지목)
+- 저자 주장은 support / partial / beyond 판정
+- 모든 evidence·read ref가 structured.json/asset_layout에 실존하는지 전수 검증
+- 부수 설명 문구 금지 — 지시는 read 패널·placeholder가 대신한다
+
+**출력 탭:** ①′ `tab-study`
+
+**참조 규칙:** `rules/design_v4_dashboard.md` §3-bis, `rules/component_rules.md` §17
+
+---
+
 ## Stage 10 — HTML Generation (대화형)
 
 **프롬프트:** `prompts/08_html_generation.md`
 
-**목표:** Stage 1~7의 산출물을 입력으로 두고 Claude가 단일 6탭 HTML을 작성한다. 빌드 스크립트는 사용하지 않는다. ⑤ ⑥ 탭은 셸만 생성(콘텐츠 placeholder) — Stage 8/9는 on-demand.
+**목표:** Stage 1~7 + 11의 산출물을 입력으로 두고 Claude가 단일 8탭 HTML을 작성한다 (v4: `_build.py` 조립 → `tools/restyle_dash_v4.py` 변환 2단 권장 — 정본 빌더 = `samples/cares/_build.py`). ⑤ ⑥ 탭은 셸만 생성(콘텐츠 placeholder) — Stage 8/9는 on-demand.
 
 **입력 일체:**
 - `papers/[name]/structured.json`, `translated.json` (또는 `translations/`)
-- `papers/[name]/config.json`, `analysis.json`
+- `papers/[name]/config.json` (meta + captions + **captions_en**), `analysis.json`
 - `papers/[name]/tabs_data/{dissection,knowledge,questions}.json` (① ~ ④ 빌드용)
+- `papers/[name]/tabs_data/study.json` (①′ Paper Study — 없으면 빌더가 자동 셸 렌더)
 - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**. 사용자가 ⑤ ⑥을 명시 요청하지 않은 빌드에서는 사용 안 함.
 - `papers/[name]/assets/`, `assets/generated/`
 - 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대), FrameFusion(2세대), SGL(3세대 — 인터랙션·시뮬레이터 3-Part·자산 모달)
 - 디자인 컨벤션: `rules/component_rules.md`, `rules/implementation_rules.md`
 
-**출력:** `papers/[name]/[ShortName].html` — 단일 HTML
+**출력:** `papers/[name]/[ShortName]_output.html` — 단일 HTML
 
 **핵심 원칙:**
 - 정본 두 파일의 마크업/CSS/탭 셸을 따른다 (디자인 토큰 정확히, 클래스명 임의 변경 금지)
-- 6탭 구조 고정 (`tab-reading`, `tab-dissection`, `tab-knowledge`, `tab-questions`, `tab-simulator`, `tab-qa`)
+- 8탭 구조 고정 (`tab-reading`, `tab-study`, `tab-dissection`, `tab-knowledge`, `tab-math`, `tab-questions`, `tab-simulator`, `tab-qa`) — 라벨은 숫자 없이 (v4)
 - **모든 자산은 base64 인라인 의무** — `assets/`의 원본 figure/table + `assets/generated/`의 학습 보조 이미지 모두 `<img src="data:image/png;base64,...">`로 박는다. HTML 한 장만 다른 PC·모바일·USB로 옮겨도 그림이 그대로 떠야 한다. 외부 참조 잔존 = 빌드 불합격
 - MathJax 3 (CDN), 탭 전환 시 `MathJax.typesetPromise()` 재호출
 - 시뮬레이터 / QA 위젯 JS는 인라인 (외부 라이브러리 의존 없음)
@@ -338,16 +351,17 @@
 | 6 | assets + 본문 | `analysis.json#interpretations` + `#beginner_notes` | ① reading |
 | 7 | structured.json + Stage 4 | `tabs_data/knowledge.json` | ③ knowledge |
 | 8 ⏸ | structured.json + Stage 4 | `tabs_data/simulator_spec.md` | ⑤ simulator (on-demand만) |
-| 9 ⏸ | structured.json + Stage 4/7 | `tabs_data/qa.json` | ⑥ qa (on-demand만) |
-| 10 | Stage 1~7 산출 (+ 8/9는 요청 시) | 단일 HTML (Claude 작성) | 전체 — ⑤⑥은 셸만 placeholder |
+| 9 ⏸ | structured.json + Stage 4/7 + **study/ 최신 노트의 memo** | `tabs_data/qa.json` | ⑥ qa (on-demand만) |
+| 11 | structured.json + fulltext + analysis | `tabs_data/study.json` + `config#captions_en` + `study/` 폴더 | ①′ study |
+| 10 | Stage 1~7·11 산출 (+ 8/9는 요청 시) | 단일 HTML (Claude 작성) | 전체 — ⑤⑥은 셸만 placeholder |
 
 ---
 
 ## Definition of Done
 
-`papers/[name]/[ShortName].html`이 다음을 모두 만족할 때 완료:
+`papers/[name]/[ShortName]_output.html`이 다음을 모두 만족할 때 완료:
 
-- 6개 탭 버튼이 보이고 클릭 시 패널만 활성화
+- 8개 탭 버튼이 보이고 클릭·해시 라우팅(뒤로/앞으로 버튼 포함)으로 패널 활성화
 - ① 좌(원문) ↔ 우(번역) `data-pair` 호버 동기화 작동
 - 모든 figure/table이 의도한 문단 근처에 배치 (`asset_layout` 매핑 확인)
 - **각 자산 PNG가 본체 + 캡션을 모두 포함하고 누수 0건** — 페이지 헤더·다음 섹션 헤더·아래 본문 텍스트가 섞이지 않고, 캡션이 잘리지 않음 (PNG 직접 열어 시각 검증)
@@ -355,14 +369,19 @@
 - **structured.json이 원문 본문(Abstract → Conclusion)의 모든 섹션/subsection을 누락 없이 포함** (Related Work, Theoretical Analysis, Datasets/Implementation Details 등 — Stage 2 완전성 자가 검증 통과)
 - **structured ↔ translations sentence_id 1:1 매칭** (missing 0 / extra 0 / 빈 값 0 / 중복 0 — Python 검증 스크립트로 확인)
 - 번역 누락 0건 (회색 placeholder / `—` 미발견)
+- **`python tools/check_study_refs.py "papers/N. name"` 통과 (study.json의 모든 ref가 structured/asset에 실존)**
+- **`python tools/check_html_escape.py "papers/N. name"` 통과 (태그 수프 위험 0건)** — 번역문·tabs_data의
+  이스케이프 안 된 `<`+영문자(수식 표기 류)가 있으면 그 지점 이후 문서 전체가 굵게 깨진다
+  (`rules/math_rules.md` § 부등호·꺾쇠, 정본 사례: 24. geollava8k Eq 5)
 - 콜아웃/퀴즈/해석/초보자 노트가 의도한 위치에 표시
-- **모든 figure/table에 `.study-fab` 버튼 + 4-섹션 정형(s-look·s-num·s-author·s-check) 학습 가이드 모달** (interpretation/beginner-note의 단순 복제 ✗ — 한 단계 더 깊은 분해. §12 정본 SGL 패턴)
-- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `samples/free_example`)
+- **모든 figure/table에 `.study-fab` 버튼 + 4-섹션 정형(s-look·s-num·s-author·s-check) 학습 가이드 모달** (interpretation/beginner-note의 단순 복제 ✗ — 한 단계 더 깊은 분해. §12 정본 = `samples/cares/`의 study-drawer)
+- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `papers/21. lv_pruning`)
 - **`.diss-tag` pill이 본문 한 줄 높이의 작은 알약 모양** — grid cell의 세로 stretch로 큰 타원·이상한 모양이 안 보임. 5개 속성 필수: `align-self:start` / `justify-self:start` / `width:max-content` / `white-space:nowrap` / `line-height:1.4` (`rules/component_rules.md` §15)
-- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `samples/free_example`, 2026-05-13 갱신)
+- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `papers/22. free`, 2026-05-13 갱신)
 - **모든 콘텐츠 이미지(① 자산·② summary overview·③ 학습 보조)에 비율 유지 lightbox 동작** — `cursor:zoom-in` hover, 클릭 시 어두운 배경 모달에 비율 유지하며 확대, 휠/+/− 줌·드래그 pan·더블클릭 토글·ESC 닫기. `study-fab` 클릭은 `e.stopPropagation() + e.preventDefault()`로 lightbox 트리거 차단 (`rules/component_rules.md` §13)
 - ② ③ ④ 탭 콘텐츠가 비어 있지 않음
 - ⑤ ⑥ 탭은 셸만 — `tab-intro` + `.section-empty` placeholder ("이 탭은 별도 요청 시 작성됩니다") 표시
+- **①′ Paper Study 탭 전체 동작** (`rules/component_rules.md` §17 정본): 서술칸 localStorage 자동 저장 + 잠금 토글("분석 비교하기", Gap 3분할 합산) + read 패널 단락 리더(✓ 세션 한정) + 근거 칩 전수 점프(`data-ev`/`data-read-pid` 대상 실존) + 도표 뷰어(원문 캡션·번역·해석 + 학습 가이드 드로어) + 플로팅 메모(자동 저장) + 문장 형광펜(클릭 토글, 영·한 동기, 리더·Translation 공통) + 호버 페어링이 리더 복제 문장에서도 동작(위임 방식) + 노트 내보내기/가져오기(폴더 기억) + 돌아가기 버튼 + `study/` 폴더 존재
 - MathJax가 ① 본문 + ③ 수식 카드를 렌더 (탭 전환 후 재렌더 포함)
 - 모바일(< 640px)에서 탭 줄바꿈, 표 overflow-scroll 정상
 - **모든 `<img>` 태그가 `data:image/png;base64,...` 형태** — 외부 참조(`src="assets/..."`, `src="./..."`, `src="http..."`) 잔존 0건
@@ -375,6 +394,6 @@
 ## 참고 문서
 
 - `CLAUDE.md` — 프로젝트 개요, 표준 템플릿, 디자인 토큰, 디렉토리 규약
-- `prompts/01~10_*.md` — 각 단계별 프롬프트 정본
+- `prompts/01~11_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study — 기본 빌드 포함)
 - `rules/` — 파싱 / 분석 / 코칭 / 지식 / 수식 / 컴포넌트 / 구현 규약
 - `samples/` — 정본 HTML (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대). README + design/ 자산만 함께 보관 (pre-SAFE 시기 개인 학습 자료는 `_archive/personal_study/`로 분리됨)

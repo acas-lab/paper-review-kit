@@ -1,0 +1,30 @@
+교육용 학술 일러스트레이션. 정사각형 1024x1024.
+
+주제: "같은 이미지라도 질의에 따라 필요한 해상도가 다르다 — 필요 해상도는 질의가 결정한다"
+
+구성: 세로로 위/아래 두 개의 나란한 행(row). 두 행 모두 같은 개(dog) 사진에서 출발하지만, 질의와 결과가 다르다.
+
+[위 행 — 대략적 질의, 저해상도]
+- 왼쪽: 말풍선 안에 영문 "What breed is the dog?"
+- 가운데: 작고 흐릿한(저해상도) 개 썸네일 → 화살표
+- 오른쪽: 아주 적은 수의 작은 사각형 타일 몇 개(=few visual tokens)
+- 이 행 전체를 부드러운 mint green / azure 톤으로. "LOW RES" 라벨.
+
+[아래 행 — 세밀한 질의, 고해상도]
+- 왼쪽: 말풍선 안에 영문 "What is the name on the collar?"
+- 가운데: 크고 선명한(고해상도) 개 사진, 목줄 부분이 확대된 돋보기 → 화살표
+- 오른쪽: 아주 많은 작은 사각형 타일 격자(=many visual tokens)
+- 이 행 전체를 따뜻한 amber / rose 톤으로. "HIGH RES" 라벨.
+
+가운데에 두 행을 나누는 얇은 구분선. 왼쪽 여백에 "same image" 를 두 행에 걸치는 중괄호로 묶어 표시.
+
+색상 팔레트: v3 흰색-아이보리 배경 + lavender(#8b75c0) / azure(#6b95b3) / amber(#ad8e4e) / rose(#b87887) / mint green(#75ad8e) 강조.
+
+스타일 지시 (중요):
+- 풀 블리드 일러스트 — 배경 가득
+- 절대로 투명 배경 컷아웃이 아닐 것 (NOT a transparent cutout)
+- Scientific American / 학술 교과서 스타일, 깔끔한 플랫 벡터
+- 텍스트 라벨은 영어로 깔끔하게 (질문 2개 + LOW RES / HIGH RES / same image)
+- 1024x1024 정사각형
+
+NO paper title at top, NO standalone header, NO author names. Only the two-row comparison illustration content with English labels.

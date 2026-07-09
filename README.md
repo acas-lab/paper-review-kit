@@ -1,6 +1,6 @@
 # Paper Review HTML Kit
 
-논문 PDF 한 편을 **6탭 학습용 HTML 한 장**으로 바꾸는 작업 키트입니다.
+논문 PDF 한 편을 **v4 대시보드 8탭 학습용 HTML 한 장**으로 바꾸는 작업 키트입니다.
 빌드 스크립트로 한 방에 돌리는 도구가 아니라, **Claude Code와 대화하며 한 단계씩** 콘텐츠를 만들고 마지막에 단일 HTML로 조립하는 *방법론 + 정본 템플릿 + 보조 도구* 묶음입니다.
 
 > 이 방식이 괜찮다고 판단해 주신 지도교수님의 권유로, 같은 방법을 다른 학생들도 자기 컴퓨터에서 쓸 수 있게 정리한 배포본입니다.
@@ -9,18 +9,21 @@
 
 ## 무엇이 만들어지나
 
-논문 한 편당 아래 6개 탭을 가진 **self-contained HTML 한 장**(모든 그림이 base64로 박혀 USB·메일로 옮겨도 그대로 열림):
+논문 한 편당 아래 8개 탭을 가진 **self-contained HTML 한 장**(모든 그림이 base64로 박혀 USB·메일로 옮겨도 그대로 열림). 셸은 **v4 대시보드 디자인**(저채도 grey-lavender · topbar 헤더 · 숫자 없는 탭 · 해시 라우팅 — 정본 `rules/design_v4_dashboard.md`):
 
-| 탭 | 내용 |
-|---|---|
-| ① 원문 / 번역 | 영한 문장 단위 호버 동기화 + 자산 해석 + 초보자 해설 |
-| ② Paper Dissection | 동기·관찰·차별점·방법·검증·한계 + 총정리 카드 |
-| ③ Background & 핵심 수식 | 배경지식 + 주요 수식 풀이 |
-| ④ Questions & Diagrams | 비판적 질문 + 직관 도식 |
-| ⑤ Simulator & Code | 핵심 알고리즘 시뮬레이터 (기본은 셸만) |
-| ⑥ 학습 기초 Q&A | 자가 점검 (기본은 셸만) |
+| 탭 | 라벨 | 내용 |
+|---|---|---|
+| ① | Translation | 영한 문장 단위 호버 동기화 + 자산 해석 + 초보자 해설 |
+| ①′ | Paper Study | 3-Phase 비판적 읽기 워크북 (서술칸 · 잠금 토글 · 근거 점프 · 메모) |
+| ② | Paper Dissection | 동기·관찰·차별점·방법·검증·한계 + 총정리 카드 |
+| ③ | Background | 배경지식 빌딩 블록 + 개념 카드 |
+| ③′ | Mathematics | 핵심 수식 (v4에서 ③의 수식 패널 분리) |
+| ④ | Diagrams | 비판적 질문 + 직관 도식 |
+| ⑤ | Code | 핵심 알고리즘 시뮬레이터 (기본은 셸만) |
+| ⑥ | Q & A | 자가 점검 (기본은 셸만) |
 
-⑤·⑥은 기본 빌드에서 셸(탭 골격)만 만들고, 더 깊이 파고들고 싶을 때만 따로 채웁니다.
+①′ Paper Study는 `tabs_data/study.json`이 준비되면 채우고, 없으면 셸(탭 골격)만 렌더됩니다.
+⑤·⑥도 기본 빌드에서 셸만 만들고, 더 깊이 파고들고 싶을 때만 따로 채웁니다.
 
 ---
 
@@ -41,22 +44,22 @@ paper-review-kit/
 ├── SETUP.md               ← ★ 설치 + 첫 논문 따라하기 (여기부터 읽으세요)
 ├── NOTICE.md              ← 저작권·이용 범위 고지 (꼭 확인)
 ├── CLAUDE.md              ← 작업 규칙 정본 (Claude Code가 자동으로 읽음)
-├── workflow.md            ← 10단계 작업 흐름
-├── prompts/               ← 단계별 프롬프트 (01_cleaning … 10_qa)
-├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 규약
-├── tools/                 ← 재사용 도구 (PDF 크롭·캡션 좌표 검출·재파싱)
+├── workflow.md            ← 작업 흐름 (Stage 0~11)
+├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study)
+├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 + design_v4_dashboard 규약
+├── tools/                 ← 재사용 도구 (구조화·자동 크롭·v4 변환·Paper Study 소급·검증)
 ├── webapp/                ← 브라우저 대시보드 (비개발자용 — win_start.bat / linux_start.sh)
 ├── samples/               ← 정본 견본 + 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
-│   ├── SAFE.html         (1세대)
-│   ├── FrameFusion.html  (2세대)
-│   ├── SGL.html          (3세대 — 신규 논문은 이걸 베이스로)
-│   └── free_example/            (완성 워크드 예제: 입력 JSON → 단일 HTML 전 과정)
+│   ├── SAFE.html         (1세대 — 인터랙션 정본)
+│   ├── FrameFusion.html  (2세대 — 인터랙션 정본)
+│   ├── SGL.html          (3세대 — 인터랙션 historical)
+│   ├── design/           (v4 로고 등 공용 자산)
+│   └── cares/            ★ v4 8탭 정본 (실제 논문 전체: 데이터+빌더+산출물, Paper Study 포함)
 └── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
 ```
-> 완성 워크드 예제(입력 JSON → 단일 HTML 전 과정)는 `samples/free_example/`에 있습니다.
+> **`samples/cares/`가 유일한 v4 워크드 정본**입니다 — CARES 논문(ACL 2026)의 실제 데이터(config·structured·translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + 완성 산출물 `CARES_output.html`. 신규 논문의 셸·8탭·Paper Study·디자인은 이걸 복사 출발점으로 합니다.
 
-`samples/`의 3편이 **"잘 만든 기준"**입니다. 신규 논문은 이 마크업·CSS·인터랙션을 베껴 시작합니다.
-`samples/free_example/`는 *데이터(JSON) → 단일 HTML* 조립이 실제로 어떻게 되는지 보여주는 완성 예시입니다.
+`SAFE.html`·`FrameFusion.html`·`SGL.html` 3편은 **학습 인터랙션의 세대별 원형**입니다(study-drawer·lightbox·hotspot 등 — 신규 논문은 3세대 SGL 인터랙션을 유지). **셸·헤더·탭·디자인 토큰은 `cares/`의 v4 대시보드**(`rules/design_v4_dashboard.md`)를 따르며, 빌드는 `_build.py`로 v3 조립 후 `tools/restyle_dash_v4.py`로 v4 변환하는 2단입니다.
 
 > 참고: `CLAUDE.md`/`rules/`는 다른 사례 논문(예: `papers/4. perceptron`, `20. sparse_vlm`, `24. geollava8k`)도 언급하는데, 이 배포본에는 위 견본·예시만 포함됩니다. 나머지는 방법을 이해하는 데 필수가 아닙니다.
 
@@ -77,7 +80,7 @@ paper-review-kit/
 
 ```
 rawpaper 폴더의 <논문 파일명>을 보고, 기존 지침(CLAUDE.md·workflow.md·rules)에 따라
-학습을 위한 6탭 HTML을 생성해줘.
+학습을 위한 v4 대시보드 8탭 HTML을 생성해줘 (_build.py 조립 → tools/restyle_dash_v4.py 변환).
 학습 보조 이미지가 필요하다고 판단되면, 플러그인 없이 터미널에서 codex를 직접 실행하는
 방식으로 ImageGen을 활용해 이미지를 생성해. 이미지 내부에는 논문 제목·헤더 같은 글자는
 넣지 말고, 내용과 내용을 설명하는 그림(도식)만 나오게 해줘.

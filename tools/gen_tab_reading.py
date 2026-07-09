@@ -17,7 +17,7 @@ OUTPUT
   Just the body of the tab-reading section — splice into [ShortName].html
   between `<section id="tab-reading" ...>` and its closing `</section>`.
 
-CONVENTIONS (matched to samples/SAFE.html and existing v2 outputs)
+CONVENTIONS (matched to samples/cares/ and existing outputs)
   - bracketed numeric citations like [3, 20, 49] stripped from EN display
   - hotspot sentences carry `sent hotspot` classes
   - figures: <figure class="asset-card[ asset-wide]" id="fig_N">

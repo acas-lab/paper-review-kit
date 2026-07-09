@@ -1,0 +1,124 @@
+{
+  "primer": {
+    "title": "핵심 빌딩 블록 6개",
+    "caption": "CARES를 이해하려면 VLM에서 해상도가 어떻게 토큰 수·연산으로 번역되는지, ANLS 같은 평가 지표, 대상/프록시 VLM 라인업, 중간 레이어 표현의 성질, 그리고 이산 분류를 연속 해상도로 바꾸는 확률 기댓값·label smoothing을 먼저 익혀야 한다.",
+    "fund_cards": [
+      {
+        "label": "Background 1",
+        "title": "해상도 → 토큰 → 연산의 사슬",
+        "body": "VLM의 비전 인코더는 이미지를 패치(예: 14×14)로 잘라 각 패치를 토큰 하나로 만든다. 따라서 <b>변 길이가 r로 커지면 토큰 수는 대략 r²에 비례</b>해 늘고, 트랜스포머 어텐션은 토큰 수의 제곱으로 커지므로 연산은 더 가파르게 폭증한다. <b>AnyRes/tiling</b>(LLaVA-NeXT)이나 native dynamic resolution(Qwen2-VL)은 큰 이미지를 여러 타일로 쪼개 토큰을 한층 더 늘린다. CARES가 '입력 해상도'라는 <b>가장 상류의 손잡이</b>를 잡는 이유 — 여기서 줄이면 하류의 모든 토큰·연산이 동시에 준다."
+      },
+      {
+        "label": "Background 2",
+        "title": "시각 토큰이 최대 99%인 까닭",
+        "body": "질의 텍스트는 보통 수십 토큰이지만, 336² 이미지 한 장이 576토큰(LLaVA-1.5), 고해상도 타일링이면 수천 토큰이 된다. 그래서 요청당 <b>시각 토큰이 prefill 전체의 최대 99%</b>를 차지한다(Fig 1). 문제는 이 픽셀의 상당수가 특정 질의엔 불필요하다는 것 — \"개 품종?\"에 목줄 글씨용 고해상도까지 지불할 필요가 없다. 기존 프루닝/병합은 이미 만들어진 토큰을 사후에 줄이지만, CARES는 <b>애초에 몇 픽셀을 토큰화할지</b>를 정한다."
+      },
+      {
+        "label": "Background 3",
+        "title": "ANLS — 문서 QA의 유사도 지표",
+        "body": "<b>ANLS(Average Normalized Levenshtein Similarity)</b>는 예측 문자열과 정답의 편집 거리(Levenshtein)를 0~1로 정규화한 유사도(1=완전 일치). 오탈자에 관대해 OCR/문서 QA(DocVQA·OCRBench)의 표준 지표다. CARES는 이 ANLS로 \"각 해상도의 답이 충분히 좋은가\"를 판정해 레이블을 만든다(Table 1). 반면 Ai2D·ChartQA·SeedBench-2는 정답이 명확한 선택/짧은 답이라 <b>exact-match 정확도</b>를 쓴다."
+      },
+      {
+        "label": "Background 4",
+        "title": "대상 VLM · 프록시 VLM 라인업",
+        "body": "<b>대상(target) VLM</b> = CARES가 앞단에 붙는, 실제 답을 생성하는 모델: Granite-Vision 3.3-2B, InternVL3-8B, Qwen2.5-VL-72B, 그리고 API 전용 GPT-4o. 크기가 2B~72B로 다양해 절감의 일반성을 보인다. <b>프록시(proxy) VLM</b> = CARES 내부에서 특징만 뽑는 소형 모델: <b>SmolVLM-500M</b>(레이어 17~32 제거 → 약 350M). 레이블 생성용 감독 모델은 Granite-Vision. 이들을 구분해야 표를 오독하지 않는다. camera-ready에는 Granite-Docling-258M을 LoRA로 파인튜닝한 <b>autoregressive 변형(CARES-AR)</b>도 추가됐다 — Table 2의 세 번째 행."
+      },
+      {
+        "label": "Background 5",
+        "title": "중간 레이어 표현의 힘",
+        "body": "최근 연구(Orgad 2024; Zhang 2025a)는 LLM/VLM의 <b>중간 레이어 활성이 최종 출력보다 풍부한 지각·의미 정보를 담는다</b>고 밝혔다 — 출력층은 '다음 토큰 예측'에 특화되며 일부 정보를 버리기 때문. CARES는 이를 이용해 16번 레이어의 마지막 토큰 은닉 상태를 특징 z로 쓴다. 결과: (1) 정확도 ↑(Table 3에서 Mid > Last 약 1%), (2) LLM 절반만 forward → 연산 ↓. 정보와 효율을 동시에 얻는 설계."
+      },
+      {
+        "label": "Background 6",
+        "title": "이산 분류 → 연속 해상도, 그리고 label smoothing",
+        "body": "CARES는 {384,768,1024} 3-way <b>분류기</b>로 학습된다(교차 엔트로피). 하지만 배포 시엔 클래스 확률의 <b>기댓값 r̃=Σpₖrₖ</b>로 연속값을 낸다. 문제: one-hot 레이블로 학습하면 분류기가 과신해 확률이 뾰족해지고 r̃이 임계값 근처에서 튄다. <b>label smoothing(0.05)</b>이 정답을 '100% 확신' 대신 살짝 눅여 확률을 부드럽게 만들고, r̃을 안정화한다(Table 6에서 점수·절감 동시 개선)."
+      }
+    ]
+  },
+  "equations": [
+    {
+      "eq_id": "eq-anls",
+      "label": "Eq. 1 — 해상도별 ANLS 점수",
+      "tex": "u_k = \\mathrm{ANLS}\\big(F(x(r_k),\\, q),\\ \\mathrm{gt}\\big) \\in [0,1]",
+      "where": "<b>x(r_k)</b>: 가장 긴 변이 r_k가 되도록 리사이즈한 이미지 / <b>F</b>: 고정(동결) 감독 VLM / <b>q</b>: 질의, <b>gt</b>: 정답 / <b>u_k</b>: 해상도 r_k에서의 답 품질(0~1)",
+      "intuition": "각 후보 해상도에서 감독 VLM을 돌려 답을 뽑고, 그 답이 정답과 얼마나 가까운지(ANLS)를 점수화한다. 이 점수 곡선 {u_1, ..., u_K}이 다음 식(Eq. 2)의 입력 — '어느 해상도부터 답이 충분해지는가'를 이 곡선에서 읽어낸다."
+    },
+    {
+      "eq_id": "eq-select",
+      "label": "Eq. 2 — 충분 해상도 레이블 (수렴 규칙)",
+      "tex": "r^\\star = \\min\\Big\\{\\, r_k \\;\\Big|\\; u_k \\ge \\tau,\\ \\ \\max_{\\ell > k}\\,(u_\\ell - u_k) \\le \\delta \\,\\Big\\}",
+      "where": "<b>τ = 0.85</b>: 답이 '충분히 좋다'는 임계값 / <b>δ = 0.1</b>: 더 키워도 개선이 이 이하면 무시(불필요한 상승 방지) / 조건 만족 없으면 기본값 <b>r_K</b>(최대 해상도)",
+      "intuition": "'품질이 임계값을 넘고(u_k≥τ), 그보다 큰 해상도로 올려도 별 이득이 없는(δ 이내)' <b>가장 작은 해상도</b>를 정답으로 고른다. 두 조건이 핵심 — τ는 '충분한가', δ는 '더 키울 가치가 없는가'. 이 규칙이 CARES 학습 레이블(정답 r⋆)을 사람 개입 없이 자동 생성한다."
+    },
+    {
+      "eq_id": "eq-softmax",
+      "label": "보조식 — 분류기 로짓과 클래스 확률",
+      "tex": "p = \\mathrm{softmax}\\big(\\ell(z)\\big), \\qquad \\ell(z) \\in \\mathbb{R}^{K}",
+      "where": "<b>z</b>: 저해상도 패스에서 얻은 이미지-질의 결합 특징(프록시 VLM 16번 레이어) / <b>ℓ(z)</b>: K개 해상도에 대한 로짓 / <b>p</b>: 해상도들에 대한 soft 확률 분포",
+      "intuition": "경량 분류기가 특징 z를 받아 각 후보 해상도의 '점수(로짓)'를 내고, softmax로 확률 분포 p를 만든다. p가 한 클래스에 몰리면 그 해상도로 확신, 퍼지면 애매 — 이 분포의 모양이 다음 식(Eq. 3)에서 연속 해상도로 번역된다."
+    },
+    {
+      "eq_id": "eq-expect",
+      "label": "Eq. 3 — 연속 해상도 (확률 가중 기댓값)",
+      "tex": "\\tilde{r} = \\sum_{k=1}^{|\\mathcal{R}_d|} p_k\\, r_k",
+      "where": "<b>R_d = {384, 768, 1024}</b>: 이산 후보 집합 / <b>p_k</b>: 해상도 r_k의 확률 / <b>r̃</b>: 최종 연속 해상도(384~1024 사이 실수)",
+      "intuition": "이산 학습인데도 연속을 얻는 다리. 확률로 후보 해상도들을 가중 평균 — 예: p=[0.2,0.5,0.3]이면 r̃ = 0.2·384+0.5·768+0.3·1024 = 768, p=[0.5,0.4,0.1]이면 r̃≈576. 메뉴 사이의 임의값을 매끄럽게 내므로 특정 이산화에 둔감하고 예시별로 딱 필요한 픽셀만 배분(Fig 3의 사이값 첨두)."
+    },
+    {
+      "eq_id": "eq-ce",
+      "label": "학습 목적식 — 교차 엔트로피 (+ label smoothing)",
+      "tex": "\\mathcal{L}(\\theta) = \\mathrm{CE}\\big(f_\\theta(z),\\ r^\\star\\big)",
+      "where": "<b>f_θ(z)</b>: 동결 프록시 VLM + 경량 분류기로 구성된 CARES / <b>r⋆</b>: Eq. 2가 만든 정답 해상도 클래스 / label smoothing = 0.05",
+      "intuition": "표준 분류 손실. 프록시 VLM은 <b>동결</b>되어 있으므로 실제로 학습되는 것은 <b>경량 분류기 헤드뿐</b> — 그래서 6 에폭, lr 1e-3, batch 32로 가볍게 학습된다. label smoothing이 정답을 살짝 눅여, 이후 Eq. 3의 연속 추론이 안정되도록 확률을 부드럽게 만든다."
+    },
+    {
+      "eq_id": "eq-tokens",
+      "label": "정의 — 리사이즈와 토큰 수",
+      "tex": "x(r):\\ \\text{longest side}=r \\ \\Longrightarrow\\ T(r)\\ \\text{visual tokens},\\quad T \\uparrow \\text{ as } r \\uparrow",
+      "where": "<b>x(r)</b>: 가장 긴 변이 r인 리사이즈 이미지 / <b>T(r)</b>: 해상도 r에서 VLM이 만드는 시각 토큰 수(AnyRes/tiling 효과 포함) / <b>R = [384, 1024]</b>",
+      "intuition": "왜 해상도를 줄이는 것이 곧 연산 절감인지의 근거. r을 낮추면 T(r)이 (대략 제곱으로) 줄고, 그만큼 prefill FLOPS·TTFT가 준다. CARES가 예측한 r̃로 리사이즈하는 순간, 하류 VLM의 토큰 예산이 자동으로 결정된다 — 별도 토큰 프루닝 없이도."
+    }
+  ],
+  "concept_cards": [
+    {
+      "label": "정의한 과제",
+      "title": "Context-Aware Resolution Selection",
+      "body": "이 논문이 <b>정립한 새 과제</b>: 이미지-질의 쌍 (x, q)에 대해, 정확도를 희생하지 않고 질의에 답하기 위한 <b>충분한 최소 입력 해상도</b>를 예측하기. 기존 '토큰 축소'가 인코더 출력의 토큰 수를 다뤘다면, 이 과제는 <b>토큰화 이전의 픽셀 예산</b>을 질의 조건부로 다룬다. 자동 레이블링(Eq. 2)까지 정의해 학습·평가가 가능한 벤치마크로 만든 것이 기여."
+    },
+    {
+      "label": "핵심 규칙",
+      "title": "Sufficiency & Convergence Rule",
+      "body": "'충분한 해상도'라는 모호한 개념을 <b>조작적으로 정의</b>: ANLS가 τ=0.85를 넘고, 더 높은 해상도로 올려도 개선이 δ=0.1 이내인 최소 해상도(Eq. 2). '이 이상 키워봐야 소용없는 지점'을 수렴으로 포착. 이 규칙 덕에 사람 라벨 없이 예시별 정답 해상도를 자동 생성할 수 있다."
+    },
+    {
+      "label": "레이블 생성",
+      "title": "Multi-Resolution Rollout",
+      "body": "한 예시를 {384,768,1024} 각 해상도에서 감독 VLM(Granite-Vision)으로 <b>여러 번 굴려(rollout)</b> 답과 ANLS를 모으는 절차(Algorithm 1, Table 1). 이산 집합만 쓰는 이유는 연속 전체 탐색이 너무 비싸기 때문 — 이산화는 오직 <b>지도 효율</b>을 위한 것이고, 추론은 연속으로 확장된다."
+    },
+    {
+      "label": "핵심 기법",
+      "title": "Discrete-to-Continuous via Expectation",
+      "body": "이산 K-way 분류로 학습하되, 추론은 클래스 확률의 <b>기댓값 r̃=Σpₖrₖ</b>(Eq. 3)로 연속 해상도를 낸다. 이산 학습의 단순함과 연속 배포의 세밀함을 모두 취하는 트릭. Table 5에서 연속이 이산보다 더 절감(−63% vs −46%)하는 실익을 보이고, Fig 3의 사이값 분포가 실제 작동을 확인."
+    },
+    {
+      "label": "설계 원리",
+      "title": "Frozen Proxy + Intermediate Features",
+      "body": "특징 추출기는 <b>동결된</b> SmolVLM-500M(레이어 17~32 제거)이고, 학습되는 것은 경량 분류기 헤드뿐. 16번 <b>중간 레이어</b>의 마지막 토큰 은닉 상태를 쓰는데, 중간 표현이 출력보다 풍부하다는 발견(Table 3의 Mid>Last)에 근거. 이미지·질의를 한 트랜스포머에서 함께 처리하는 <b>joint encoding</b>이 필수 — dual-encoder SigLIP는 56.1%로 크게 뒤진다."
+    },
+    {
+      "label": "핵심 대비",
+      "title": "Pre- vs Post-Tokenization",
+      "body": "이 논문을 관통하는 축. 기존 효율화(HiRED·SparseVLM·PyramidDrop·VTW)는 모두 <b>토큰화 이후</b> 인코더 출력의 토큰을 줄인다 → 토큰 생성량 자체는 고정. CARES는 <b>토큰화 이전</b> 입력 픽셀을 줄인다 → 생성될 토큰 수를 원천 통제. 두 축은 직교하므로 결합 가능."
+    },
+    {
+      "label": "핵심 성질",
+      "title": "Query-Conditioned Routing",
+      "body": "같은 이미지라도 질의에 따라 해상도가 갈린다(Fig 2). CARES는 이미지 <b>그리고 질의 텍스트</b>를 함께 보고 해상도를 정한다 — vision-only 동적 해상도망(DynamicViT류)과의 결정적 차이. 쉬운 질의를 저해상도로 보내 아낀 연산이, 어려운 질의에 고해상도를 허용해도 평균 비용을 낮게 유지한다(Fig 2의 Pareto 우위)."
+    },
+    {
+      "label": "실용 성질",
+      "title": "Plug-and-Play Orthogonality",
+      "body": "대상 VLM의 구조·가중치·학습을 <b>전혀 바꾸지 않고</b> 앞단에만 붙는 진짜 plug-in. 로컬 모델은 물론 <b>API 전용 GPT-4o</b>에도 적용(Table 2). 게다가 토큰 압축 기법과 <b>직교</b> — CARES로 픽셀을 줄인 뒤 SparseVLM/TokenFLEX/LLaVA-Mini를 얹으면 절감이 곱셈적으로 커진다. 배포 파이프라인에 넣기 쉬운 것이 핵심 실용성."
+    }
+  ]
+}

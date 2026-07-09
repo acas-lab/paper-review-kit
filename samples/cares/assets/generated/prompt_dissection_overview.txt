@@ -1,0 +1,49 @@
+교육용 학술 아키텍처 인포그래픽. 가로 와이드 1536x864 (16:9). 목표: 이 그림 "하나만 봐도" CARES의 전체 아키텍처와 동작 원리가 이해되어야 한다. 텍스트 라벨은 모두 선명하고 완전하게(잘리지 않게) 그린다.
+
+전체 레이아웃: 왼쪽에서 오른쪽으로 5개의 세로 패널이 큰 화살표(→)로 연결된 가로 흐름. 각 패널 상단에 굵은 영문 섹션 제목. 가운데 METHOD 패널이 가장 크고 상세한 "실제 아키텍처 다이어그램"이다.
+
+[패널 1 — PROBLEM] (좁게)
+- 한 장의 이미지가 아주 많은 작은 정사각형 타일 격자(= visual tokens)로 쪼개진 모습.
+- 그 위에 큰 글씨 "up to 99% tokens".
+- 아래 작은 아이콘: 시계(느림) + 달러(비쌈). 라벨 "slow & costly".
+
+[패널 2 — OBSERVATION] (좁게)
+- 위: 말풍선 "breed?" + 작은 저해상도 개 썸네일 + 초록 라벨 "LOW RES / few tokens".
+- 아래: 말풍선 "name on collar?" + 큰 고해상도 개 사진(목줄 확대) + 빨강 라벨 "HIGH RES / many tokens".
+- 패널 하단 굵게: "query decides resolution".
+
+[패널 3 — METHOD  ★가장 크고 상세하게 — 세로 아키텍처 흐름도]
+위에서 아래로 화살표로 연결된 박스 스택. 각 박스에 구성요소 이름을 완전하게 표기:
+  (입력) 회색 칩 두 개 나란히: "Image"  와  "Query" — 둘 다 아래 화살표로 첫 박스로.
+  (박스 1, azure) "Proxy VLM — SmolVLM, FROZEN"  안에 작은 자물쇠 아이콘, 부제 "low-res <=384px, take layer-16 feature z". 작은 흐릿한 이미지 썸네일이 이 박스로 들어감.
+  ↓ 화살표 라벨 "feature z"
+  (박스 2, lavender) "Classifier (trainable)" 안에 세 막대 확률 그래프, 막대 아래 라벨 "384 / 768 / 1024", 위에 "probabilities p".
+  ↓
+  (박스 3, amber) 게이지 다이얼 + 완전한 수식 "r = Σ pk · rk", 라벨 "continuous resolution".
+  ↓ 화살표 라벨 "resize to r"
+  (박스 4, 회색) "Resize image" — 큰 이미지가 중간 크기로 줄어드는 그림.
+  ↓
+  (박스 5, lavender→pink 그라디언트, 크게) "Target VLM — FROZEN" 안에 자물쇠 아이콘. Query 칩에서 온 화살표가 이 박스로 직접 연결(오른쪽 우회 경로)되어 "resized image + query"가 함께 입력됨을 보여줌.
+  옆에 초록 체크 배지 "no retraining".
+
+[패널 4 — NOVELTY] (좁게)
+- 세로 점선으로 좌우 분할.
+- 왼쪽(진하게, 초록 체크): "BEFORE tokenization" + 픽셀을 줄이는 가위 아이콘 + "CARES (fewer pixels)".
+- 오른쪽(흐리게): "AFTER tokenization" + 토큰을 줄이는 가위 + "prior work (prune tokens)".
+- 하단 굵게: "cut pixels upstream, VLM untouched".
+
+[패널 5 — RESULTS] (좁게)
+- 위: 정확도-비용 간단 그래프. 수평 초록 점선 "accuracy kept" + 그 위에 놓인 초록 점 하나(= CARES) 강조.
+- 아래로 향하는 굵은 화살표 + 완전한 라벨(잘리지 않게) "up to -78% compute".
+- 그 아래 작게 두 줄로: "9 benchmarks, 4 VLMs (2B~72B, GPT-4o)" 그리고 "+ CARES-AR (autoregressive variant)".
+
+색상 팔레트: v3 흰색-아이보리 배경 + lavender(#8b75c0) / azure(#6b95b3) / amber(#ad8e4e) / rose(#b87887) / mint green(#75ad8e).
+
+스타일 지시 (중요):
+- 풀 블리드 일러스트 — 배경이 전체를 가득 채움. 절대 투명 배경 컷아웃이 아닐 것 (NOT a transparent cutout).
+- 깔끔한 플랫 벡터 다이어그램. 학술 교과서 아키텍처 도식 느낌.
+- 모든 화살표의 방향과 연결이 명확할 것. METHOD 패널의 세로 흐름이 한눈에 읽혀야 함.
+- 모든 텍스트 라벨은 영어로, 철자 정확하고 잘리지 않게. 위에 지정한 라벨만 사용하고 임의의 무의미한 글자(예: 랜덤 텍스트)는 넣지 말 것.
+- 1536x864 가로 와이드.
+
+NO paper title at top, NO standalone header, NO author names. Only the 5-stage horizontal architecture infographic with the exact English labels specified above.

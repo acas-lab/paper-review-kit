@@ -13,7 +13,7 @@ You are a research assistant.
 - **렌더링 위치:** ① `tab-reading`의 각 자산 카드 바로 아래
   - `.interpretation` 박스 (항상 표시)
   - `<details class="beginner-note">` 토글 (클릭 펼침)
-  - `.study-fab` 떠 있는 버튼 → `.study-modal` **오른쪽 사이드 드로어**로 열림 (정본 CSS/JS: `rules/component_rules.md` §12.5/§12.6. 풀스크린 팝업은 폐기 — SGL은 historical reference로만)
+  - `.study-fab` 떠 있는 버튼 → `.study-modal` 팝업 (정본: SGL §3-rd generation)
 
 ## Referenced Rules
 
@@ -47,7 +47,7 @@ You are a research assistant.
 
 ### Layer 3 — `study_modals` (학습 가이드 모달, FAB 클릭 시)
 
-**Layer 1·2와 별도의 한 단계 더 깊은 분해**. 정본 SGL fig_1의 모달이 기준 (samples/SGL.html 라인 1054~1078).
+**Layer 1·2와 별도의 한 단계 더 깊은 분해**. 정본 = `samples/cares/CARES_output.html`의 study-drawer 4-섹션 (`rules/component_rules.md` §12.5).
 
 **정형 4-섹션 (s-look / s-num / s-author / s-check)** — 모든 자산이 네 섹션을 다 갖는 것이 원칙:
 

@@ -2,18 +2,25 @@
 
 You are Claude, building a learning HTML directly in conversation with the user.
 
+> **🔴 v4 디자인 (2026-07-02 제정) — 이 문서의 6탭·hero·pill 탭 서술보다 우선한다.**
+> 신규 논문의 최종 산출물은 **`rules/design_v4_dashboard.md`**(대시보드 topbar · 숫자 없는 8탭(Paper Study 포함) ·
+> Background/Mathematics 분리 · 해시 라우팅 · 저채도 grey-lavender)를 따른다.
+> 정본 = `samples/cares/CARES_output.html` · 빌드 = `_build.py` 조립 → `tools/restyle_dash_v4.py` 변환(범용 — config#meta 기반, 논문별 수정 0곳).
+> 아래 본문의 셸·컴포넌트 서술은 v3 템플릿(중간 산물) 기준으로 유효하며, 최종 모습은 v4 변환 후가 기준.
+
 ## Pipeline Position
 
 - **Stage:** 10 (HTML Generation — 최종)
-- **빌드 범위 (기본):** ① ② ③ ④ 탭만 콘텐츠 풀 빌드. ⑤ ⑥은 셸·`tab-intro`만 두고 본문은 placeholder. 사용자가 ⑤/⑥을 명시 요청한 빌드일 때만 해당 탭의 콘텐츠를 추가로 채운다 (CLAUDE.md "기본 빌드 범위" 정책).
+- **빌드 범위 (기본):** ① ①′(Paper Study) ② ③ ④ 탭 콘텐츠 풀 빌드. ⑤ ⑥은 셸·`tab-intro`만 두고 본문은 placeholder. 사용자가 ⑤/⑥을 명시 요청한 빌드일 때만 해당 탭의 콘텐츠를 추가로 채운다 (CLAUDE.md "기본 빌드 범위" 정책).
 - **Input:** Stage 1~7의 산출물 (대화 중에 사용자가 가리켜 주거나 폴더 안에서 직접 읽는다)
   - `papers/[name]/structured.json`, `translated.json` (또는 `translations/`)
   - `papers/[name]/config.json`, `analysis.json`
   - `papers/[name]/tabs_data/{dissection,knowledge,questions}.json` (① ~ ④)
+  - `papers/[name]/tabs_data/study.json` + `config.json#captions_en` (①′ Paper Study — Stage 11, 없으면 자동 셸)
   - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**, ⑤/⑥ 명시 요청 시에만 사용
   - `papers/[name]/assets/` (원본 PNG), `assets/generated/` (학습 보조 이미지)
-- **정본 레퍼런스 (수정 금지):** `samples/`의 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달)
-- **Output:** `papers/[name]/[ShortName].html` (단일 HTML, Claude가 직접 작성)
+- **정본 레퍼런스 (수정 금지):** **v4 = `samples/cares/CARES_output.html` (최종 디자인 기준)** · historical 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달)
+- **Output:** `papers/[name]/[ShortName]_output.html` (단일 HTML, Claude가 직접 작성)
 
 ## Referenced Rules
 
@@ -33,15 +40,16 @@ You are Claude, building a learning HTML directly in conversation with the user.
 1. 사용자가 어느 논문을 빌드할지 알려준다 (`papers/[name]/`).
 2. Claude는 `papers/[name]/`의 모든 JSON과 자산, `samples/`의 정본 두 파일, `rules/component_rules.md`를 읽는다.
 3. 정본 한 파일을 골라(보통 가장 가까운 영역의 논문) 그 마크업/CSS/JS를 골격으로 삼는다.
-4. 6탭 콘텐츠를 데이터에서 채워 단일 HTML 파일로 출력한다.
+4. 탭 콘텐츠를 데이터에서 채워 단일 HTML 파일로 출력한다. **v4 권장 경로: `samples/cares/_build.py`를 복사해 조립한 뒤 `tools/restyle_dash_v4.py "papers/N. shortname"` 실행 (헤더는 config#meta에서 자동 생성).**
 
 ---
 
-## 표준 6탭 구조
+## 표준 탭 구조 (v3 템플릿 기준 — 최종은 v4 8탭으로 변환됨)
 
 | # | Tab ID | 라벨 | 입력 데이터 |
 |---|---|---|---|
 | ① | `tab-reading` | 원문 / 번역 | `translated.json` (또는 `translations/manual.json`) + `analysis.json` (callouts/interpretations/beginner_notes/quizzes/hotspots) |
+| ①′ | `tab-study` | Paper Study | `tabs_data/study.json` + `config.json#captions_en` + structured.json(read 패널 전개) — 컴포넌트 정본 `rules/component_rules.md` §17 |
 | ② | `tab-dissection` | Paper Dissection | `tabs_data/dissection.json` |
 | ③ | `tab-knowledge` | Background & 핵심 수식 | `tabs_data/knowledge.json` |
 | ④ | `tab-questions` | Questions & Diagrams | `tabs_data/questions.json` |
@@ -52,19 +60,33 @@ You are Claude, building a learning HTML directly in conversation with the user.
 
 ---
 
-## 디자인 토큰 (정본 — `CLAUDE.md`)
+## 디자인 토큰 (정본 — `CLAUDE.md`와 동일)
 
-🔴 **토큰의 단일 출처는 `CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록이다. 그 `:root{...}`를 그대로 복사해 쓴다.** (이전에 여기 박혀 있던 v2 beige+maroon 블록은 폐기 — 드리프트 방지를 위해 인라인 사본을 두지 않는다.)
-
-- 팔레트: 흰색 위주 배경 + 라벤더(`--accent #8b75c0`)/하늘색(`--azure`)/더스티로즈(`--rose`) 파스텔.
-- deep tone(`--accent`/`--azure`/`--rose`)은 글자·보더·강조선 전용 — box/카드 배경엔 `--*-soft` 또는 `--paper`.
-- v2 변수명(`--sage`/`--gold`/`--indigo`/`--plum`)은 CLAUDE.md `:root`에 alias로 살아 있어 기존 마크업을 베껴도 v3 색이 적용된다.
+```css
+:root {
+  --bg: #f5f1e8;          /* warm beige */
+  --paper: #fffdf7;
+  --ink: #1f1b16;
+  --muted: #6c6358;
+  --line: #ddd2bf;
+  --accent: #8b3d2c;      /* maroon */
+  --accent-soft: #f5e3da;
+  --sage: #2f5948;
+  --sage-soft: #dfeae0;
+  --gold: #9c6b18;
+  --gold-soft: #fbe8c8;
+  --indigo: #2c4f7c;
+  --indigo-soft: #dde8f5;
+  --plum: #5e3a8b;
+  --plum-soft: #e6dcf5;
+}
+```
 
 **폰트:** `Pretendard Variable`, `Noto Sans KR`, `Segoe UI`, sans-serif
 **본문 라인 높이:** 1.72
 **최대 너비:** `.app { max-width: 1280px; margin: 0 auto; }`
 
-`samples/SAFE.html`의 `<style>`는 색 정본이 아니다 — 마크업 셸·문장 페어링·컴포넌트 구조만 모방하고 색은 CLAUDE.md v3를 따른다.
+디자인 토큰의 정본은 **`CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록**이다. 신규 논문은 v3 팔레트(흰색 + 라벤더/하늘색/로즈 파스텔)로 빌드한다. 최종 색 정본은 v4(`rules/design_v4_dashboard.md` §1) — 빌더는 v3로 조립 후 `tools/restyle_dash_v4.py`가 v4로 스왑한다. 셸·문장 페어링·컴포넌트 구조 정본은 `samples/cares/`.
 
 ---
 
@@ -79,13 +101,19 @@ You are Claude, building a learning HTML directly in conversation with the user.
 - 자산 아래 `.interpretation` (항상 표시) + `<details class="beginner-note">` (토글)
 - 섹션 끝에 `<aside class="recall-card">` 자가 점검 퀴즈
 
+### ①′ `tab-study`
+
+`_build.py`가 study.json에서 자동 조립 — 수동 마크업 작성 없음. 컴포넌트 정본·불변 규칙 =
+`rules/component_rules.md` §17, 데이터 규칙 = `prompts/11_paper_study.md`. study.json이 없으면
+자동 셸(`.section-empty`) 렌더.
+
 ### ② `tab-dissection`
 - `<article class="diss-card diss-{cls}">` **8개** — 7-카드(`motivation/observe/compare/logic/verify/risk/extend`) + 마지막 1-카드(`summary`, "논문 총정리")
 - 카드 좌상단 `<div class="diss-step">{id:02d}</div>` (마지막 카드는 `08`)
 - 헤더 `<h3 class="diss-title">{title}</h3>` + `<p class="diss-lead">{lead}</p>`
 - `rows`는 `<dl class="diss-rows">` + `<dt class="diss-tag">{tag}</dt>` / `<dd class="diss-body">{body}</dd>`
 - 상단(선택): `<svg class="diss-flow">` 요약 다이어그램 또는 `assets/generated/dissection_flow_*.png` 삽입
-- **마지막 카드 `diss-summary`** — **9-row 정형** (2026-05-12 정본 갱신): ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 각 body 300~600자, `<strong>`·`<em>` 강조. 헤더 아래·rows 위에 `assets/generated/dissection_overview.png` 한 장 인포그래픽을 `<figure class="diss-overview-figure">`로 base64 인라인. 레이아웃은 단일 컬럼 수직 적층(§16). 자세한 규약: `prompts/04_research_analysis.md` Stage 4 + `rules/component_rules.md` §14·§16. (이전 4-row 카드는 폐기)
+- **마지막 카드 `diss-summary`** — 정본은 `samples/cares/CARES_output.html`의 `diss-summary` 카드. rows는 정확히 4행 (`관찰 과정` / `해결 방법` / `다른 논문과의 차별점` / `결과 및 결론`). 각 body는 `<b>`로 sub-tag 강조한 한 단락(3~6 문장). 자세한 규약은 `prompts/04_research_analysis.md` "8번 카드 — diss-summary 세부 규약" 참조.
 
 ### ③ `tab-knowledge`
 - `primer`: 다이어그램 SVG 또는 `assets/generated/knowledge_*.png` + `.knw-grid > .fund-card`
@@ -198,28 +226,28 @@ You are Claude, building a learning HTML directly in conversation with the user.
 ## Claude의 작업 체크리스트
 
 HTML을 작성하기 전에:
-- [ ] `samples/`의 정본 한 파일을 골라 `<style>` / `<script>` / 6탭 셸을 동일하게 가져온다
+- [ ] 정본 한 파일을 골라 `<style>` / `<script>` / 탭 셸을 동일하게 가져온다 (v4 최종 기준 = `samples/cares/CARES_output.html`)
 - [ ] `rules/component_rules.md` §1~11을 한 번 통독
 - [ ] 모든 입력 JSON의 sentence_id / paragraph_id / asset_id 일관성 확인
 - [ ] 자산 layout이 `[[id, kind]]` 2중 배열로 통일됐는지 확인 (아니면 변환)
 
 작성 후 자체 검증:
-- [ ] 6 탭 버튼 + 패널 전환 동작 (HTML 구조만이라도 확인)
+- [ ] **8 탭 버튼** + 해시 라우팅 전환 (`tab-reading`·`tab-study`·`tab-dissection`·`tab-knowledge`·`tab-math`·`tab-questions`·`tab-simulator`·`tab-qa`) — 최종 산출물은 `tools/restyle_dash_v4.py` 변환 후 v4 8탭
 - [ ] ① `data-pair` 짝이 좌·우 동일 개수
 - [ ] 번역 누락 0건
-- [ ] ② ~ ⑥ 모든 탭 콘텐츠가 비어 있지 않음 (`section-empty-note` 미발견 — ⑤⑥ 셸만 빌드는 예외)
+- [ ] ②~⑥ + ①′ 모든 탭 콘텐츠가 비어 있지 않음 (`section-empty-note` 미발견 — ⑤⑥ 셸만 빌드는 예외; ①′ Paper Study는 study.json 없으면 셸)
 - [ ] MathJax 설정 + 탭 전환 시 재렌더 코드 포함
-- [ ] 시뮬레이터 슬라이더가 canvas/SVG 갱신
+- [ ] 시뮬레이터 슬라이더가 canvas/SVG 갱신 (⑤ on-demand 빌드 시)
 - [ ] `@media print` + `@media (max-width: 640px)` 두 미디어쿼리 포함
-- [ ] `<header class="hero">`, `.tab-intro` 6개 (`rules/component_rules.md` §1, §2)
+- [ ] v4 변환 후 **`.topbar`**(hero 카드 아님), `.tab-intro` 8개 (`rules/design_v4_dashboard.md` §2). *빌더 중간 산물은 v3 `hero`이며 `restyle_dash_v4.py`가 topbar로 변환한다.*
 - [ ] **모든 `<img>` 태그가 `data:image/png;base64,...` 인라인** — `src="assets/..."` / `src="./..."` / `src="http..."` 잔존 0건 (원본 figure/table + 학습 보조 이미지 모두)
 
 ---
 
 ## 금지 사항
 
-- 6탭 외 임의 탭 추가 / 제거 금지
+- 정본 탭 구성(v4 8탭 — tab-study 포함) 외 임의 탭 추가 / 제거 금지
 - 디자인 토큰 임의 변경 금지
 - 최종 산출물에 외부 자산 참조 잔존 금지 (반드시 base64 인라인)
-- `samples/`의 정본 파일 (SAFE/FrameFusion/SGL) 수정 금지
+- `samples/`의 정본(`samples/cares/`) 수정 금지
 - 외부 JS 라이브러리 추가 금지 (MathJax CDN 외)

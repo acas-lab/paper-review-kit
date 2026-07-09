@@ -1,6 +1,6 @@
-# [공유] 논문 PDF → 6탭 학습용 HTML 변환 키트 (paper-review-kit)
+# [공유] 논문 PDF → v4 대시보드 8탭 학습용 HTML 변환 키트 (paper-review-kit)
 
-논문 한 편을 **번역·해부·배경수식·비판질문·시뮬레이터·Q&A 6개 탭이 들어간 학습용 HTML 한 장**으로 만들어 주는 키트를 정리해서 공유합니다. 빌드 버튼 하나로 끝나는 도구가 아니라, **Claude Code와 대화하며 한 단계씩** 콘텐츠를 채워 마지막에 단일 HTML로 조립하는 방식입니다. 만들어진 HTML은 그림이 전부 안에 박혀 있어 **USB·메일로 옮겨도 그대로 열립니다.**
+논문 한 편을 **번역·Paper Study(비판적 읽기 워크북)·해부·배경·수식·비판질문·시뮬레이터·Q&A 8개 탭이 들어간 v4 대시보드 학습용 HTML 한 장**으로 만들어 주는 키트를 정리해서 공유합니다. 빌드 버튼 하나로 끝나는 도구가 아니라, **Claude Code와 대화하며 한 단계씩** 콘텐츠를 채워 마지막에 단일 HTML로 조립하는 방식입니다. 만들어진 HTML은 그림이 전부 안에 박혀 있어 **USB·메일로 옮겨도 그대로 열립니다.**
 
 ## 📦 저장소
 https://github.com/acas-lab/paper-review-kit
@@ -18,7 +18,7 @@ https://github.com/acas-lab/paper-review-kit
 ## 📖 시작 방법
 - 저장소를 받은 뒤 **`SETUP.md`부터** 읽으면 설치~첫 논문 빌드까지 단계별로 따라할 수 있습니다.
 - 논문 PDF를 `rawpaper/` 폴더에 넣고, 폴더에서 Claude Code를 열어 시작 명령(README의 "시작 명령" 블록)을 붙여넣으면 됩니다.
-- 잘 만든 기준 예시는 `samples/`(SAFE·FrameFusion·SGL)와 완성 워크드 예제 `samples/free_example/`에 있습니다.
+- 잘 만든 기준 예시는 `samples/`(SAFE·FrameFusion·SGL)와 완성 워크드 예제 `samples/cares/`에 있습니다.
 
 ---
 
