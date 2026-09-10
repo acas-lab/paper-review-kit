@@ -128,14 +128,17 @@ English Term (한글 설명)
 
 > Claude Code의 Bash tool로 `codex ...` 명령을 직접 실행해 ImageGen으로 PNG를 만든다. 별도 플러그인이나 MCP 자동화는 끼워넣지 않는다 — Bash 한 줄이면 충분.
 >
-> **정식 호출 형식 (5계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일/출력 명시) + 검증된 명령 템플릿 + `<figure class="concept-figure">` 정본 컴포넌트 + 자동화 스크립트 골격: `rules/component_rules.md` §11.** 이 절을 따르지 않으면 Windows에서 인코딩(CP949)·hang·컷아웃 디폴트로 한 번에 막힌다.
+> **호출 형식 (6계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일/출력 명시·이미지 내 논문 제목 금지) + 검증된 명령 템플릿 + `<figure class="concept-figure">` 정본 컴포넌트 + 자동화 스크립트 골격: `rules/component_rules.md` §11.2~11.3 / §11.5~11.6.** 이 절을 따르지 않으면 Windows에서 인코딩(CP949)·hang·컷아웃 디폴트로 한 번에 막힌다.
+>
+> **🔴 prompt.txt 본문을 어떻게 채우는지는 `rules/component_rules.md` §11.8이 정본** — 5블록 구조 · 패널마다 (시각 형태 + 실제 수치 + 영어 캡션) 3요소 · 이미지 종류별 밀도 등급 · 병렬 호출 격리 · 검수 체크리스트 · 실패 모드별 처방.
+> 특히 ③ 배경지식의 개념도는 **밀도를 올리는 게 아니라 논점을 하나로 좁히는 것**이 정답이다 (§11.8.4) — 1024×1024에 패널 5~9개, 논점 하나.
 
 한 흐름:
 1. Claude가 `knowledge.json`을 작성하면서 어떤 그림이 필요한지(주제·구도·라벨) 판단
 2. `prompt_<purpose>.txt`를 UTF-8로 작성 → Bash로 codex 실행 → `papers/[name]/assets/generated/knowledge_<purpose>.png` 저장
 3. 결과 PNG를 base64로 변환해 `<figure class="concept-figure">` 정본 컴포넌트로 Stage 10 단일 HTML에 인라인
 
-검수는 **사후**다. 사용자가 빌드된 HTML을 보고 마음에 안 드는 이미지가 있으면 별도 재생성을 요청한다 — 생성-박기 흐름을 사전 검수로 막지 않는다.
+검수는 2단이다. **(1) Claude 자체 검수 — 생성 직후 PNG를 Read로 열어 `rules/component_rules.md` §11.8.6 체크리스트(패널 누락·여백·수치 오기·라벨 깨짐·제목 박힘·컷아웃·프롬프트 혼선)를 확인한다. 미달이면 프롬프트를 고쳐 재생성한다 — 같은 프롬프트로 재시도하지 않는다.** (2) 사용자 검수는 사후 — 빌드된 HTML을 보고 마음에 안 드는 이미지가 있으면 별도 재생성을 요청한다. 생성-박기 흐름을 사용자 사전 검수로 막지는 않는다.
 
 ### 이 단계에서 만들 수 있는 이미지
 

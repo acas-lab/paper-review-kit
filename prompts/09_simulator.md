@@ -196,9 +196,13 @@ baseline 비교는 **가능한 한 4개 이하** (Dense/Original + 2~3 prior met
 
 ## 이미지 생성
 
-> Claude Code의 Bash tool로 `codex ...` 명령을 직접 실행해 ImageGen으로 PNG를 만든다. 별도 플러그인·MCP 자동화 없이 Bash 한 줄. 결과는 곧장 base64로 박아 `<figure class="concept-figure">` 정본 컴포넌트로 인라인 — 검수는 사후.
+> Claude Code의 Bash tool로 `codex ...` 명령을 직접 실행해 ImageGen으로 PNG를 만든다. 별도 플러그인·MCP 자동화 없이 Bash 한 줄. 결과는 곧장 base64로 박아 `<figure class="concept-figure">` 정본 컴포넌트로 인라인. **생성 직후 Claude가 PNG를 Read로 열어 §11.8.6 체크리스트를 확인**하고, 미달이면 프롬프트를 고쳐 재생성한다. 그 뒤 사용자 검수는 사후.
 >
-> **정식 호출 형식 (5계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일/출력 명시) + 검증된 명령 템플릿: `rules/component_rules.md` §11.**
+> **호출 형식 (6계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일/출력 명시·이미지 내 논문 제목 금지)
+> + 검증된 명령 템플릿: `rules/component_rules.md` §11.2~11.3.**
+> **🔴 prompt.txt 본문을 어떻게 채우는지는 `rules/component_rules.md` §11.8이 정본** — 5블록 구조 · 패널마다
+> (시각 형태 + 실제 수치 + 영어 캡션) 3요소 · 이미지 종류별 밀도 등급 · 병렬 호출 격리 · 검수 체크리스트 ·
+> 실패 모드별 처방. 이 절을 건너뛰면 여백만 크고 정보량이 적은 그림이 나온다 (반복 실패의 단일 원인).
 
 이 단계에서 생성 가능한 이미지:
 - ⑤ 탭 도입부의 **시뮬레이터 도입 일러스트** (학습자가 무엇을 만질 수 있는지 한 장으로 설명)

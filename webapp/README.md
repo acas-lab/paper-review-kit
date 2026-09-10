@@ -35,7 +35,7 @@
 2. **② 학습 보조 이미지 생성 방식** 선택 (선택)
    - **codex 터미널 (PNG)** — codex CLI로 풀-블리드 일러스트 PNG 생성 (codex 설치·로그인 필요)
    - **Claude 자체 (SVG)** — 외부 도구 없이 Claude가 인라인 SVG 도식을 직접 작성 (codex 불필요)
-   - codex CLI가 없으면 자동으로 SVG로 고정됩니다. 규약 정본: `rules/component_rules.md` §11.8
+   - codex CLI가 없으면 자동으로 SVG로 고정됩니다. 규약 정본: `rules/component_rules.md` §11.9
 3. 채팅 입력칸에 자동으로 요청 문장이 채워짐 → 다듬어서 전송
    (예: *"이 논문으로 papers 폴더 만들고 v4 8탭 HTML 만들어줘. 디자인 rules/design_v4_dashboard.md 정본(빌더 samples/cares → restyle_dash_v4 변환), Paper Study는 준비되면, ⑤⑥은 셸만."*)
 3. 진행이 채팅에 실시간으로 흐름 (🔧 도구 사용 배지 포함). 중간에 *"그림 다시"*,

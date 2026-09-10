@@ -1,6 +1,6 @@
 """
-CARES (ACL 2026 Long Papers · Oral, arXiv 2510.19496v3) — single-file HTML builder.
-※ v4 정본 빌더 — 신규 논문은 이 파일을 복사해 조립한 뒤 tools/restyle_dash_v4.py로 변환한다.
+CARES (ACL 2026 Long Papers · Oral, arXiv 2510.19496v3) - single-file HTML builder.
+※ v4 정본 빌더 - 신규 논문은 이 파일을 복사해 조립한 뒤 tools/restyle_dash_v4.py로 변환한다.
 
 Reads structured.json + translations/manual.json + analysis.json + tabs_data/*.json
 + config.json + assets/, emits a single self-contained HTML with v3 tokens and
@@ -10,9 +10,9 @@ are base64-inlined. Tab 5 / 6 are shells (per project policy).
 Paper Study 탭(tab-study, rules/component_rules.md §17):
 - tabs_data/study.json이 있으면 3-Phase 워크북 풀 빌드, 없으면 자동 셸.
 - read 패널(단락 리더·세션 한정 체크) / 잠금 토글 / 근거 점프 / 도표 뷰어(config#captions_en 필요)
-  / 플로팅 메모 / 노트 내보내기(폴더 기억)·가져오기 — 전부 이 파일이 자동 생성 (논문별 수정 0곳).
+  / 플로팅 메모 / 노트 내보내기(폴더 기억)·가져오기 - 전부 이 파일이 자동 생성 (논문별 수정 0곳).
 - 논문별로 바꿀 곳: ②③④ tab-intro 문구 · footer 한 줄 (Paper Study 쪽은 없음).
-- 출력 파일명은 meta.short_name에서 자동 유도 — 코드 수정 불필요.
+- 출력 파일명은 meta.short_name에서 자동 유도 - 코드 수정 불필요.
 """
 import base64
 import json
@@ -56,7 +56,7 @@ def esc(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 # ----------------------------------------------------------------
-# Tab 1 — sentence pairs + assets bound to paragraphs
+# Tab 1 - sentence pairs + assets bound to paragraphs
 # ----------------------------------------------------------------
 HOTSPOTS = analysis.get("hotspots", {})
 CALLOUTS = analysis.get("callouts", {})
@@ -104,7 +104,6 @@ def render_paragraph(p):
         interp_html = f'<div class="interpretation"><h4>해석</h4><p>{interp}</p></div>' if interp else ""
         beginner_html = ""
         if beginner:
-            beg_safe = esc(beginner).replace("\n", "<br>")
             beginner_html = (
                 '<details class="beginner-note">'
                 '<summary>초보자를 위한 설명</summary>'
@@ -179,7 +178,7 @@ def render_section(sec):
 tab_reading = "\n".join(render_section(s) for s in struct["sections"])
 
 # ----------------------------------------------------------------
-# Tab 1.5 — Paper Study: 3-Phase critical-reading workbook
+# Tab 1.5 - Paper Study: 3-Phase critical-reading workbook
 # (Aerial View → Interrogation → Verdict; 서술칸은 localStorage 저장,
 #  Claude 분석은 잠금 토글, 근거 칩은 Translation 탭 문장/자산으로 점프)
 # ----------------------------------------------------------------
@@ -198,7 +197,7 @@ def ev_chips(evs):
 SEC_BY_ID = {s["section_id"]: s for s in struct["sections"]}
 
 def read_panel(read_cfg):
-    # "본문 보기" 패널 — 해당 파트의 단락을 하나씩 플로팅 리더로 읽고 체크(✓)해 나간다
+    # "본문 보기" 패널 - 해당 파트의 단락을 하나씩 플로팅 리더로 읽고 체크(✓)해 나간다
     if not read_cfg:
         return ""
     groups = []
@@ -233,7 +232,7 @@ def read_panel(read_cfg):
             + "".join(groups) + '</div>')
 
 def study_thumbs(aids):
-    # 썸네일은 base64를 중복 임베드하지 않는다 — JS가 Translation 탭의 동일 자산에서 src를 복사
+    # 썸네일은 base64를 중복 임베드하지 않는다 - JS가 Translation 탭의 동일 자산에서 src를 복사
     figs = "".join(
         f'<figure><img data-thumb-of="{aid}" alt="{aid}" />'
         f'<figcaption>{aid.replace("_", " ").upper()}</figcaption></figure>'
@@ -241,7 +240,7 @@ def study_thumbs(aids):
     )
     return f'<div class="study-thumbs">{figs}</div>'
 
-def study_write(skey, placeholder, label="내 답 — 직접 써보기", small=False):
+def study_write(skey, placeholder, label="내 답 - 직접 써보기", small=False):
     cls = "study-write study-write-sm" if small else "study-write"
     return (
         '<div class="study-write-wrap">'
@@ -256,7 +255,7 @@ def study_reveal(skey, min_chars, inner, btn_label="분석 비교하기"):
         f'<div class="study-reveal" data-skey="{skey}" data-min="{min_chars}">'
         '<div class="study-reveal-bar">'
         f'<button class="study-reveal-btn" type="button" disabled>{btn_label}'
-        f'<span class="srb-lock">잠김 — 내 답 {min_chars}자 이상이면 열립니다</span></button>'
+        f'<span class="srb-lock">잠김 - 내 답 {min_chars}자 이상이면 열립니다</span></button>'
         '<button class="study-skip" type="button">그래도 열기</button>'
         '</div>'
         f'<div class="study-claude" hidden>{inner}</div>'
@@ -333,7 +332,7 @@ if studyd:
     step6 = study_step(6, ver["title"],
         guide_p(ver.get("guide"))
         + read_panel(ver.get("read"))
-        + '<details class="verdict-details"><summary>결론 대조 열기 — Step 5를 마친 뒤 펼치세요</summary>'
+        + '<details class="verdict-details"><summary>결론 대조 열기 - Step 5를 마친 뒤 펼치세요</summary>'
         '<div class="verdict-grid">'
         '<div class="verdict-col v-mine"><h4>내 결론 (Step 5)</h4><div class="v-mine-body" data-mirror="conclusion"></div></div>'
         f'<div class="verdict-col v-claude"><h4>Claude의 데이터-only 결론</h4><div class="v-claude-body">{ver["claude_dataonly_summary"]}</div></div>'
@@ -352,7 +351,7 @@ if studyd:
 
     tab_study = (
         '<div class="tab-intro">'
-        '<h2>Paper Study — 3-Phase 비판적 읽기</h2>'
+        '<h2>Paper Study - 3-Phase 비판적 읽기</h2>'
         '</div>'
         '<div class="study-toolbar">'
         '<div class="study-toolbar-note">메모는 이 브라우저에 자동 저장 · 파일 보관은 내보내기'
@@ -375,7 +374,7 @@ if studyd:
 else:
     tab_study = (
         '<div class="tab-intro">'
-        '<h2>Paper Study — 3-Phase 비판적 읽기</h2>'
+        '<h2>Paper Study - 3-Phase 비판적 읽기</h2>'
         '<p>Aerial View → Interrogation → Verdict 순서의 자기주도 워크북이 들어갈 자리입니다.</p>'
         '</div>'
         '<section class="section section-empty">'
@@ -383,7 +382,7 @@ else:
         '</section>'
     )
 
-# 서론 섹션 끝에 "Paper Study로 돌아가기" 버튼 — RQ 찾기 동선의 복귀 지점
+# 서론 섹션 끝에 "Paper Study로 돌아가기" 버튼 - RQ 찾기 동선의 복귀 지점
 # 서론 section_id를 study.json rq.read의 마지막 항목(=서론)에서 도출 → 모든 관례 커버
 # (s_intro / intro / sec-intro / s2 등 숫자식 무관). 없으면 관례 목록으로 폴백.
 if studyd:
@@ -401,11 +400,11 @@ if studyd:
     if _i >= 0:
         _j = tab_reading.find('</section>', _i)
         _goto = ('<div class="study-goto-row">'
-                 '<button class="study-goto" type="button">서론 끝 — Paper Study로 돌아가기 ↩</button>'
+                 '<button class="study-goto" type="button">서론 끝 - Paper Study로 돌아가기 ↩</button>'
                  '</div>')
         tab_reading = tab_reading[:_j] + _goto + tab_reading[_j:]
 
-# 도표 뷰어 데이터 — 원문 캡션(config#captions_en) + 번역(config#captions) + 해석(analysis#interpretations)
+# 도표 뷰어 데이터 - 원문 캡션(config#captions_en) + 번역(config#captions) + 해석(analysis#interpretations)
 AV_DATA = {}
 if studyd:
     _caps_en = config.get("captions_en", {})
@@ -427,9 +426,9 @@ STUDY_CSS = """
 .study-btn-danger{color:var(--rose);background:var(--rose-soft);border-color:var(--rose)}
 .study-loc-link{font:inherit;font-size:11.5px;color:var(--muted);background:none;border:0;padding:0;margin-left:8px;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .study-loc-link:hover{color:var(--accent)}
-.phase-band{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:14px;padding:16px 20px;margin:26px 0 14px}
-.phase-band.phase-p2{border-left-color:var(--amber)}
-.phase-band.phase-p3{border-left-color:var(--rose)}
+.phase-band{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:26px 0 14px}
+.phase-band.phase-p2{}
+.phase-band.phase-p3{}
 .phase-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:3px 10px;border-radius:999px}
 .phase-band.phase-p2 .phase-tag{background:var(--amber-soft);color:var(--amber)}
 .phase-band.phase-p3 .phase-tag{background:var(--rose-soft);color:var(--rose)}
@@ -442,7 +441,7 @@ STUDY_CSS = """
 .study-step-head h3{margin:0;font-size:17px;color:var(--ink)}
 .study-guide{margin:0 0 12px;font-size:14px;color:var(--muted);line-height:1.7}
 .study-qlist{margin:0 0 12px;padding-left:0;list-style:none;display:grid;gap:8px}
-.study-qlist li{background:#fbfaff;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--ink)}
+.study-qlist li{background:#fbfaff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;color:var(--ink)}
 .study-check{display:grid;gap:8px;margin:12px 0}
 .study-check label{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;background:#fbfaff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;line-height:1.6}
 .study-check input{margin-top:3px;accent-color:var(--accent)}
@@ -494,7 +493,7 @@ STUDY_CSS = """
 .match-beyond .match-tag{background:var(--rose-soft);color:var(--rose)}
 .v-claim{margin:0 0 6px;font-weight:700;color:var(--ink)}
 .v-note{margin:0;color:var(--muted);font-size:12.5px}
-.alt-card{background:#fbfaff;border:1px solid var(--line);border-left:3px solid var(--rose);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.alt-card{background:#fbfaff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
 .alt-card h5{margin:0 0 6px;font-size:14px;color:var(--ink)}
 .alt-card p{margin:0;font-size:13.5px;line-height:1.7;color:var(--ink)}
 .view-chip{font:inherit;font-size:12.5px;font-weight:700;color:#ffffff;background:var(--azure);border:0;border-radius:999px;padding:6px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
@@ -545,11 +544,11 @@ STUDY_CSS = """
 .pr-prev:disabled,.pr-next:disabled{opacity:0.4;cursor:not-allowed}
 .pr-open-translation{font:inherit;font-size:12px;color:var(--muted);background:none;border:0;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 /* ---- 학습 메모: 플로팅 버튼(우측 상단, to-top의 x · 탭 제목의 y) + 자유 서식 메모장 드로어 ---- */
-.memo-fab{position:fixed;right:26px;top:150px;z-index:205;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
+.memo-fab{position:fixed;right:26px;top:150px;z-index:2400;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
 .memo-fab:hover{color:#ffffff;background:var(--amber)}
 .memo-fab .memo-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0}
 .memo-fab:hover .memo-dot{background:#ffffff}
-.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:300;display:flex;flex-direction:column}
+.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:2400;display:flex;flex-direction:column}
 .memo-drawer.open{transform:translateX(0)}
 .memo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 8px}
 .memo-title{font-weight:800;font-size:14px;color:var(--amber)}
@@ -559,7 +558,7 @@ STUDY_CSS = """
 .memo-pad{flex:1;margin:0 18px;font:inherit;font-size:13.5px;line-height:1.7;border:1px solid var(--line);border-radius:10px;padding:12px;resize:none;background:#fbfaff;color:var(--ink)}
 .memo-pad:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
 .memo-status{display:flex;justify-content:space-between;padding:8px 18px 14px;font-size:11px;color:var(--muted)}
-/* ---- 문장 형광펜 (사용자 하이라이트 — 문장 클릭 토글, 리더·Translation 동기) ---- */
+/* ---- 문장 형광펜 (사용자 하이라이트 - 문장 클릭 토글, 리더·Translation 동기) ---- */
 .sent.user-hl{background:#f5e8b8;border-radius:4px;padding:0 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 #tab-reading .sent, .pr-body .sent{cursor:pointer}
 .pr-hint{font-size:11px;color:var(--muted)}
@@ -624,7 +623,7 @@ details.av-interp .av-interp-body{margin-top:8px;font-size:13.5px;line-height:1.
 """
 
 # ----------------------------------------------------------------
-# Tab 2 — Dissection 7+1
+# Tab 2 - Dissection 7+1
 # ----------------------------------------------------------------
 def render_diss_card(c):
     rows = "".join(
@@ -637,7 +636,7 @@ def render_diss_card(c):
         overview_html = (
             '<figure class="diss-overview-figure">'
             f'<img src="{GEN_DATAURI["dissection_overview"]}" alt="CARES 한 장 정리" />'
-            '<figcaption>PROBLEM &rarr; OBSERVATION &rarr; METHOD &rarr; NOVELTY &rarr; RESULTS &mdash; 5단 가로 흐름으로 본 CARES. 본문 9-row와 동일 내용의 시각 요약.</figcaption>'
+            '<figcaption>PROBLEM &rarr; OBSERVATION &rarr; METHOD &rarr; NOVELTY &rarr; RESULTS - 5단 가로 흐름으로 본 CARES. 본문 9-row와 동일 내용의 시각 요약.</figcaption>'
             '</figure>'
         )
     return (
@@ -654,7 +653,7 @@ def render_diss_card(c):
 
 tab_dissection = (
     '<div class="tab-intro">'
-    '<h2>Paper Dissection — 7+1 카드 분석</h2>'
+    '<h2>Paper Dissection - 7+1 카드 분석</h2>'
     '<p>CARES의 사고 흐름을 동기(prefill 최대 99% 토큰 낭비) → 관찰(필요 해상도는 질의가 결정) → 차별(토큰화 이전 vs 이후) → 방법(3단계 파이프라인·수렴 규칙·이산→연속) → 검증 → 위험 → 확장 7단계로 분해하고, 마지막 카드에 9-row + 한 장 인포그래픽으로 압축한다.</p>'
     '</div>'
     '<div class="diss-grid">'
@@ -663,7 +662,7 @@ tab_dissection = (
 )
 
 # ----------------------------------------------------------------
-# Tab 3 — Knowledge: primer + fund cards + equations + concepts
+# Tab 3 - Knowledge: primer + fund cards + equations + concepts
 # ----------------------------------------------------------------
 primer = know["primer"]
 fund_cards_html = "".join(
@@ -702,7 +701,7 @@ concept_cards_html = "".join(
 
 tab_knowledge = (
     '<div class="tab-intro">'
-    '<h2>Background — 배경지식</h2>'
+    '<h2>Background - 배경지식</h2>'
     '<p>CARES를 이해하기 위한 6개 빌딩 블록 + 8개 개념 카드 (핵심 수식 6개는 Mathematics 탭). 해상도→토큰→연산의 사슬 / 시각 토큰 최대 99% / ANLS 지표 / 대상·프록시 VLM 라인업 / 중간 레이어 표현 / 이산 분류→연속 해상도 → 그 위에 본 논문이 정립한 과제·수렴 규칙·plug-in 직교성.</p>'
     '</div>'
     '<section class="fund-panel">'
@@ -712,18 +711,18 @@ tab_knowledge = (
     '</section>'
     '<section class="eq-panel">'
     '<h3 class="panel-title">핵심 수식 6개</h3>'
-    '<p class="panel-sub">해상도별 ANLS(Eq.1) · 충분 해상도 수렴 규칙(Eq.2) · 분류기 softmax · 연속 해상도 기댓값(Eq.3) · 교차 엔트로피 목적식 · 리사이즈↔토큰 수 — CARES의 정량 골격 여섯 줄.</p>'
+    '<p class="panel-sub">해상도별 ANLS(Eq.1) · 충분 해상도 수렴 규칙(Eq.2) · 분류기 softmax · 연속 해상도 기댓값(Eq.3) · 교차 엔트로피 목적식 · 리사이즈↔토큰 수 - CARES의 정량 골격 여섯 줄.</p>'
     f'<div class="eq-grid eq-grid-detailed">{eq_cards_html}</div>'
     '</section>'
     '<section class="fund-panel">'
     '<h3 class="panel-title">개념 카드</h3>'
-    '<p class="panel-sub">본 논문이 정립·도입한 8개 핵심 개념 — Context-Aware Resolution Selection 과제 · Sufficiency 수렴 규칙 · Multi-Resolution Rollout · Discrete-to-Continuous 기댓값 · Frozen Proxy + 중간 레이어 · Pre/Post-tokenization 축 · Query-conditioned Routing · Plug-and-Play 직교성.</p>'
+    '<p class="panel-sub">본 논문이 정립·도입한 8개 핵심 개념 - Context-Aware Resolution Selection 과제 · Sufficiency 수렴 규칙 · Multi-Resolution Rollout · Discrete-to-Continuous 기댓값 · Frozen Proxy + 중간 레이어 · Pre/Post-tokenization 축 · Query-conditioned Routing · Plug-and-Play 직교성.</p>'
     f'<div class="knw-grid">{concept_cards_html}</div>'
     '</section>'
 )
 
 # ----------------------------------------------------------------
-# Tab 4 — Questions: q/a rows + diagrams
+# Tab 4 - Questions: q/a rows + diagrams
 # ----------------------------------------------------------------
 def render_q_card(c):
     rows = "".join(
@@ -768,7 +767,7 @@ tab_questions = (
 )
 
 # ----------------------------------------------------------------
-# Tab 5 / 6 — shells only
+# Tab 5 / 6 - shells only
 # ----------------------------------------------------------------
 tab_simulator = (
     '<div class="tab-intro">'
@@ -842,18 +841,19 @@ nav.tabs{{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;position:sticky
 .pid-tag{{position:absolute;top:-10px;left:18px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;padding:4px 10px;border-radius:999px;text-transform:uppercase}}
 .paragraph-subtitle{{margin:0 0 12px;font-family:Georgia,serif;font-style:italic;color:var(--accent);font-size:14px;font-weight:600}}
 .bilingual{{display:grid;grid-template-columns:1fr 1fr;gap:18px}}
-.col{{background:rgba(255,255,255,0.85);border-radius:12px;padding:14px 16px}}
-.col-en{{border-left:3px solid var(--accent)}} .col-kr{{border-left:3px solid var(--azure)}}
+.col{{background:rgba(255,255,255,0.85);border-radius:12px;padding:14px 16px;border:1px solid var(--line)}}
+.col-en{{background:var(--accent-soft)}} .col-kr{{background:var(--azure-soft)}}
 .col-label{{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}}
 .col p{{margin:0;font-size:15px;color:var(--ink)}}
 .col p.english{{font-family:Georgia,"Times New Roman",serif}}
 .col p.korean{{font-size:15.5px}}
 .col p .sent{{display:inline;border-radius:4px;padding:0 2px;transition:background 130ms ease,box-shadow 130ms ease}}
 .col p .sent.pair-active{{background:var(--amber-soft);box-shadow:0 0 0 1px var(--amber)}}
-.col p .sent.hotspot{{background:#fff4d6;padding:1px 4px;border-left:4px solid var(--amber);margin-left:-4px;padding-left:8px;border-radius:4px}}
+.col p .sent.hotspot{{background:#fff4d6;padding:1px 4px;border-radius:4px}}
+/*PR-HLP v1 - 사용자 형광펜이 호버보다 우선*/.col .sent.user-hl,.col .sent.user-hl.pair-active,.col .sent.hotspot.user-hl,.col .sent.hotspot.user-hl.pair-active{{background:#f5e8b8}}
 .col p .sent.hotspot.pair-active{{background:#ffe4a1;box-shadow:0 0 0 1px var(--amber)}}
 .callout-stack{{margin-top:14px;display:grid;gap:10px}}
-.callout{{position:relative;border-left:4px solid;padding:14px 16px 14px 20px;border-radius:10px;font-size:14.5px}}
+.callout{{position:relative;padding:14px 16px 14px 20px;border-radius:10px;font-size:14.5px}}
 .callout p{{margin:0}}
 .callout::before{{display:inline-block;content:attr(data-label);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:3px 9px;border-radius:999px;margin-right:10px;vertical-align:1px}}
 .callout-key{{background:var(--amber-soft);border-color:var(--amber);color:#5a4716}}
@@ -877,7 +877,7 @@ details.beginner-note > summary::-webkit-details-marker{{display:none}}
 details.beginner-note > summary::before{{content:"▶";display:inline-block;margin-right:8px;transition:transform 0.15s ease;font-size:0.8em}}
 details.beginner-note[open] > summary::before{{transform:rotate(90deg)}}
 details.beginner-note .beginner-body{{margin-top:10px;font-size:13.5px;line-height:1.7}}
-.recall-card{{background:var(--mint-soft);border:1px solid #b8d0c0;border-left:4px solid var(--mint);border-radius:14px;padding:18px 22px 14px;margin:22px 0 4px}}
+.recall-card{{background:var(--mint-soft);border:1px solid #b8d0c0;border-radius:14px;padding:18px 22px 14px;margin:22px 0 4px}}
 .recall-tag{{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;background:var(--mint);color:#fff;padding:3px 10px;border-radius:999px}}
 .recall-card h4{{margin:8px 0 4px;font-family:Georgia,serif;font-size:17px;color:#1f3d31}}
 .recall-item{{background:#ffffff;border:1px solid #cfe0d4;border-radius:10px;padding:10px 14px;margin-top:10px}}
@@ -885,22 +885,22 @@ details.beginner-note .beginner-body{{margin-top:10px;font-size:13.5px;line-heig
 .recall-item summary::-webkit-details-marker{{display:none}}
 .recall-item summary::before{{content:"▸";display:inline-block;margin-right:6px;color:var(--mint);transition:transform 150ms ease}}
 .recall-item[open] summary::before{{transform:rotate(90deg)}}
-.recall-answer{{margin-top:10px;padding:12px 14px;background:#f5fbf6;border-radius:8px;border-left:3px solid var(--mint)}}
+.recall-answer{{margin-top:10px;padding:12px 14px;background:#f5fbf6;border-radius:8px}}
 .recall-answer p{{margin:0;font-size:14px;line-height:1.65}}
 .ref-link{{color:var(--accent);text-decoration:underline dotted;text-decoration-thickness:1px;text-underline-offset:2px;cursor:pointer;font-weight:600}}
 .ref-link:hover{{background:var(--accent-soft);border-radius:4px}}
 @keyframes flash-target{{0%{{box-shadow:0 0 0 4px var(--accent)}}60%{{box-shadow:0 0 0 4px var(--accent-soft)}}100%{{box-shadow:0 0 0 0 transparent}}}}
 .flash-target{{animation:flash-target 1.6s ease-out;border-radius:14px}}
 .diss-grid{{display:grid;grid-template-columns:1fr;gap:18px}}
-.diss-card{{position:relative;background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:18px;padding:22px 24px 22px 78px;box-shadow:0 6px 20px rgba(80,60,140,0.05)}}
-.diss-card.diss-motivation{{border-left-color:var(--accent)}}
-.diss-card.diss-observe{{border-left-color:var(--mint)}}
-.diss-card.diss-compare{{border-left-color:var(--amber)}}
-.diss-card.diss-logic{{border-left-color:var(--azure)}}
-.diss-card.diss-verify{{border-left-color:#7a5db5}}
-.diss-card.diss-risk{{border-left-color:var(--rose)}}
-.diss-card.diss-extend{{border-left-color:#3aa185}}
-.diss-card.diss-summary{{border-left-color:#3d2a5e;grid-column:1/-1;background:linear-gradient(180deg,#ffffff,#f5edff)}}
+.diss-card{{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px 24px 22px 78px;box-shadow:0 6px 20px rgba(80,60,140,0.05)}}
+.diss-card.diss-motivation{{}}
+.diss-card.diss-observe{{}}
+.diss-card.diss-compare{{}}
+.diss-card.diss-logic{{}}
+.diss-card.diss-verify{{}}
+.diss-card.diss-risk{{}}
+.diss-card.diss-extend{{}}
+.diss-card.diss-summary{{grid-column:1/-1;background:linear-gradient(180deg,#ffffff,#f5edff)}}
 .diss-overview-figure{{margin:18px 0 22px;padding:14px;background:#ffffff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(80,60,140,0.06)}}
 .diss-overview-figure img{{display:block;width:100%;height:auto;border-radius:10px;cursor:zoom-in}}
 .diss-overview-figure figcaption{{margin-top:10px;font-size:13.5px;color:var(--muted);line-height:1.55;font-style:italic}}
@@ -930,16 +930,18 @@ details.beginner-note .beginner-body{{margin-top:10px;font-size:13.5px;line-heig
 .panel-title{{margin:0 0 6px;font-family:Georgia,serif;color:var(--accent);font-size:22px}}
 .panel-sub{{margin:0 0 16px;color:var(--muted);font-size:14px}}
 .fund-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px}}
-.fund-card{{position:relative;background:#fefcff;border:1px solid var(--line);border-left:4px solid var(--azure);border-radius:14px;padding:18px 20px 16px}}
-.fund-card:nth-child(1){{border-left-color:var(--accent)}}
-.fund-card:nth-child(2){{border-left-color:var(--amber)}}
-.fund-card:nth-child(3){{border-left-color:var(--mint)}}
-.fund-card:nth-child(4){{border-left-color:var(--azure)}}
-.fund-card:nth-child(5){{border-left-color:var(--rose)}}
+.fund-card{{position:relative;background:#fefcff;border:1px solid var(--line);border-radius:14px;padding:18px 20px 16px}}
+.fund-card:nth-child(1){{}}
+.fund-card:nth-child(2){{}}
+.fund-card:nth-child(3){{}}
+.fund-card:nth-child(4){{}}
+.fund-card:nth-child(5){{}}
 .fund-step{{position:absolute;top:14px;right:16px;font-family:Georgia,serif;font-size:26px;color:var(--muted);opacity:0.45}}
 .fund-card h4{{margin:0 0 10px;font-family:Georgia,serif;font-size:17px;color:var(--ink);padding-right:36px}}
+.fund-label-tag{{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:6px}}
+.fund-body{{margin:0;font-size:14px;line-height:1.72;color:var(--ink)}}
 .eq-grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:4px}}
-.eq-card{{background:linear-gradient(180deg,#fefcff,#f3edff);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 6px 18px rgba(80,60,140,0.05)}}
+.eq-card{{background:linear-gradient(180deg,#fefcff,#f3edff);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 6px 18px rgba(80,60,140,0.05);min-width:0}}
 .eq-head{{display:flex;align-items:center;gap:10px}}
 .eq-label{{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;letter-spacing:0.06em}}
 .eq-display{{margin:14px 0 12px;background:#1f1814;color:#fff5dc;padding:18px 14px;border-radius:12px;font-size:18px;overflow-x:auto}}
@@ -1067,7 +1069,7 @@ JS = r'''
 
   function studyNav(tab){ activate(tab); } /*STUDY-NAV*/
 
-  // 문장 호버 페어링 — 위임 방식: 플로팅 리더의 복제 문장에서도 동일하게 동작
+  // 문장 호버 페어링 - 위임 방식: 플로팅 리더의 복제 문장에서도 동일하게 동작
   document.addEventListener('mouseover', (e) => {
     const el = e.target.closest('.sent[data-pair]');
     if (!el) return;
@@ -1142,7 +1144,7 @@ JS = r'''
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
 
-  // Study guide — right-side slide-in drawer (per §12.5/§12.6 policy)
+  // Study guide - right-side slide-in drawer (per §12.5/§12.6 policy)
   const backdrop = document.createElement('div');
   backdrop.className = 'study-drawer-backdrop';
   document.body.appendChild(backdrop);
@@ -1247,7 +1249,7 @@ JS = r'''
     if (!pane) return;
     var SHORT = STUDY_SHORT_PLACEHOLDER;
     var PREFIX = 'prstudy:' + SHORT + ':';
-    // 단락 읽음 체크(read:*)는 세션 한정 — 파일을 다시 열면 초기화, 내보내기/가져오기로만 보존
+    // 단락 읽음 체크(read:*)는 세션 한정 - 파일을 다시 열면 초기화, 내보내기/가져오기로만 보존
     function storeFor(k){ return k.indexOf('read:') === 0 ? sessionStorage : localStorage; }
     function sget(k){ try { return storeFor(k).getItem(PREFIX + k) || ''; } catch(e){ return ''; } }
     function sset(k, v){ try { storeFor(k).setItem(PREFIX + k, v); } catch(e){} }
@@ -1280,7 +1282,7 @@ JS = r'''
       } else {
         interp.style.display = 'none';
       }
-      // 도표 비율에 따라 레이아웃 결정 — 가로형은 텍스트를 아래, 세로/정방형은 우측에
+      // 도표 비율에 따라 레이아웃 결정 - 가로형은 텍스트를 아래, 세로/정방형은 우측에
       function setLayout(){
         var wide = img.naturalWidth > 0 && (img.naturalWidth / img.naturalHeight) >= 1.45;
         av.classList.toggle('av-wide', wide);
@@ -1294,7 +1296,7 @@ JS = r'''
     if (av){
       av.querySelector('.av-close').addEventListener('click', avClose);
       av.addEventListener('click', function(e){ if (e.target === av) avClose(); });
-      // capture 단계에서 검사 — lightbox·학습 가이드 드로어가 위에 열려 있으면 그 ESC는 그쪽 몫 (한 번에 다 닫힘 방지)
+      // capture 단계에서 검사 - lightbox·학습 가이드 드로어가 위에 열려 있으면 그 ESC는 그쪽 몫 (한 번에 다 닫힘 방지)
       document.addEventListener('keydown', function(e){
         if (e.key !== 'Escape' || !av.classList.contains('open')) return;
         var lbEl = document.querySelector('.img-lightbox');
@@ -1340,6 +1342,117 @@ JS = r'''
         }
       });
     }
+    /* ==== PR_ASSET_CHIPS_BEGIN v1 (tools/reader_asset_chip.py) ==== */
+    /* 리더는 .asset-stack 을 화면에 싣지 않는다(좁은 패널 + base64 이미지).
+       대신 그 자리에 자산 칩을 남기고, 칩을 누르면 Translation 탭의 원본 카드로 점프한다. */
+    (function(){
+      if (document.getElementById('pr-asset-chip-style')) return;
+      var st = document.createElement('style');
+      st.id = 'pr-asset-chip-style';
+      st.textContent = ".pr-asset-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}"
+        + ".pr-asset-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 11px;"
+        + "border:1px solid var(--line,#ecedf2);border-radius:999px;background:var(--accent-soft,#f1f2f8);"
+        + "color:var(--accent,#5e6488);font-family:inherit;font-size:12px;line-height:1.45;cursor:pointer;text-align:left}"
+        + ".pr-asset-chip:hover{border-color:var(--accent,#5e6488)}"
+        + ".pr-asset-chip:focus-visible{outline:2px solid var(--accent,#5e6488);outline-offset:2px}"
+        + ".pr-asset-chip .prac-name{font-weight:700;white-space:nowrap}"
+        + ".pr-asset-chip .prac-cap{color:var(--muted,#9aa0ac);max-width:220px;overflow:hidden;"
+        + "text-overflow:ellipsis;white-space:nowrap}"
+        + "@media print{.pr-asset-chips{display:none}}";
+      (document.head || document.documentElement).appendChild(st);
+    })();
+    /* 알려진 자산 접두사만 칩으로 만든다. 저장소 실측 접두사는 fig_ / table_ / algo_ / box_ 이고,
+       나머지는 표기 흔들림에 대비한 여유분이다. 모르는 접두사면 '' 를 돌려 칩을 만들지 않는다
+       (단락 id 'p10' 같은 것이 자산으로 오인되는 것을 막는다). */
+    function prAssetLabel(aid){
+      var m = String(aid || '').match(/^([A-Za-z]+)[ _-]*([0-9]+[A-Za-z]?)$/);
+      if (!m) return '';
+      var map = {fig:'Figure', figure:'Figure', table:'Table', tab:'Table', tbl:'Table',
+                 alg:'Algorithm', algo:'Algorithm', algorithm:'Algorithm', box:'Box',
+                 eq:'Equation', equation:'Equation', chart:'Chart'};
+      var name = map[m[1].toLowerCase()];
+      if (!name) return '';
+      return name + ' ' + m[2];
+    }
+    function prAssetCap(scope){
+      if (!scope || !scope.querySelector) return '';
+      /* 쉼표 셀렉터는 문서 순서로 뽑히므로(figcaption 이 .asset-cap 을 감싸는 세대가 있다)
+         우선순위대로 하나씩 조회한다. */
+      var sels = ['.asset-cap', '.asset-cap-kr', '.asset-cap-en', '.asset-caption', 'figcaption'];
+      var el = null;
+      for (var s = 0; s < sels.length; s++){ el = scope.querySelector(sels[s]); if (el) break; }
+      if (!el) return '';
+      var cp = el.cloneNode(true);
+      var labs = cp.querySelectorAll('.asset-label, .study-fab');   /* "FIG 1" 배지·버튼 텍스트 제외 */
+      for (var q = 0; q < labs.length; q++){ if (labs[q].parentNode) labs[q].parentNode.removeChild(labs[q]); }
+      var t = cp.textContent || '';
+      t = t.replace(/\s+/g, ' ').trim();
+      t = t.replace(/^(figure|fig\.?|table|algorithm|alg\.?|box|equation|그림|표)\s*[0-9]+[A-Za-z]?\s*[:.\-]?\s*/i, '');
+      if (/^[A-Za-z]+[ _-]*[0-9]+[A-Za-z]?$/.test(t)) return '';   // figcaption 이 자산 id 그대로인 세대
+      if (t.length > 30) t = t.slice(0, 30) + '…';
+      return t;
+    }
+    function prAssetChipify(root){
+      if (!root || !root.querySelectorAll) return;
+      var stacks = root.querySelectorAll('.asset-stack');
+      for (var i = 0; i < stacks.length; i++){
+        var stack = stacks[i];
+        if (!stack.parentNode) continue;
+        var seen = {}, items = [];
+        var cands = stack.querySelectorAll('[data-asset-id],[data-asset],[id]');
+        for (var j = 0; j < cands.length; j++){
+          var el = cands[j];
+          var aid = el.getAttribute('data-asset-id') || el.getAttribute('data-asset') || el.getAttribute('id') || '';
+          var lab = prAssetLabel(aid);
+          if (!lab) continue;
+          if (seen[aid]) continue;
+          if (!document.getElementById(aid)) continue;            // Translation 탭에 점프 대상이 있어야 칩을 만든다
+          seen[aid] = 1;
+          var scope = (el.closest && (el.closest('figure') || el.closest('.asset-card'))) || el.parentNode || el;
+          items.push({aid: aid, lab: lab, scope: scope});
+        }
+        if (!items.length){ stack.parentNode.removeChild(stack); continue; }
+        var wrap = document.createElement('div');
+        wrap.className = 'pr-asset-chips';
+        for (var k = 0; k < items.length; k++){
+          var lab = items[k].lab;
+          var cap = prAssetCap(items[k].scope);
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pr-asset-chip';
+          b.setAttribute('data-pr-asset', items[k].aid);
+          b.setAttribute('aria-label', lab + ' - Translation 탭에서 보기');
+          b.setAttribute('title', lab + ' - Translation 탭에서 보기');
+          var sn = document.createElement('span');
+          sn.className = 'prac-name';
+          sn.textContent = lab;
+          b.appendChild(sn);
+          if (cap){
+            var sc = document.createElement('span');
+            sc.className = 'prac-cap';
+            sc.textContent = cap;
+            b.appendChild(sc);
+          }
+          wrap.appendChild(b);
+        }
+        stack.parentNode.replaceChild(wrap, stack);
+      }
+    }
+    document.addEventListener('click', function(e){
+      var t = e.target, chip = null;
+      while (t && t.nodeType === 1){
+        if (t.classList && t.classList.contains('pr-asset-chip')){ chip = t; break; }
+        t = t.parentNode;
+      }
+      if (!chip) return;
+      var aid = chip.getAttribute('data-pr-asset');
+      if (!aid) return;
+      e.preventDefault();
+      e.stopPropagation();
+      readerClose();
+      jumpToRef(aid);
+    }, true);
+    /* ==== PR_ASSET_CHIPS_END ==== */
     function readerRender(){
       var pid = readerList[readerIdx];
       var body = reader.querySelector('.pr-body');
@@ -1347,7 +1460,8 @@ JS = r'''
       if (!src){ body.innerHTML = '<p>단락을 찾을 수 없습니다.</p>'; return; }
       var clone = src.cloneNode(true);
       clone.removeAttribute('id');
-      clone.querySelectorAll('.asset-stack, .pid-tag').forEach(function(n){ n.remove(); });
+      clone.querySelectorAll('.pid-tag').forEach(function(n){ n.remove(); });
+      prAssetChipify(clone);
       clone.querySelectorAll('[id]').forEach(function(n){ n.removeAttribute('id'); });
       body.innerHTML = '';
       body.appendChild(clone);
@@ -1422,7 +1536,7 @@ JS = r'''
     refreshReadChips();
 
 
-    // ---- 문장 형광펜: 문장 클릭으로 하이라이트 토글 — 리더·Translation 공통, 내보내기에 포함 ----
+    // ---- 문장 형광펜: 문장 클릭으로 하이라이트 토글 - 리더·Translation 공통, 내보내기에 포함 ----
     function hlApply(){
       document.querySelectorAll('.sent[data-pair]').forEach(function(s){
         s.classList.toggle('user-hl', sget('hl:' + s.dataset.pair) === '1');
@@ -1495,7 +1609,7 @@ JS = r'''
       b.addEventListener('click', function(){ hideReturn(); studyNav('tab-study'); });
     });
 
-    // data-skey는 쉼표 목록 가능 (예: Gap의 3분할 서술칸) — 합산 글자 수로 잠금 판단
+    // data-skey는 쉼표 목록 가능 (예: Gap의 3분할 서술칸) - 합산 글자 수로 잠금 판단
     function refreshReveal(skey){
       pane.querySelectorAll('.study-reveal').forEach(function(box){
         var keys = box.dataset.skey.split(',');
@@ -1589,7 +1703,7 @@ JS = r'''
     md.innerHTML =
       '<div class="memo-head"><span class="memo-title">학습 메모</span>' +
       '<button class="memo-close" type="button" aria-label="닫기">×</button></div>' +
-      '<p class="memo-hint">자유롭게 적는 메모장 — 쓰는 대로 자동 저장됩니다. 내 노트 내보내기 시 파일에 함께 담기고, 여기 남긴 질문들은 나중에 Q &amp; A 탭을 만들 때 재료가 됩니다.</p>' +
+      '<p class="memo-hint">자유롭게 적는 메모장 - 쓰는 대로 자동 저장됩니다. 내 노트 내보내기 시 파일에 함께 담기고, 여기 남긴 질문들은 나중에 Q &amp; A 탭을 만들 때 재료가 됩니다.</p>' +
       '<textarea class="memo-pad" placeholder="궁금한 것, 이해 안 되는 것, 나중에 확인할 것…"></textarea>' +
       '<div class="memo-status"><span class="memo-len">0자</span><span class="memo-saved"></span></div>';
     document.body.appendChild(md);
@@ -1633,7 +1747,7 @@ JS = r'''
     memoFab.addEventListener('click', function(){ memoOpen(true); });
     md.querySelector('.memo-close').addEventListener('click', function(){ memoOpen(false); });
 
-    // ---- 노트 파일 저장/불러오기 — 지정 폴더(study/) 핸들을 IndexedDB에 기억해 다이얼로그 최소화 ----
+    // ---- 노트 파일 저장/불러오기 - 지정 폴더(study/) 핸들을 IndexedDB에 기억해 다이얼로그 최소화 ----
     function idbOpen(){
       return new Promise(function(res, rej){
         var r = indexedDB.open('prstudy-fs', 1);
@@ -1703,7 +1817,7 @@ JS = r'''
           var w = await fh.createWritable();
           await w.write(payload);
           await w.close();
-          exFlash('저장됨 — ' + (dir.name ? dir.name + '/' : '') + fname);
+          exFlash('저장됨 - ' + (dir.name ? dir.name + '/' : '') + fname);
           return;
         }
       } catch(e){ if (e && e.name === 'AbortError') return; }
@@ -1716,21 +1830,21 @@ JS = r'''
       a.click();
       a.remove();
       setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
-      exFlash('다운로드 폴더에 저장됨 — ' + fname);
+      exFlash('다운로드 폴더에 저장됨 - ' + fname);
     });
 
     // 저장 위치 (재)지정
     var sdBtn = document.getElementById('study-setdir');
     if (sdBtn) sdBtn.addEventListener('click', async function(){
-      if (!window.showDirectoryPicker){ alert('이 브라우저는 폴더 지정을 지원하지 않습니다 — Chrome/Edge를 권장합니다.'); return; }
+      if (!window.showDirectoryPicker){ alert('이 브라우저는 폴더 지정을 지원하지 않습니다 - Chrome/Edge를 권장합니다.'); return; }
       try {
         var dir = await pickDir();
-        sdBtn.textContent = '지정됨 — ' + dir.name;
+        sdBtn.textContent = '지정됨 - ' + dir.name;
         setTimeout(function(){ sdBtn.textContent = '저장 위치 변경'; }, 3200);
       } catch(e){}
     });
 
-    // 가져오기 — 기억된 폴더의 노트 목록을 페이지 안 선택창으로 (없으면 파일 선택 폴백)
+    // 가져오기 - 기억된 폴더의 노트 목록을 페이지 안 선택창으로 (없으면 파일 선택 폴백)
     var fileIn = document.createElement('input');
     fileIn.type = 'file';
     fileIn.accept = '.json,application/json';
@@ -1856,10 +1970,10 @@ for aid in ASSET_DATAURI:
     label = aid.replace("_", " ").upper()
     sm = STUDY_MODALS.get(aid)
     if sm:
-        study[aid] = {"title": sm.get("title", f"학습 가이드 — {label}"),
+        study[aid] = {"title": sm.get("title", f"학습 가이드 - {label}"),
                        "html": _render_study_html(sm)}
     else:
-        study[aid] = {"title": f"학습 가이드 — {label}",
+        study[aid] = {"title": f"학습 가이드 - {label}",
                        "html": '<div class="study-section s-look"><span class="study-label">▸ 준비 중</span><p>이 자산의 학습 가이드는 곧 추가됩니다.</p></div>'}
 
 study_json = json.dumps(study, ensure_ascii=False)
@@ -1873,7 +1987,7 @@ BODY = f'''<body>
   <header class="hero">
     <span class="brand-tag">Paper Review · v3</span>
     <h1>{esc(meta["title"])}</h1>
-    <p class="subtitle">{esc(meta["short_name"])} — {esc(meta["venue"])} ({meta["year"]})</p>
+    <p class="subtitle">{esc(meta["short_name"])} - {esc(meta["venue"])} ({meta["year"]})</p>
     <div class="meta">
       <span class="meta-item"><strong>Authors</strong>{esc(meta["authors"])}</span>
       <span class="meta-item"><strong>Affiliation</strong>{esc(meta["affiliation"])}</span>
@@ -1915,7 +2029,7 @@ BODY = f'''<body>
 {tab_qa}
   </section>
   <footer class="foot">
-    <p>Paper Review HTML · v3 · CARES (ACL 2026 Long Papers · Oral · arXiv 2510.19496 · 2026-05-31) — 질의 조건부로 입력 해상도를 토큰화 이전에 골라, VLM 동결 plug-in으로 정확도 유지 + prefill 연산 평균 최대 78% 절감 · 코드 github.com/mkimhi/CARES</p>
+    <p>Paper Review HTML · v3 · CARES (ACL 2026 Long Papers · Oral · arXiv 2510.19496 · 2026-05-31) - 질의 조건부로 입력 해상도를 토큰화 이전에 골라, VLM 동결 plug-in으로 정확도 유지 + prefill 연산 평균 최대 78% 절감 · 코드 github.com/mkimhi/CARES</p>
   </footer>
 </main>
 <div class="para-reader" role="dialog" aria-label="본문 단락 읽기" aria-hidden="true">
@@ -1964,7 +2078,7 @@ BODY = f'''<body>
 </html>
 '''
 
-# 출력 파일명은 meta.short_name에서 자동 유도 — {ShortName}_output.html (영숫자만, 예: GeoLLaVA-8K → GeoLLaVA8K)
+# 출력 파일명은 meta.short_name에서 자동 유도 - {ShortName}_output.html (영숫자만, 예: GeoLLaVA-8K → GeoLLaVA8K)
 OUT_HTML = ROOT / ("".join(ch for ch in meta["short_name"] if ch.isalnum()) + "_output.html")
 OUT_HTML.write_text(HEAD + BODY, encoding="utf-8")
 size_mb = OUT_HTML.stat().st_size / (1024*1024)

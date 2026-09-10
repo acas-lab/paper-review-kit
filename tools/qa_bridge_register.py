@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-r"""qa_bridge_register.py — `qabridge://` 커스텀 URL 프로토콜을 Windows(HKCU)에 등록.
+r"""qa_bridge_register.py - `qabridge://` 커스텀 URL 프로토콜을 Windows(HKCU)에 등록.
 
 이 프로토콜을 한 번 등록해 두면, 학습 HTML의 'Q&A 생성' / '검토 결과 파악하기' 버튼이
 브릿지가 꺼져 있을 때 `qabridge://start` 를 열고, Windows 가 tools/qa_bridge_start.bat 을
-실행해 브릿지를 자동으로 켠다. 이후 버튼 클릭만으로 브릿지가 뜬다(관리자 권한 불필요 — HKCU).
+실행해 브릿지를 자동으로 켠다. 이후 버튼 클릭만으로 브릿지가 뜬다(관리자 권한 불필요 - HKCU).
 
   등록:   python tools/qa_bridge_register.py
   해제:   python tools/qa_bridge_register.py --unregister
@@ -80,7 +80,7 @@ def main():
     if sys.platform != "win32":
         raise SystemExit("이 도구는 Windows 전용입니다 (winreg).")
     if not BAT.exists():
-        print("⚠ 런처 배치가 없습니다:", BAT, "— tools/qa_bridge_start.bat 을 먼저 확인하세요.")
+        print("⚠ 런처 배치가 없습니다:", BAT, "- tools/qa_bridge_start.bat 을 먼저 확인하세요.")
     arg = sys.argv[1] if len(sys.argv) > 1 else ""
     if arg in ("--unregister", "-u"):
         unregister()

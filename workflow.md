@@ -1,4 +1,4 @@
-# Workflow — 단계별 대화형 작업 흐름 (Stage 0~11)
+# Workflow — 단계별 대화형 작업 흐름 (Stage 0~12)
 
 > 한 편의 논문 PDF를 **8탭 학습용 HTML**(v4 대시보드 디자인 — `rules/design_v4_dashboard.md`, Paper Study 탭 포함)로 변환하는 단계별 흐름.
 > **자동화 빌드 없이** — Claude와 대화하며 한 단계씩 콘텐츠를 정제하고, 마지막 단계에서 HTML 한 장으로 조립한다.
@@ -175,7 +175,7 @@
 - `q-critic` 비판적 질문
 - `q-extend` 확장 아이디어
 
-**시각 보조 이미지** (선택): Bash로 codex 직접 호출해 `assets/generated/questions_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. ④ 탭 상단의 직관 다이어그램 2~3개가 카드 글머리보다 빠르게 이해를 잡아 준다. **정식 호출 형식 (5계명 + 검증된 명령 템플릿): `rules/component_rules.md` §11**. 자세한 의도: `prompts/05_coaching.md`.
+**시각 보조 이미지** (선택): Bash로 codex 직접 호출해 `assets/generated/questions_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. ④ 탭 상단의 직관 다이어그램 2~3개가 카드 글머리보다 빠르게 이해를 잡아 준다. **호출 형식(6계명)·명령 템플릿: `rules/component_rules.md` §11.2~11.3 / 🔴 prompt.txt 본문 작성 정본(밀도·패널 명세·검수): 같은 문서 §11.8**. 자세한 의도: `prompts/05_coaching.md`.
 
 **출력 탭:** ④ `tab-questions`
 
@@ -225,7 +225,7 @@
 **개념 깊이:** 직관 → 구조 → 논문 연결 (3단계)
 
 **시각 보조 이미지 (학습 효과의 핵심):**
-배경지식 탭은 글만으로 채우지 않는다. 시스템 큰 그림·개념 메타포·단계별 일러스트는 **Claude가 Bash로 codex CLI를 직접 호출**해 ImageGen으로 생성한다 (별도 플러그인·MCP 자동화 없음, Bash 한 줄). 결과 PNG는 `papers/[name]/assets/generated/knowledge_<purpose>.png`로 저장 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 검수는 사후 (사용자가 결과 보고 재생성 요청). **정식 호출 형식 (5계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일 명시·출력 경로) 및 검증된 명령 템플릿: `rules/component_rules.md` §11**. 자세한 의도: `prompts/07_background_knowledge.md`.
+배경지식 탭은 글만으로 채우지 않는다. 시스템 큰 그림·개념 메타포·단계별 일러스트는 **Claude가 Bash로 codex CLI를 직접 호출**해 ImageGen으로 생성한다 (별도 플러그인·MCP 자동화 없음, Bash 한 줄). 결과 PNG는 `papers/[name]/assets/generated/knowledge_<purpose>.png`로 저장 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 검수는 2단 — 생성 직후 Claude가 PNG를 Read로 열어 §11.8.6 체크리스트 확인(미달 시 프롬프트 수정 후 재생성), 사용자 검수는 사후. **호출 형식(6계명) 및 검증된 명령 템플릿: `rules/component_rules.md` §11.2~11.3, 🔴 prompt.txt 본문 작성 정본: 같은 문서 §11.8**. 자세한 의도: `prompts/07_background_knowledge.md`.
 
 **출력 탭:** ③ `tab-knowledge`
 
@@ -248,7 +248,7 @@
 2. Interactive Widget — 슬라이더 4~6개 + 시각화 + 비교 baseline
 3. Code Comparison — prior method ↔ 본 논문 좌우 비교
 
-**시각 보조 이미지** (선택): ⑤ 명시 요청 빌드일 때, Bash로 codex 직접 호출해 `assets/generated/simulator_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 도입 일러스트·의사코드 단계 시각화·코드 비교 개념도. 인터랙티브 위젯(canvas/슬라이더)은 JS, 정적 보조만 ImageGen. **정식 호출 형식 (5계명 + 검증된 명령 템플릿): `rules/component_rules.md` §11**. 자세한 의도: `prompts/09_simulator.md`.
+**시각 보조 이미지** (선택): ⑤ 명시 요청 빌드일 때, Bash로 codex 직접 호출해 `assets/generated/simulator_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 도입 일러스트·의사코드 단계 시각화·코드 비교 개념도. 인터랙티브 위젯(canvas/슬라이더)은 JS, 정적 보조만 ImageGen. **호출 형식(6계명)·명령 템플릿: `rules/component_rules.md` §11.2~11.3 / 🔴 prompt.txt 본문 작성 정본(밀도·패널 명세·검수): 같은 문서 §11.8**. 자세한 의도: `prompts/09_simulator.md`.
 
 **출력 탭:** ⑤ `tab-simulator`
 
@@ -273,7 +273,7 @@
 
 각 카테고리당 2~3 질문, 전체 6~10. 질문당 2~5 블록 (`html` / `table` / `math` / `callout`).
 
-**시각 보조 이미지** (선택): ⑥ 명시 요청 빌드일 때, Bash로 codex 직접 호출해 `assets/generated/qa_<qid>_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 카테고리 도입 일러스트·TL;DR 보조·표 해석 이미지. 질문당 0~1개. 인터랙티브 stepper는 JS. **정식 호출 형식 (5계명 + 검증된 명령 템플릿): `rules/component_rules.md` §11**. 자세한 의도: `prompts/10_qa.md`.
+**시각 보조 이미지** (선택): ⑥ 명시 요청 빌드일 때, Bash로 codex 직접 호출해 `assets/generated/qa_<qid>_<purpose>.png` 생성 → `<figure class="concept-figure">` 정본 컴포넌트로 base64 인라인. 카테고리 도입 일러스트·요약 보조·표 해석 이미지. 질문당 0~1개. 인터랙티브 stepper는 JS. **호출 형식(6계명)·명령 템플릿: `rules/component_rules.md` §11.2~11.3 / 🔴 prompt.txt 본문 작성 정본(밀도·패널 명세·검수): 같은 문서 §11.8**. 자세한 의도: `prompts/10_qa.md`.
 
 **출력 탭:** ⑥ `tab-qa`
 
@@ -334,7 +334,23 @@
 - MathJax 3 (CDN), 탭 전환 시 `MathJax.typesetPromise()` 재호출
 - 시뮬레이터 / QA 위젯 JS는 인라인 (외부 라이브러리 의존 없음)
 
+**빌드 후 주입·검사 체인 (순서 고정):**
+1. `python tools/restyle_dash_v4.py "papers/N. name"` — v3 중간 산물 → v4 대시보드
+2. `python tools/memo_layer_fix.py "papers/N. name"` — 메모 상시 접근 레이어(z 2400 + 가로 자리 배분)
+3. `python tools/qa_button_inject.py "papers/N. name"` · `python tools/study_review_inject.py "papers/N. name"` · `python tools/reader_asset_chip.py "papers/N. name"`(플로팅 리더 안 도표 진입 칩 - 셋 다 additive·idempotent·업데이터, `--check` 로 주입 여부만 확인 가능)
+4. 검사: `check_html_escape.py` → `grep '&lt;b&gt;'`(평문/HTML 필드 누출) → `check_study_refs.py` → `tone_lint.py` → `check_memo_layer.py`
+
+체인 밖의 저장소 전체 교정 패스(빌더 `_build.py` 와 산출물을 **함께** 고치므로 새 논문에는 이미 반영돼 있다 - 회귀 의심 시 `--dry-run`/`--check` 로만 확인): `tools/strip_left_bars.py`(좌측 색 띠 제거) → `tools/normalize_left_radius.py`(그 잔재인 좌측만 0 인 border-radius 정규화) · `tools/audit_fix_pass1.py`(감사 결함 8종 - 형광펜 특이도·`.col` 테두리·HTML 필드 esc 제거·`.eq-card{min-width:0}`·라이트박스 z 2000·죽은 `closeModal` 분기·hotspot 호버·`.fund-*`/`.knw-*` 미정의 보완).
+
 **참조 규칙:** `rules/parsing_rules.md`, `rules/knowledge_rules.md`, `rules/math_rules.md`, `rules/component_rules.md`, `rules/implementation_rules.md`
+
+---
+
+## Stage 12 - 논문 정립 & 연구 멘토 (빌드 밖 · 별도 세션)
+
+**프롬프트:** `prompts/12_research_mentor.md`
+
+**목표:** 빌드가 끝난 논문(papers 1~35)을 새 세션에서 다시 정립하는 프롬프트. 빌드 산출물을 만들지 않는다. 대상 논문 파일(`structured.json`·`tabs_data/*.json`·`assets/`)을 직접 읽은 뒤 A 논문 정립(한 줄 정의·문제·핵심 주장·분모를 명시한 결정적 수치 3개·증명하지 못한 것) → B 관찰 요소 → C 방법론 해부(텐서 흐름·개입 지점·학습 신호·비용 구조·제어 손잡이) → D 코퍼스 내 인접 논문 3~5편 차별성 매트릭스 → E 사용자 가설 H1~H4 좌표 배치(관련될 때만, 근거/반례 판정) → F 회수·판단 질문 3~5개 순으로 출력하고 답을 기다린다. 논문 지정 없이 아이디어만 말하면 선행 연구로 판정하지 않는 아이데이션 모드로 동작한다. 산출물은 선택적으로 `papers/0. Full_study/qa_log.json` 에 append 한다.
 
 ---
 
@@ -385,6 +401,11 @@
 - MathJax가 ① 본문 + ③ 수식 카드를 렌더 (탭 전환 후 재렌더 포함)
 - 모바일(< 640px)에서 탭 줄바꿈, 표 overflow-scroll 정상
 - **모든 `<img>` 태그가 `data:image/png;base64,...` 형태** — 외부 참조(`src="assets/..."`, `src="./..."`, `src="http..."`) 잔존 0건
+- **`python tools/check_image_prompts.py "papers/N. name"` 통과 (prompt_*.txt 밀도·구조 위반 0건)** —
+  **codex 호출 전**에 돌린다. 성긴 프롬프트는 반드시 여백 크고 정보량 적은 그림으로 돌아오므로,
+  이 게이트를 통과하지 못한 프롬프트로는 이미지를 만들지 않는다 (`rules/component_rules.md` §11.8)
+- **생성된 이미지가 §11.8.6 육안 체크리스트 통과** — 패널 누락·여백 과다·수치 오기·라벨 깨짐·
+  프롬프트 혼선(병렬 호출 시 `--cd` 공유 사고) 0건. 미달이면 프롬프트를 고쳐 재생성 (같은 프롬프트 재시도 금지)
 - **codex로 생성한 학습 보조 이미지에 논문 제목·헤더·저자명이 박혀 있지 않음** — 6번째 계명(`rules/component_rules.md` §11.2) 통과. 콘텐츠와 영어 섹션 라벨만
 
 (⑤ 시뮬레이터 슬라이더 / ⑥ Q&A 콘텐츠 작동은 사용자가 별도 요청 시에만 추가 검증 항목으로 활성화)
@@ -394,6 +415,6 @@
 ## 참고 문서
 
 - `CLAUDE.md` — 프로젝트 개요, 표준 템플릿, 디자인 토큰, 디렉토리 규약
-- `prompts/01~11_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study — 기본 빌드 포함)
+- `prompts/01~12_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study — 기본 빌드 포함, 12 = 논문 정립·연구 멘토 - 빌드 밖 별도 세션)
 - `rules/` — 파싱 / 분석 / 코칭 / 지식 / 수식 / 컴포넌트 / 구현 규약
 - `samples/` — 정본 HTML (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대). README + design/ 자산만 함께 보관 (pre-SAFE 시기 개인 학습 자료는 `_archive/personal_study/`로 분리됨)

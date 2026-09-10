@@ -65,14 +65,14 @@ HTML에 raw 삽입되는 문자열(번역문, tabs_data의 body/where/intuition,
 
 ---
 
-## 수식 패치 (`apply_math_latex.py`)
+## 수식 패치 (폐기 - 구 `apply_math_latex.py` 절차)
 
-PDF에서 추출된 평문 수식을 LaTeX/MathJax 인식 형태로 변환하는 idempotent 스크립트.
+> **폐기 (2026-09-10 확인)**: 평문 수식을 사후에 LaTeX 로 패치하는 스크립트 `apply_math_latex.py` 는 저장소에 존재한 적이 없다. 변환 자체는 Stage 2 에서 `structured.json` 을 작성할 때 직접 수행한다 (`prompts/02_structuring.md` 규칙 3). 아래 규칙은 그 작성 규칙으로만 유효하다.
 
-- 본문(`structured.json`)과 번역(`translated.json`) 양쪽에 동일 패치 적용
-- 인라인 수식 후보(예: `S_t`, `X_{t-P}`)를 `$...$`로 감쌈
-- Display 수식 블록(예: 식 1, 2, 3)을 `$$...$$`로 감쌈
-- 한 번 패치된 부분은 다시 처리하지 않음 (이미 `$` 안에 들어 있으면 skip)
+- 본문(`structured.json`)과 번역(`translations/manual.json`) 양쪽에 동일한 `$...$` / `$$...$$` 블록을 바이트 단위로 복사한다 (정본 생성기: `papers/27. lupi/_mk_structured.py`)
+- 인라인 수식(예: `S_t`, `X_{t-P}`)은 `$...$`로 감싼다
+- Display 수식 블록(예: 식 1, 2, 3)은 `$$...$$`로 감싼다
+- 이미 `$` 안에 들어 있는 부분을 다시 감싸지 않는다
 
 ---
 

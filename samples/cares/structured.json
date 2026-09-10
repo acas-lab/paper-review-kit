@@ -1,7 +1,7 @@
 {
   "paper_id": "cares",
   "title": "CARES: Context-Aware Resolution Selector for VLMs",
-  "venue": "ACL 2026 (Volume 1: Long Papers) · Oral — arXiv 2510.19496v3",
+  "venue": "ACL 2026 (Volume 1: Long Papers) · Oral - arXiv 2510.19496v3",
   "sections": [
     {
       "section_id": "s_abs",
@@ -585,7 +585,7 @@
         },
         {
           "paragraph_id": "p_r_data",
-          "section_subtitle": "4.1  Experimental Setup — Training Data",
+          "section_subtitle": "4.1  Experimental Setup - Training Data",
           "sentences": [
             {
               "sentence_id": "p_r_data_s1",

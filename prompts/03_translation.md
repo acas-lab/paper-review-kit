@@ -57,7 +57,7 @@ for sec in struct["sections"]:
 
 ## OUTPUT FORMAT
 
-`translator.py`가 인식하는 정식 스키마:
+`translations/manual.json`의 정식 스키마 (사람과 Claude가 직접 작성한다 - 별도 변환 스크립트는 없다):
 
 ```json
 {
@@ -89,6 +89,10 @@ JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.js
 번역문은 아니다). 따라서 번역문 안의 `<`+영문자(`X_{a<i}`, `y_<t`, `0.1<IOU<0.5` 류)는 태그로
 파싱되어 문서 뒷부분 전체를 깨뜨린다. 수식·부등호를 옮길 때 `&lt;`/`&gt;`로 쓸 것.
 정본 규칙·검사 도구: `rules/math_rules.md` § 부등호·꺾쇠 (`tools/check_html_escape.py`).
+
+## 🔴 em-dash 금지 (정책, 2026-09-10)
+
+한국어 prose(번역문·② ~ ⑥ 탭 서술·캡션 번역·study.json 분석 등 Claude가 직접 쓰는 모든 한국어 문장)에서는 em-dash(`—`, U+2014) 대신 하이픈(`-`)을 쓴다. 영어 원문(`original`·`structured.json`의 `text`·`captions_en`)의 em-dash는 저자 텍스트이므로 그대로 보존한다. 일괄 교정 도구: `tools/fix_hl_and_dash.py`.
 
 ## 🔴 무리한 한국어 변환 금지 (정책)
 

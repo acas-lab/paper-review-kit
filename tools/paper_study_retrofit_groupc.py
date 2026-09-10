@@ -11,7 +11,7 @@ try:  # Windows cp949 콘솔에서도 한글·기호(—·→…) 출력이 깨�
 except Exception:
     pass
 
-REPO = Path(__file__).parent.parent
+REPO = Path(__file__).resolve().parent.parent  # 저장소 루트 - 절대 경로 하드코딩 금지
 
 
 def _load_source() -> str:
@@ -31,19 +31,19 @@ def _ex(src, start, end):
     i = src.index(start); j = src.index(end, i); return src[i:j]
 
 
-REGION_A = _ex(SRC, "# ----------------------------------------------------------------\n# Tab 1.5 — Paper Study",
-               "\n# ----------------------------------------------------------------\n# Tab 2 — Dissection")
+REGION_A = _ex(SRC, "# ----------------------------------------------------------------\n# Tab 1.5 - Paper Study",
+               "\n# ----------------------------------------------------------------\n# Tab 2 - Dissection")
 DRAWER_CSS_D = (_ex(SRC, ".study-drawer{{position:fixed;top:0;right:0;", "@media (max-width: 520px){{")
                 + "@media (max-width: 520px){{\n  .study-drawer-body .study-num-row{{grid-template-columns:1fr}}\n}}\n"
                 + ".study-drawer-backdrop{{position:fixed;inset:0;background:transparent;z-index:1590;display:none}}\n"
                 + ".study-drawer-backdrop.open{{display:block}}")
 DRAWER_CSS = DRAWER_CSS_D.replace("{{", "{").replace("}}", "}")  # f-string CSS → single-brace raw
-DRAWER_JS = _ex(SRC, "  // Study guide — right-side slide-in drawer",
+DRAWER_JS = _ex(SRC, "  // Study guide - right-side slide-in drawer",
                 "\n\n  const lb = document.querySelector('.img-lightbox');").replace("STUDY_GUIDES_PLACEHOLDER", "__STUDY_DATA__")
 MODULE_JS = _ex(SRC, "  // ---- Paper Study tab (tab-study): 서술칸 자동 저장 + 잠금 토글 + 근거 점프 ----", "\n})();\n</script>")
 VIEWER_MARKUP = _ex(SRC, '<div class="para-reader" role="dialog"', '<div class="img-lightbox" role="dialog"')
 
-HOVER_NEW = """  // 문장 호버 페어링 — 위임 방식 (리더 복제 문장 대응)
+HOVER_NEW = """  // 문장 호버 페어링 - 위임 방식 (리더 복제 문장 대응)
   document.addEventListener('mouseover', (e) => {
     const el = e.target.closest('.sent[data-pair]');
     if (!el) return;

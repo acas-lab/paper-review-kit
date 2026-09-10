@@ -2,7 +2,7 @@
   "meta": {
     "title": "CARES: Context-Aware Resolution Selector for VLMs",
     "short_name": "CARES",
-    "venue": "ACL 2026 (Volume 1: Long Papers) · Oral — arXiv 2510.19496 (2026-05-31 등재)",
+    "venue": "ACL 2026 (Volume 1: Long Papers) · Oral - arXiv 2510.19496 (2026-05-31 등재)",
     "year": 2026,
     "authors": "Moshe Kimhi, Nimrod Shabtay, Raja Giryes, Chaim Baskin, Eli Schwartz",
     "affiliation": "Technion · IBM Research · Tel-Aviv University · Ben-Gurion University",
@@ -79,15 +79,15 @@
   ],
   "captions": {
     "fig_1": "Figure 1: 해상도별 시각 토큰 지배율. 고정 100토큰 텍스트 프롬프트 대비 시각 토큰 비율. 해상도가 커질수록 시각 토큰이 컨텍스트 윈도를 빠르게 지배하며, 스케일링이 제곱인 dynamic-resolution 모델(Qwen2.5-VL·InternVL3)에서 특히 가파르다. AnyRes는 다중 뷰 타일링을 가리킨다. 세부는 Appx A.1.",
-    "fig_2": "Figure 2: CARES 개요. 왼쪽 — 기존 파이프라인(Classic VLM)과 CARES를 붙인 파이프라인(Ours)의 비교: 이미지·질의가 주어지면 CARES가 충분한 최소 입력 해상도를 예측하고, 그 해상도로 리사이즈된 이미지가 질의와 함께 다운스트림 VLM으로 전달된다. 오른쪽(Adaptive Sufficient Resolution) — 같은 이미지라도 대략적 질의(\"개 품종은?\")는 저해상도로, 세밀한 질의(\"목줄의 이름은?\")는 고해상도로 라우팅되어 시각 토큰 수가 달라진다.",
+    "fig_2": "Figure 2: CARES 개요. 왼쪽 - 기존 파이프라인(Classic VLM)과 CARES를 붙인 파이프라인(Ours)의 비교: 이미지·질의가 주어지면 CARES가 충분한 최소 입력 해상도를 예측하고, 그 해상도로 리사이즈된 이미지가 질의와 함께 다운스트림 VLM으로 전달된다. 오른쪽(Adaptive Sufficient Resolution) - 같은 이미지라도 대략적 질의(\"개 품종은?\")는 저해상도로, 세밀한 질의(\"목줄의 이름은?\")는 고해상도로 라우팅되어 시각 토큰 수가 달라진다.",
     "table_1": "Table 1: CARES 학습용 데이터 생성 파이프라인. 각 입력을 사전학습 VLM(Granite-Vision)에 세 고정 해상도(384/768/1024)로 통과시키고, ANLS 기준으로 충분한 답 품질을 내는 가장 작은 해상도를 고른다. 예 1(연락처 이름)은 384에서 이미 ANLS 1.0 → 충분 해상도 384. 예 2(cc 인물)는 768에서 1.0 → 768. 예 3(통제 안 된 변수)은 1024에서 0.93 → 1024. 즉 질의 난이도에 따라 필요 해상도가 갈린다.",
     "table_2": "Table 2: 벤치마크 성능과 prefill 단계 비용 절감 추정 (로컬 모델은 FLOPS, API 모델은 $). 9개 벤치마크 × 4개 target VLM. + CARES-AR는 autoregressive 예측 변형. CARES는 문서 데이터로 학습됐으며, 다른 도메인에서는 절감폭이 덜 공격적일 뿐 성능은 유사하다.",
     "fig_3": "Figure 3: DocVQA·Qwen2.5-VL-72B에서 정확도 대 TTFT. 버블 크기 = 처리한 픽셀 수. 고정 해상도 384(89%)→768(93.3%)→1024→Native(둘 다 ~95.5%)로 갈수록 정확도는 오르지만 TTFT·연산이 급증한다. CARES(진한 점)는 TTFT를 349 ms 줄이면서 오히려 점수를 +1.11 pts 높여, 고정 해상도 곡선보다 왼쪽·위쪽의 우월한 Pareto 지점을 차지한다.",
     "fig_4": "Figure 4: OCRBench에서 CARES가 예측한 연속 해상도 r̃의 히스토그램. 대부분의 예시가 400~600 구간(특히 ~450에 첨두)에 몰려 있고, 800 이상 고해상도로 올라가는 경우는 드물다. 즉 OCR 과제에서도 상당수 질의는 중간 해상도로 충분하며, 연속 예측이 예시별로 필요한 만큼만 픽셀을 배분함을 보여준다.",
     "fig_5": "Figure 5: 두 teacher(Granite-Vision-2B ↔ Qwen3-VL-235B)가 생성한 충분 해상도 레이블의 confusion matrix (공유 부분집합 1000개). 질량 대부분이 대각선에 놓여, teacher가 달라도 레이블이 강하게 일치함을 보인다.",
     "table_3": "Table 3: 특징 추출기(feature extractor) 어블레이션. 3-way 해상도 분류 정확도와 파라미터 수. SmolVLM·Qwen2.5-3B 모두 중간(Mid) 레이어 특징이 마지막(Last) 레이어보다 높다(SmolVLM 63.3% vs 62.3%, Qwen 67.2% vs 66.2%). 이중 인코더인 SigLIP v2는 56.1%로 크게 뒤진다. Qwen이 최고지만, 본 논문은 크기·효율 절충으로 0.35B SmolVLM(Mid)을 기본 백본으로 채택.",
-    "table_4": "Table 4: 이진 vs 삼진 해상도 분류. 이진(|R_d|=2, {384,1024})은 문제가 단순해 해상도 분류 정확도가 96.2%로 높지만 다운스트림은 0.76. 삼진(|R_d|=3, {384,768,1024})은 분류 정확도가 67.2%로 낮아도 더 세밀한 제어 덕에 다운스트림이 0.80으로 더 높다. 분류 정확도와 최종 성능이 어긋나는 대표 사례 — 중간 해상도 옵션의 가치.",
-    "table_5": "Table 5: 이산 vs 연속 해상도 선택기. 5개 벤치마크 평균 점수와 상대 FLOPS 변화. 세 백본 모두에서 연속 예측이 이산·원본과 동등한 정확도를 유지하면서 더 많이 절감한다 — Granite/InternVL3는 이산 -46% 대비 연속 -63%, Qwen2.5-VL-72B는 이산 -74% 대비 연속 -80%. 연속화가 \"공짜 절감\"을 주는 근거.",
+    "table_4": "Table 4: 이진 vs 삼진 해상도 분류. 이진(|R_d|=2, {384,1024})은 문제가 단순해 해상도 분류 정확도가 96.2%로 높지만 다운스트림은 0.76. 삼진(|R_d|=3, {384,768,1024})은 분류 정확도가 67.2%로 낮아도 더 세밀한 제어 덕에 다운스트림이 0.80으로 더 높다. 분류 정확도와 최종 성능이 어긋나는 대표 사례 - 중간 해상도 옵션의 가치.",
+    "table_5": "Table 5: 이산 vs 연속 해상도 선택기. 5개 벤치마크 평균 점수와 상대 FLOPS 변화. 세 백본 모두에서 연속 예측이 이산·원본과 동등한 정확도를 유지하면서 더 많이 절감한다 - Granite/InternVL3는 이산 -46% 대비 연속 -63%, Qwen2.5-VL-72B는 이산 -74% 대비 연속 -80%. 연속화가 \"공짜 절감\"을 주는 근거.",
     "table_6": "Table 6: label smoothing 효과. Qwen2.5-VL-7B·OCRBench. label smoothing 없이는 0.811(-60.5%), 적용 시 0.821(-63.8%)로 점수가 오르면서 연산도 더 줄었다. 이산 지도를 연속 추론으로 옮길 때 생기는 불일치를 완화하는 간단한 정규화로 작동함을 보여준다."
   },
   "captions_en": {

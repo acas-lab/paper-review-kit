@@ -87,7 +87,7 @@ def walk_refs(study):
 
 
 def check_caption_language(paper: Path):
-    """Paper Study 논문(captions_en 존재)에서 config#captions(번역/KR)가 순수 영문이면 FAIL —
+    """Paper Study 논문(captions_en 존재)에서 config#captions(번역/KR)가 순수 영문이면 FAIL -
     도표 뷰어의 '번역' 자리에 원문이 그대로 노출되는 버그 (정본 사례: 21. lv_pruning, 2026-07-08)."""
     cfg = json.loads((paper / "config.json").read_text(encoding="utf-8-sig"))
     if "captions_en" not in cfg:  # Paper Study 미적용 논문은 대상 아님
@@ -109,8 +109,8 @@ def main():
     paper = Path(sys.argv[1])
     study_path = paper / "tabs_data" / "study.json"
     if not study_path.exists():
-        # Paper Study는 opt-in — study.json이 없으면 검증할 것이 없다 (①′는 자동 셸)
-        print(f"[skip] {paper.name}: tabs_data/study.json 없음 — Paper Study 미작성 (①′ 자동 셸)")
+        # Paper Study는 opt-in - study.json이 없으면 검증할 것이 없다 (①′는 빌더가 자동 셸 렌더)
+        print(f"[skip] {paper.name}: tabs_data/study.json 없음 - Paper Study 미작성 (①′ 자동 셸)")
         return
     sec, para, sent, assets = collect_ids(paper)
     cap_bad = check_caption_language(paper)
@@ -127,10 +127,10 @@ def main():
             if ref not in sent and ref not in sec and ref not in para and ref not in assets:
                 bad.append((path, ref, "sentence/section/paragraph/asset 어디에도 없음"))
     for aid in cap_bad:
-        print(f"  [FAIL] config#captions[{aid!r}] 순수 영문 — 뷰어 '번역'에 원문 노출. 한국어 번역 필요 (원문은 captions_en)")
+        print(f"  [FAIL] config#captions[{aid!r}] 순수 영문 - 뷰어 '번역'에 원문 노출. 한국어 번역 필요 (원문은 captions_en)")
     if bad:
         for path, ref, msg in bad:
-            print(f"  [FAIL] {path}: {ref!r} — {msg}")
+            print(f"  [FAIL] {path}: {ref!r} - {msg}")
     if bad or cap_bad:
         raise SystemExit(f"\n[FAIL] {paper.name}: ref {len(bad)}건 + 미번역 캡션 {len(cap_bad)}건")
     print(f"[ok] {paper.name}: 모든 ref 실존 (문장 {len(sent)} · 섹션 {len(sec)} · 문단 {len(para)} · 자산 {len(assets)}) · 캡션 KR ok")
