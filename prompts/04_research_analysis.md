@@ -155,7 +155,7 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 
 ## 이미지 생성
 
-> Claude Code의 Bash tool로 `codex ...` 명령을 직접 실행해 ImageGen으로 PNG를 만든다. 별도 플러그인·MCP 자동화 없이 Bash 한 줄. 결과는 곧장 base64로 박아 `<figure class="concept-figure">` 또는 `<figure class="diss-overview-figure">` 정본 컴포넌트로 인라인 — 검수는 사후.
+> Claude Code의 Bash tool로 `codex ...` 명령을 직접 실행해 ImageGen으로 PNG를 만든다. 별도 플러그인·MCP 자동화 없이 Bash 한 줄. 결과는 곧장 base64로 박아 `<figure class="concept-figure">` 또는 `<figure class="diss-overview-figure">` 정본 컴포넌트로 인라인. **생성 직후 Claude가 PNG를 Read로 열어 §11.8.6 체크리스트를 확인**하고, 미달이면 프롬프트를 고쳐 재생성한다. 그 뒤 사용자 검수는 사후.
 >
 > **정식 호출 형식 (6계명 — Bash·UTF-8 prompt.txt·ASCII 인자·stdin null·스타일/출력 명시·이미지 내 제목 금지) + 검증된 명령 템플릿: `rules/component_rules.md` §11.** 이 절을 따르지 않으면 인코딩(CP949)·hang·컷아웃·이미지 내 paper 제목 잔존으로 한 번에 막힌다.
 
@@ -174,27 +174,59 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 
 ### overview prompt 작성 가이드 (정본)
 
-`papers/[name]/assets/generated/prompt_dissection_overview.txt` (UTF-8) 안에 포함할 표준 구성 — 5단 좌→우 흐름:
+`papers/[name]/assets/generated/prompt_dissection_overview.txt` (UTF-8) 안에 포함할 표준 구성 — 5단 좌→우 흐름.
+
+> 🔴 **밀도가 품질을 결정한다 (정책, 2026-08-01)** — 아래 골격에 단마다 요소를 1~2개만 채워 넣으면 imagegen이 여백 큰 헐거운 그림을 낸다. **단마다 번호 붙인 서브패널 3~4개**를 각각의 시각 형태와 **논문의 실제 수치**까지 지정해야 20·24·25번 수준이 나온다.
+> 프롬프트 본문 작성의 일반 정본(5블록 구조 · 패널 3요소 · 밀도 등급 · 병렬 격리 · 검수 체크리스트 · 실패 처방)은 `rules/component_rules.md` **§11.8**, overview 전용 추가 제약은 같은 문서 **§14.5**.
 
 ```
 교육용 학술 인포그래픽. 가로 직사각형 1536x864.
 
-주제: \"<논문 short_name> 한 장 정리\"
+전체 레이아웃: 가로 5단 구조, 좌→우 흐름. 각 단은 흰 카드 안에 세로로 쌓인 여러 개의
+서브 패널로 채운다. 단 사이는 굵은 회색 화살표로 연결. 각 단 맨 위에 색 띠 헤더 +
+영어 제목. 정보 밀도를 높게 — 빈 공간을 남기지 말 것.
 
-전체 레이아웃: 가로 5단 구조, 각 단마다 영어 헤더 + 시각 아이콘 + 짧은 설명.
+[1단 — PROBLEM]  헤더 색 띠: lavender
+서브 패널 3개를 세로로:
+ 1) <문제 규모를 보여주는 차트/이미지 — 축 라벨과 실제 수치를 명시>
+ 2) <비교 막대 또는 대비 그림 — \"A는 X, B는 Y, 격차 Z배\">
+ 3) <한 줄 말풍선 또는 통계 박스 — 왜 이게 곤란한가>
+서브텍스트(작게): <문제를 요약하는 영어 한 줄>
 
-[1단 PROBLEM] <문제 상황을 시각화 — 데이터·규모 + 통계 라벨>
-[2단 KEY OBSERVATIONS] <저자가 발견한 핵심 통찰 2~3개를 아이콘 박스로>
-[3단 METHOD] <메서드 구조의 핵심 다이어그램 — 가장 큰 패널>
-[4단 WHAT'S NEW] <기존 방법 vs 본 논문 비교 — 빨간 X와 녹색 체크>
-[5단 RESULTS] <핵심 수치 1~3개를 큰 통계 박스로 + 작은 Pareto/scatter 아이콘>
+[2단 — OBSERVATION]  헤더 색 띠: azure
+세로로 쌓인 서브 패널 3~4개. 각각 저자가 관찰한 사실 하나씩:
+ 1) <시각 형태(막대/저울/히트맵/logit lens 그리드…) + 실제 수치>
+ 2) <…>  3) <…>  4) <…>
+※ \"성능이 좋아진다\" 같은 추상 표현 금지 — 논문 표·그림에서 읽은 값을 그대로 박는다.
 
-색상 팔레트: v3 흰색-아이보리 배경 + lavender(#8b75c0) + amber(#ad8e4e) + mint(#75ad8e) + rose(#b87887) + azure(#6b95b3).
+[3단 — METHOD]  헤더 색 띠: mint  (가장 넓고 크게)
+메서드가 둘 이상이면 (A)/(B) 서브블록으로 분할.
+ (A) <메커니즘 1 제목>: <핵심 다이어그램 + 목적함수/제약 박스 + before/after 비교 그림>
+ (B) <메커니즘 2 제목>: <단계별 파이프라인 — 각 단계 박스와 단계 사이 수치 변화 라벨>
+하단 라벨: <메서드를 한 줄로 요약하는 영어 문장>
+
+[4단 — NOVELTY]  헤더 색 띠: amber
+비교 박스 4개를 세로로:
+ - \"<선행연구 이름>: <무엇이 부족한가>\" (빨간 X)
+ - \"<선행연구 이름>: <…>\" (빨간 X)
+ - \"<선행연구 이름>: <…>\" (빨간 X)
+ - \"<본 논문>: <차별점 2~3개>\" (녹색 체크, 강조 테두리)
+하단 작은 박스: <한 줄 시사점>
+
+[5단 — RESULTS]  헤더 색 띠: rose
+ - 맨 위: <작은 막대/Pareto 차트 1개 — 축 라벨·계열명·실제 값 전부 명시>
+ - 그 아래 큰 숫자 통계 박스 3~4개 (각각 다른 파스텔 배경):
+   · \"<핵심 수치 1>\"  · \"<핵심 수치 2>\"  · \"<핵심 수치 3>\"
+ - 맨 아래 회색 테두리 주의 박스: \"<한계 — 데이터셋·오차막대·미검증 항목>\"
+
+색상 팔레트: 흰색-아이보리 배경 + lavender(#8b75c0) + azure(#6b95b3) + mint(#75ad8e)
++ amber(#ad8e4e) + rose(#b87887) + dark ink(#1f1d24) 텍스트. 저채도, 쨍한 원색 금지.
 
 스타일 지시:
 - 풀 블리드 인포그래픽, 배경 가득 (NOT a transparent cutout)
-- Scientific American / Nature graphics 스타일
-- 모든 라벨 영어 (PROBLEM, METHOD 등)
+- Scientific American / Nature graphics 스타일의 깔끔하고 조밀한 infographic
+- 모든 라벨과 수식은 영어·ASCII로만
+- 5단을 연결하는 가로 화살표
 - 1536x864 가로 직사각형 (16:9)
 
 절대 금지 (6번째 계명):
@@ -205,6 +237,15 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 
 NO paper title at top, NO standalone header, NO author names. Only the 5-stage flow with English section headers.
 ```
+
+codex 호출 시 인자 끝에 다음 한 줄을 덧붙인다 (패널 생략·여백 과다 방지):
+
+```
+Follow every sub-panel it lists - do not simplify or omit panels, and do not leave large empty areas.
+```
+
+생성 후 **PNG를 직접 열어** 수치 오기·패널 누락·여백 과다를 확인한다. 헐거우면 프롬프트를 더 조밀하게 고쳐 재생성.
+밀도 정본 3편: `papers/20. sparse_vlm` · `papers/24. geollava8k` · `papers/25. visiondrop` 의 `prompt_dissection_overview.txt`.
 
 ---
 

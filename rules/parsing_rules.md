@@ -397,7 +397,7 @@ PNG 갱신 후 base64 재임베드는 `papers/[name]/_reembed.py` 패턴 (percep
 ## 5. Math Handling
 
 - 수식은 LaTeX 형태 유지 (`$...$` 인라인, `$$...$$` display)
-- `apply_math_latex.py`가 평문 수식을 LaTeX/MathJax 인식 형태로 패치 (idempotent)
+- 평문 수식의 LaTeX/MathJax 변환은 Stage 2에서 structured.json 을 작성할 때 직접 수행한다 (구 `apply_math_latex.py` 패치 절차는 폐기 - `rules/math_rules.md` § 수식 패치)
 - 자세한 수식 규칙: `rules/math_rules.md`
 
 ---

@@ -86,7 +86,7 @@ WEBAPP_APPEND = (
     "- 사용자 메시지 앞에 `[이미지 생성 모드: codex|claude_svg]` 태그가 붙어 온다. "
     "이는 학습 보조 이미지(② ~ ⑥) 생성 방식을 지정한다 — `codex`면 codex CLI ImageGen(PNG), "
     "`claude_svg`면 외부 도구 없이 인라인 `<svg>` 도식을 직접 작성. 규약 정본은 "
-    "`rules/component_rules.md` §11.8. codex 모드인데 codex 호출이 실패하면 그 자산만 SVG로 폴백한다.\n"
+    "`rules/component_rules.md` §11.9. codex 모드인데 codex 호출이 실패하면 그 자산만 SVG로 폴백한다.\n"
     "- ⚡ 속도: 번역(전 본문)·분석 카드처럼 양이 많고 독립적인 작업은 **Task 도구로 서브에이전트를 "
     "병렬 fan-out** 해서 처리한다(CLI와 동일한 방식). 한 컨텍스트에서 수백 문장을 순차 처리하지 말 것."
 )

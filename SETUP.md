@@ -75,7 +75,7 @@ Claude에게 이렇게 시작하세요:
 
 > "`rawpaper/내논문.pdf`를 `workflow.md` Stage 0~11에 따라 v4 대시보드 8탭 학습 HTML로 만들어줘.
 > 셸·디자인은 `rules/design_v4_dashboard.md` 정본(`_build.py` 조립 → `tools/restyle_dash_v4.py` 변환),
-> 학습 인터랙션은 `samples/`의 SGL 베이스, Paper Study는 준비되면 채우고 ⑤⑥은 셸만 만들어줘."
+> 학습 인터랙션은 `samples/cares/` 정본 베이스, Paper Study는 준비되면 채우고 ⑤⑥은 셸만 만들어줘."
 
 그러면 Claude가 대략 이 순서로 진행합니다 (`workflow.md` / `prompts/01~11` 기준):
 
@@ -83,8 +83,8 @@ Claude에게 이렇게 시작하세요:
 2. **구조화** — 섹션/문단/문장 단위 `structured.json` (원문 1:1 보존)
 3. **번역** — 문장 단위 영한 매핑 (`translations/manual.json`) + 캡션 KR(`config#captions`)/EN(`config#captions_en`)
 4. **분석 데이터** — `config.json`, `analysis.json`, `tabs_data/*.json`(dissection·knowledge·questions·**study**)
-5. **HTML 조립** — `_build.py`로 v3 조립 → `tools/restyle_dash_v4.py`로 v4 8탭 변환, 그림은 base64 인라인
-6. **검증** — `tools/check_study_refs.py`(Paper Study ref·캡션 KR) · `tools/check_html_escape.py`(수식 이스케이프)
+5. **HTML 조립** — `_build.py`로 v3 조립 → `tools/restyle_dash_v4.py`로 v4 8탭 변환 → 주입기(`tools/memo_layer_fix.py` · `qa_button_inject.py` · `study_review_inject.py`), 그림은 base64 인라인
+6. **검증** — `tools/check_study_refs.py`(Paper Study ref·캡션 KR) · `tools/check_html_escape.py`(수식 이스케이프) · `tools/tone_lint.py`(문체) · `tools/check_memo_layer.py`(메모 레이어, playwright 필요)
 
 ### 4-4. 결과 확인
 완성된 `{ShortName}_output.html` 한 장을 브라우저로 엽니다. 마음에 안 드는 부분(이미지·해석·번역)은 그 자리에서 "여기 다시" 하고 다시 요청하면 됩니다.

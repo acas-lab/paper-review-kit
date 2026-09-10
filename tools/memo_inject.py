@@ -2,14 +2,14 @@
 """자립형 학습 메모(플로팅 버튼 + 드로어)를 v4 논문에 주입.
 
 대상: 이미 v4 대시보드지만 Paper Study 모듈(sget/sset·notes 시스템)이 없어
-`paper_study_retrofit.py`(빌더 필요)를 못 쓰는 논문 — 특히 _build.py가 없는
+`paper_study_retrofit.py`(빌더 필요)를 못 쓰는 논문 - 특히 _build.py가 없는
 papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
 
 정본 CARES의 메모는 Paper Study 모듈 JS 안에 통합돼 있어(sget/sset 의존) 그대로
 떼어낼 수 없다. 이 도구는 **자체 localStorage 키(`prstudy:{SHORT}:memo`)** 를 가진
 자립형 IIFE + CSS를 `</body>` 직전에 additive 로 주입한다 (기존 마크업·콘텐츠 무변경).
 
-- z-index 1650 (본문 리더·자산 뷰어·자산 학습 드로어 위, 라이트박스 아래) — 2026-07-09 규약
+- z-index 2400 (본문 리더·자산 뷰어·학습 가이드 드로어·라이트박스 위) - 2026-09-02 규약. 가로 자리 배분은 `tools/memo_layer_fix.py` 가 담당한다.
 - 저장: `prstudy:{SHORT}:memo` plain text, 400ms 디바운스 자동 저장
 - 버튼 위치: topbar 하단 +18px (리사이즈 대응), 드로어 열리면 버튼 숨김
 
@@ -23,12 +23,12 @@ import sys
 from pathlib import Path
 
 MEMO_CSS = """
-/* ==== 자립형 학습 메모 (memo_inject.py, z-index 1650) ==== */
-.memo-fab{position:fixed;right:26px;top:150px;z-index:1650;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
+/* ==== 자립형 학습 메모 (memo_inject.py, z-index 2400) ==== */
+.memo-fab{position:fixed;right:26px;top:150px;z-index:2400;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
 .memo-fab:hover{color:#ffffff;background:var(--amber)}
 .memo-fab .memo-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0}
 .memo-fab:hover .memo-dot{background:#ffffff}
-.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:1650;display:flex;flex-direction:column}
+.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:2400;display:flex;flex-direction:column}
 .memo-drawer.open{transform:translateX(0)}
 .memo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 8px}
 .memo-title{font-weight:800;font-size:14px;color:var(--amber)}
@@ -44,7 +44,7 @@ MEMO_CSS = """
 # {SHORT} 자리표시자를 실제 short 로 치환해 주입
 MEMO_JS = """
 <script>
-/* ==== 자립형 학습 메모 (memo_inject.py) — 자체 localStorage 키, Paper Study 모듈 비의존 ==== */
+/* ==== 자립형 학습 메모 (memo_inject.py) - 자체 localStorage 키, Paper Study 모듈 비의존 ==== */
 (function(){
   var SHORT = "__SHORT__";
   var KEY = "prstudy:" + SHORT + ":memo";
@@ -140,7 +140,7 @@ def main():
     assert check.count(".memo-fab{") >= 1, "memo CSS not injected"
     assert 'var SHORT = "' + short + '"' in check, "memo JS SHORT not injected"
     assert 'KEY = "prstudy:" + SHORT + ":memo"' in check, "memo JS key builder not injected"
-    assert check.count("z-index:1650") >= 2, "z-index 1650 not present twice"
+    assert check.count("z-index:2400") >= 2, "z-index 2400 not present twice"
     print(f"[OK]   {html.name}: memo injected (SHORT={short}, key=prstudy:{short}:memo)")
 
 

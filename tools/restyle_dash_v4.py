@@ -7,15 +7,15 @@
 입력 요구사항:
 - 대상 폴더에 v3 표준 템플릿(_build.py 계열)으로 조립된 `{ShortName}_output.html` 1개
 - `config.json#meta`: title / short_name / authors / affiliation (필수)
-  + keyword / venue_short / status / arxiv / listed / code / generated (권장 — topbar 우측 메타)
-- 로고: `samples/design/acas-logo.png` (저장소 내 — 외부 경로 의존 없음)
+  + keyword / venue_short / status / arxiv / listed / code / generated (권장 - topbar 우측 메타)
+- 로고: `samples/design/acas-logo.png` (저장소 내 - 외부 경로 의존 없음)
 
 변환 내용 (rules/design_v4_dashboard.md 정본 규약):
   ① v3 lavender 토큰 → v4 저채도 grey-lavender  ② hero 카드 → topbar(로고+3줄+우측 메타)
   ③ 숫자 pill 6탭 → 숫자 없는 7탭 (knowledge의 eq-panel을 Mathematics 탭으로 분리)
   ④ 해시 라우팅(뒤로/앞으로 버튼·딥링크)  ⑤ serif 제거·radius 14·--shadow·밝은 수식 블록
 
-검증: 변환 전후 콘텐츠 인벤토리 상대 비교(문장·카드·자산 수 보존 + 탭 +1) — 논문별 수치 하드코딩 없음.
+검증: 변환 전후 콘텐츠 인벤토리 상대 비교(문장·카드·자산 수 보존 + 탭 +1) - 논문별 수치 하드코딩 없음.
 Paper Study 탭(tab-study)이 있는 v3 산출물은 7→8탭, 없으면 6→7탭으로 변환된다.
 논문별로 수정할 곳: 없음 (전부 config.json meta에서 읽음).
 
@@ -45,7 +45,7 @@ def sub1(old, new, text, label, count=1):
 
 
 def rsub(pattern, repl, text, label, count=1, optional=False):
-    """정규식 치환 — 템플릿 세대 간 변형 흡수용."""
+    """정규식 치환 - 템플릿 세대 간 변형 흡수용."""
     n = len(re.findall(pattern, text))
     if n != count:
         if optional and n == 0:
@@ -91,7 +91,7 @@ def main():
     t = src.read_text(encoding="utf-8")
     inv_before = inventory(t)
     if 'class="topbar"' in t:
-        raise SystemExit("[FAIL] already v4 (topbar present) — v3 raw 산출물에만 적용하세요 (_build.py 재실행 후).")
+        raise SystemExit("[FAIL] already v4 (topbar present) - v3 raw 산출물에만 적용하세요 (_build.py 재실행 후).")
 
     logo = "data:image/png;base64," + base64.b64encode(LOGO_PNG.read_bytes()).decode()
 
@@ -104,7 +104,7 @@ def main():
     # ------------------------------------------------------------ 2. CSS 토큰
     # :root 의 v3 팔레트(→ --hero-gradient 까지)를 v4 로 교체. minified/pretty 양쪽 허용.
     V4_ROOT_OPEN = """:root {
-  /* v4 — 실험_대시보드 팔레트: 저채도 grey-lavender, near-white 배경 */
+  /* v4 - 실험_대시보드 팔레트: 저채도 grey-lavender, near-white 배경 */
   --bg: #fafbfc; --paper: #ffffff; --ink: #32363f; --ink-soft: #5e6470; --muted: #9aa0ac; --line: #ecedf2;
   --accent: #5e6488; --accent-mid: #9398b9; --accent-soft: #f1f2f8; --accent-pale: #d9dce9;
   --azure: #7191ab; --azure-soft: #eaf1f7; --azure-pale: #d5e2ec;
@@ -135,7 +135,7 @@ def main():
 
     # ------------------------------------------------------------ 3. hero/nav CSS → topbar CSS
     # .brand-tag ~ .tab-btn.active 전체 스팬을 통째로 교체 (hero 세부는 세대별 변형이 있어 regex)
-    NEW_TOPBAR_CSS = """/* ===== 대시보드 v4 topbar — 헤더+탭 단일 응집 상단 바 (Material top app bar + 밑줄 탭) ===== */
+    NEW_TOPBAR_CSS = """/* ===== 대시보드 v4 topbar - 헤더+탭 단일 응집 상단 바 (Material top app bar + 밑줄 탭) ===== */
 .topbar{position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(95,106,166,.03)}
 .hdr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 30px 6px}
 .tabs-row{padding:0 30px}
@@ -158,8 +158,8 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
     # ------------------------------------------------------------ 4. serif 제거 + 그림자/라운드/hex 통일
     css_end = t.find("</style>")
     css, rest = t[:css_end], t[css_end:]
-    # serif 폰트 선언 제거 — 트레일링 `;` 는 선택적으로(규칙 마지막 속성이면 `}` 로 끝나 세미콜론이 없음).
-    # `}` 는 소비하지 않아 규칙 경계를 보존한다 (구버전은 `;` 필수라 `.col p.english{…serif}` 를 놓쳤다).
+    # serif 폰트 선언 제거 - 트레일링 `;` 는 선택적으로(규칙 마지막 속성이면 `}` 로 끝나 세미콜론이 없음).
+    # `}` 는 소비하지 않아 규칙 경계를 보존한다 (구버전은 `;` 필수라 `.col p.english{...serif}` 를 놓쳤다).
     css = re.sub(r'font-family:Georgia[^;}]*;?', '', css)
 
     for old, new in [
@@ -196,7 +196,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
     css = rsub(r"\.eq-display\{background:#[0-9a-f]{6};color:#[0-9a-f]{6}\} \.eq-display mjx-container\{color:#[0-9a-f]{6} !important\}",
                ".eq-display{background:#f1f2f7;color:#32363f} .eq-display mjx-container{color:#32363f !important}",
                css, "eq print", optional=True)
-    # `.eq-display` 외의 다크-수식 블록(예: `.qa-math`)도 v4 밝은 회색으로 — 다크 색쌍 기준 전면 변환.
+    # `.eq-display` 외의 다크-수식 블록(예: `.qa-math`)도 v4 밝은 회색으로 - 다크 색쌍 기준 전면 변환.
     css = re.sub(r"background:#(?:1f1814|1f1d24);color:#(?:fff5dc|f3ead4)",
                  "background:#f1f2f7;color:#32363f", css)
     css = re.sub(r"(mjx-container\{color:)#(?:fff5dc|f3ead4)( ?!important\})",
@@ -222,9 +222,9 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
     else:  # pretty-printed 샘플: 640px 미디어쿼리 여는 직후에 topbar 모바일 규칙 주입
         css, n = re.subn(r'(@media\s*\([^)]*max-width:\s*640px[^)]*\)\s*\{)',
                          r'\1\n' + MOBILE_TOPBAR.replace("\\", "\\\\"), css, count=1)
-        if n != 1:  # 640px 브레이크포인트가 없는 구세대(1~2) — 신규 모바일 블록을 </style> 직전에 추가
+        if n != 1:  # 640px 브레이크포인트가 없는 구세대(1~2) - 신규 모바일 블록을 </style> 직전에 추가
             css += "\n@media (max-width: 640px){\n" + MOBILE_TOPBAR + "\n}\n"
-            print("[warn] 640px 미디어쿼리 없음 — v4 모바일 topbar 블록 신규 추가")
+            print("[warn] 640px 미디어쿼리 없음 - v4 모바일 topbar 블록 신규 추가")
     css = re.sub(r'\n\s*header\.hero .meta\s*\{grid-template-columns:1fr\}', "", css)
     t = css + rest
 
@@ -244,7 +244,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
 
     # ------------------------------------------------------------ 5. 헤더 마크업 → topbar (config#meta 기반)
     authors = meta["authors"].replace(", ", " · ")
-    line3 = f"{authors} — {meta['affiliation']}"
+    line3 = f"{authors} - {meta['affiliation']}"
     parts = []
     if meta.get("venue_short"):
         parts.append(f"<b>{esc(meta['venue_short'])}</b>")
@@ -262,7 +262,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
                   f'style="color:var(--accent);font-weight:700">{esc(label)}</a><br>')
     gen = meta.get("generated", "")
     right3 = f"생성일 {esc(gen)}" if gen else ""
-    # Paper Study 탭(선택) — v3 산출물에 tab-study pane이 있으면 v4 탭 줄에도 노출
+    # Paper Study 탭(선택) - v3 산출물에 tab-study pane이 있으면 v4 탭 줄에도 노출
     study_tab_btn = ('\n    <button class="tab-btn" data-tab="tab-study">Paper Study</button>'
                      if 'id="tab-study"' in t else '')
 
@@ -289,7 +289,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
 </div>
 """
 
-    # 헤더+nav 영역 교체 — 컨테이너 요소는 세대별로 다름 (<main class="app"> / <div class="app"> / <main>)
+    # 헤더+nav 영역 교체 - 컨테이너 요소는 세대별로 다름 (<main class="app"> / <div class="app"> / <main>)
     m = re.search(r'(<(?:main|div)[^>]*class="app"[^>]*>\s*)?<header.*?</nav>', t, re.S)
     if not m:
         raise SystemExit("[FAIL] header block not found")
@@ -309,7 +309,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
         j_eq = t.find("</section>", i_eq)
         # eq-panel 내부에 중첩 <section>이 없다는 전제 (v3 템플릿 표준)
         if t.count("<section", i_eq, j_eq) != 1:
-            raise SystemExit("[FAIL] eq-panel has nested sections — 수동 분리 필요")
+            raise SystemExit("[FAIL] eq-panel has nested sections - 수동 분리 필요")
         eq_panel = t[i_eq:j_eq + len("</section>")]
         t = t[:i_eq] + t[j_eq + len("</section>"):]
         msub = re.search(r'<p class="panel-sub">(.*?)</p>', eq_panel, re.S)
@@ -320,14 +320,14 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
         math_body = '<section class="section section-empty"><p class="section-empty-note">수식 카드가 없는 논문입니다.</p></section>'
 
     MATH_PANE = f"""  <section id="tab-math" class="tab-pane">
-<div class="tab-intro"><h2>Mathematics — 핵심 수식</h2><p>{intro_p}</p></div>
+<div class="tab-intro"><h2>Mathematics - 핵심 수식</h2><p>{intro_p}</p></div>
 {math_body}
   </section>
 """
     i_q = t.find('<section id="tab-questions"')
     t = t[:i_q] + MATH_PANE + "  " + t[i_q:]
     # 구 v3 지식탭 intro 제목 교정 (있을 때만)
-    t = t.replace("<h2>Background &amp; 핵심 수식</h2>", "<h2>Background — 배경지식</h2>")
+    t = t.replace("<h2>Background &amp; 핵심 수식</h2>", "<h2>Background - 배경지식</h2>")
 
     # ------------------------------------------------------------ 7. JS: Eq 링크 → tab-math + 해시 라우팅
     if "const targetTabFor" in t:
@@ -337,8 +337,8 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
     else:  # 구세대(20~21): if (/^Eq|^Equation/.test(head)) { tab='tab-knowledge'; …
         t = rsub(r"(/\^Eq\|\^Equation/\.test\(head\)\) \{ tab=)'tab-knowledge'",
                  r"\1'tab-math'", t, "js eq target (legacy)", optional=True)
-    # 해시 라우터 골격 — 탭 바인딩 변수명은 세대별로 다르다 (buttons/b vs tabs/t)
-    HASH_ROUTER = """  // 해시 라우팅 — 탭 전환을 브라우저 히스토리에 기록해 뒤로/앞으로 버튼 지원 (v4 규약)
+    # 해시 라우터 골격 - 탭 바인딩 변수명은 세대별로 다르다 (buttons/b vs tabs/t)
+    HASH_ROUTER = """  // 해시 라우팅 - 탭 전환을 브라우저 히스토리에 기록해 뒤로/앞으로 버튼 지원 (v4 규약)
   const PANE_IDS = Array.prototype.map.call(panes, p => p.id);
   function go(tab){
     if (PANE_IDS.indexOf(tab) < 0) tab = 'tab-reading';
@@ -364,7 +364,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
                  t, "hash routing (tabs-gen)")
         routed_inline = True
     else:
-        # bespoke JS(예: SGL 3세대 block-body 핸들러) — 내부 코드 손대지 않고 DOM 레벨 hash shim 주입
+        # bespoke JS(예: SGL 3세대 block-body 핸들러) - 내부 코드 손대지 않고 DOM 레벨 hash shim 주입
         SHIM = ("<script>\n(function(){\n"
                 "  var btns=document.querySelectorAll('.tab-btn');\n"
                 "  function sync(){var id=(location.hash||'#tab-reading').slice(1);\n"
@@ -374,7 +374,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
                 "  window.addEventListener('hashchange',sync);\n"
                 "  if(location.hash)sync();\n})();\n</script>\n")
         t = rsub(r'</body>', SHIM + '</body>', t, "hash routing (dom shim)", count=1)
-        print("[warn] bespoke JS 감지 — DOM 레벨 hash 라우팅 shim 주입 (페이지 자체 탭 핸들러 보존)")
+        print("[warn] bespoke JS 감지 - DOM 레벨 hash 라우팅 shim 주입 (페이지 자체 탭 핸들러 보존)")
     if routed_inline:
         t = sub1("            activate(a.dataset.targetTab);",
                  "            go(a.dataset.targetTab);",
@@ -385,7 +385,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
                      t, "studyNav → go")
 
     # ------------------------------------------------------------ 7b. 잔존 v3 팔레트 hex 최종 청소 (전역)
-    # 구세대 샘플(1~3)의 bespoke 컴포넌트 CSS는 v3 deep-tone을 리터럴로 박아둠 — 표준 스왑 목록이 못 잡음.
+    # 구세대 샘플(1~3)의 bespoke 컴포넌트 CSS는 v3 deep-tone을 리터럴로 박아둠 - 표준 스왑 목록이 못 잡음.
     # base64 data URI 에는 '#'가 없어 전역 치환 안전.
     for old, new in [
         ("#8b75c0", "#5e6488"), ("#e4d9ff", "#e6e8f2"), ("#d2c2f5", "#d9dce9"),
@@ -401,7 +401,7 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
     # v3 템플릿 footer의 "Paper Review HTML · v3"는 최종 산출물이 v4이므로 v4로 표기 통일.
     t = t.replace("Paper Review HTML · v3", "Paper Review HTML · v4")
 
-    # ------------------------------------------------------------ 8. 검증 — 변환 전후 상대 비교 (콘텐츠 보존)
+    # ------------------------------------------------------------ 8. 검증 - 변환 전후 상대 비교 (콘텐츠 보존)
     inv_after = inventory(t)
     bad = {}
     for k, v in inv_before.items():

@@ -2,16 +2,16 @@
 """Paper Study 탭 + 도표 뷰어 + 근거 점프 + 노트/하이라이트를 빌더 없는 v4 논문에 직접 주입.
 
 대상: 이미 v4 대시보드지만 _build.py가 없어 paper_study_retrofit.py(빌더 필요)를 못 쓰는
-논문 — papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
+논문 - papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
 
 정본 CARES(_build.py Region A + 런타임 블록)의 로직을 이식해 **기존 output HTML에 직접** 조립한다:
   1. REGION_A 렌더링(ev_chips/read_panel/study_thumbs/study_write/study_reveal/study_step 등)을
      그대로 이식해 study.json → Paper Study 패널 HTML 생성
   2. Paper Study 관련 CSS는 정본 CARES output에서 슬라이스해 재사용(디자인 100% 일치)
-  3. 런타임 JS는 자립형(self-contained)으로 신규 작성 — CARES 모놀리식 IIFE에 의존하지 않고
+  3. 런타임 JS는 자립형(self-contained)으로 신규 작성 - CARES 모놀리식 IIFE에 의존하지 않고
      papers 1~3의 DOM 규약(data-pair="pN_sM" · section id="sN" · .paragraph-block id="pN" ·
      .asset-image-wrap[data-asset-id]) 에 배선. 탭 점프는 각 논문의 nav 버튼 .click()으로 위임.
-  4. 자산 요소에 id 소급(data-asset-id="fig_1" → id="fig_1") — 썸네일 src 복사·자산 점프용
+  4. 자산 요소에 id 소급(data-asset-id="fig_1" → id="fig_1") - 썸네일 src 복사·자산 점프용
   5. 메모는 memo_inject.py가 이미 넣은 자립형을 그대로 두고, 노트 내보내기가 같은
      localStorage 네임스페이스(prstudy:{SHORT}:*)를 공유해 연동
 
@@ -38,7 +38,7 @@ def _cares_output():
         if cand.exists():
             return cand
     raise SystemExit(
-        "[FAIL] CARES 정본 output HTML을 찾지 못함 — "
+        "[FAIL] CARES 정본 output HTML을 찾지 못함 - "
         "samples/cares/CARES_output.html 또는 papers/26. cares/CARES_output.html 필요.")
 
 
@@ -56,7 +56,7 @@ def load_json(path, default=None):
 
 
 # ------------------------------------------------------------------
-# REGION_A 이식 — study.json → Paper Study 패널 HTML
+# REGION_A 이식 - study.json → Paper Study 패널 HTML
 # (정본: papers/26. cares/_build.py 189~374. 숫자식 id 논문에서도 그대로 동작)
 # ------------------------------------------------------------------
 def render_study_panel(studyd, struct, asset_ids):
@@ -114,7 +114,7 @@ def render_study_panel(studyd, struct, asset_ids):
         )
         return f'<div class="study-thumbs">{figs}</div>'
 
-    def study_write(skey, placeholder, label="내 답 — 직접 써보기", small=False):
+    def study_write(skey, placeholder, label="내 답 - 직접 써보기", small=False):
         cls = "study-write study-write-sm" if small else "study-write"
         return (
             '<div class="study-write-wrap">'
@@ -129,7 +129,7 @@ def render_study_panel(studyd, struct, asset_ids):
             f'<div class="study-reveal" data-skey="{skey}" data-min="{min_chars}">'
             '<div class="study-reveal-bar">'
             f'<button class="study-reveal-btn" type="button" disabled>{btn_label}'
-            f'<span class="srb-lock">잠김 — 내 답 {min_chars}자 이상이면 열립니다</span></button>'
+            f'<span class="srb-lock">잠김 - 내 답 {min_chars}자 이상이면 열립니다</span></button>'
             '<button class="study-skip" type="button">그래도 열기</button>'
             '</div>'
             f'<div class="study-claude" hidden>{inner}</div>'
@@ -191,7 +191,7 @@ def render_study_panel(studyd, struct, asset_ids):
     )
     step6 = study_step(6, ver["title"],
         guide_p(ver.get("guide")) + read_panel(ver.get("read"))
-        + '<details class="verdict-details"><summary>결론 대조 열기 — Step 5를 마친 뒤 펼치세요</summary>'
+        + '<details class="verdict-details"><summary>결론 대조 열기 - Step 5를 마친 뒤 펼치세요</summary>'
         '<div class="verdict-grid">'
         '<div class="verdict-col v-mine"><h4>내 결론 (Step 5)</h4><div class="v-mine-body" data-mirror="conclusion"></div></div>'
         f'<div class="verdict-col v-claude"><h4>Claude의 데이터-only 결론</h4><div class="v-claude-body">{ver["claude_dataonly_summary"]}</div></div>'
@@ -206,7 +206,7 @@ def render_study_panel(studyd, struct, asset_ids):
         + study_reveal("alt", alts["min_chars"], f'<span class="study-claude-tag">Claude의 대안 가설</span>{alt_cards}'))
 
     return (
-        '<div class="tab-intro"><h2>Paper Study — 3-Phase 비판적 읽기</h2></div>'
+        '<div class="tab-intro"><h2>Paper Study - 3-Phase 비판적 읽기</h2></div>'
         '<div class="study-toolbar">'
         '<div class="study-toolbar-note">메모는 이 브라우저에 자동 저장 · 파일 보관은 내보내기</div>'
         '<div class="study-toolbar-btns">'
@@ -235,7 +235,7 @@ def extract_study_css(cares_text):
     return cares_text[start:end].strip()
 
 
-# 런타임 JS·뷰어 마크업은 별도 파일(study_runtime.py)에서 import — 가독성
+# 런타임 JS·뷰어 마크업은 별도 파일(study_runtime.py)에서 import - 가독성
 from study_runtime import RUNTIME_JS, VIEWER_MARKUP  # noqa: E402
 
 
@@ -265,7 +265,7 @@ def main():
     caps = config.get("captions", {})
     interps = analysis.get("interpretations", {})
 
-    # 존재하는 자산 목록 수집 — 두 규약 지원:
+    # 존재하는 자산 목록 수집 - 두 규약 지원:
     #   FF 계열: <div class="asset-image-wrap" data-asset-id="fig_1">  (id 소급 필요)
     #   SGL 계열: <figure class="asset-card ..." id="fig_1">           (이미 #fig_1 존재)
     asset_ids = set(re.findall(r'<div class="asset-image-wrap" data-asset-id="([^"]+)"', text))
@@ -319,7 +319,7 @@ def main():
         raise SystemExit("[FAIL] tab-dissection section not found")
     text = text[:diss.start()] + section_html + text[diss.start():]
 
-    # 4) 서론 goto 버튼 — study.json rq.read 마지막 sec = 서론
+    # 4) 서론 goto 버튼 - study.json rq.read 마지막 sec = 서론
     intro_sid = None
     try:
         reads = studyd["phase1"]["rq"].get("read", [])
@@ -333,11 +333,11 @@ def main():
             j = text.find("</section>", m.end())
             if j >= 0:
                 goto = ('<div class="study-goto-row">'
-                        '<button class="study-goto" type="button">서론 끝 — Paper Study로 돌아가기 ↩</button>'
+                        '<button class="study-goto" type="button">서론 끝 - Paper Study로 돌아가기 ↩</button>'
                         '</div>')
                 text = text[:j] + goto + text[j:]
 
-    # 5) CSS 주입 (+ 근거 점프 flash — CARES 원본 flash 클래스는 추출 범위 밖이라 자체 정의)
+    # 5) CSS 주입 (+ 근거 점프 flash - CARES 원본 flash 클래스는 추출 범위 밖이라 자체 정의)
     css = extract_study_css(CARES.read_text(encoding="utf-8"))
     flash_css = (
         "\n.ev-flash{animation:ev-flash-kf 3.6s ease}"

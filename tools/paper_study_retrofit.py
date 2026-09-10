@@ -3,8 +3,8 @@
 
 정본(`samples/cares/_build.py` · 모체는 `papers/26. cares/_build.py`)에서 블록을 추출해 대상 빌더에 앵커 기반으로 주입한다.
 빌더 세대 자동 감지:
-  GEN B — CARES 호환 (JS-created 학습가이드 modal · STUDY_GUIDES_PLACEHOLDER · JS_FINAL 조립 · lb/lbCloseFn lightbox)
-  GEN A — 구세대 (BODY 배치 modal · __STUDY_JSON__/STUDY_DATA · lightbox/lbOpen/lbClose)
+  GEN B - CARES 호환 (JS-created 학습가이드 modal · STUDY_GUIDES_PLACEHOLDER · JS_FINAL 조립 · lb/lbCloseFn lightbox)
+  GEN A - 구세대 (BODY 배치 modal · __STUDY_JSON__/STUDY_DATA · lightbox/lbOpen/lbClose)
 
 수행 내용:
   1. 학습 가이드 풀스크린 모달 → CARES 우측 드로어 승격 (CSS+JS+print, 세대별)
@@ -47,7 +47,7 @@ def _load_source() -> str:
         if cand.exists():
             return cand.read_text(encoding="utf-8")
     raise SystemExit(
-        "[FAIL] Paper Study 정본 빌더를 찾을 수 없습니다 — "
+        "[FAIL] Paper Study 정본 빌더를 찾을 수 없습니다 - "
         "samples/cares/_build.py 또는 papers/26. cares/_build.py 필요.")
 
 
@@ -62,20 +62,20 @@ DRAWER_CSS = (_ex(SRC, ".study-drawer{{position:fixed;top:0;right:0;", "@media (
               + "@media (max-width: 520px){{\n  .study-drawer-body .study-num-row{{grid-template-columns:1fr}}\n}}\n"
               + ".study-drawer-backdrop{{position:fixed;inset:0;background:transparent;z-index:1590;display:none}}\n"
               + ".study-drawer-backdrop.open{{display:block}}")
-DRAWER_JS = _ex(SRC, "  // Study guide — right-side slide-in drawer",
+DRAWER_JS = _ex(SRC, "  // Study guide - right-side slide-in drawer",
                 "\n\n  const lb = document.querySelector('.img-lightbox');")
-REGION_A = _ex(SRC, "# ----------------------------------------------------------------\n# Tab 1.5 — Paper Study",
-               "\n# ----------------------------------------------------------------\n# Tab 2 — Dissection")
+REGION_A = _ex(SRC, "# ----------------------------------------------------------------\n# Tab 1.5 - Paper Study",
+               "\n# ----------------------------------------------------------------\n# Tab 2 - Dissection")
 MODULE_JS = _ex(SRC, "  // ---- Paper Study tab (tab-study): 서술칸 자동 저장 + 잠금 토글 + 근거 점프 ----",
                 "\n})();\n</script>")
 VIEWER_MARKUP = _ex(SRC, '<div class="para-reader" role="dialog"', '<div class="img-lightbox" role="dialog"')
 
-SHIM = ("# Paper Study 호환 alias — 빌더 세대별 변수명 차이 흡수 (ASSET_DATA vs ASSET_DATAURI 등)\n"
+SHIM = ("# Paper Study 호환 alias - 빌더 세대별 변수명 차이 흡수 (ASSET_DATA vs ASSET_DATAURI 등)\n"
         "try:\n    ASSET_DATAURI\nexcept NameError:\n    ASSET_DATAURI = ASSET_DATA\n"
         "try:\n    CAP\nexcept NameError:\n    CAP = config.get(\"captions\", {})\n"
         "try:\n    INTERPS\nexcept NameError:\n    INTERPS = analysis.get(\"interpretations\", {})\n\n")
 
-HOVER_NEW = """  // 문장 호버 페어링 — 위임 방식: 플로팅 리더의 복제 문장에서도 동일하게 동작
+HOVER_NEW = """  // 문장 호버 페어링 - 위임 방식: 플로팅 리더의 복제 문장에서도 동일하게 동작
   document.addEventListener('mouseover', (e) => {
     const el = e.target.closest('.sent[data-pair]');
     if (!el) return;
@@ -113,7 +113,7 @@ def retrofit(rel):
     HAS_LB = '<div class="img-lightbox" role="dialog"' in t  # 이미지 확대 lightbox 컴포넌트 유무
 
     # 1. 학습 가이드 모달 → 드로어
-    # (1a) print 규칙 먼저 — 선택자 안의 .study-modal → .study-drawer (아래 정규식 제거가 print 규칙을 깨지 않게)
+    # (1a) print 규칙 먼저 - 선택자 안의 .study-modal → .study-drawer (아래 정규식 제거가 print 규칙을 깨지 않게)
     opt("@media print {{.img-lightbox,.study-modal,.to-top{{display:none !important}}}}",
         "@media print {{.img-lightbox,.study-drawer,.study-drawer-backdrop,.to-top{{display:none !important}}}}", "print1")
     opt("  nav.tabs,.to-top,.study-fab,.study-modal{{display:none !important}}",
@@ -145,7 +145,7 @@ def retrofit(rel):
              '    </div>\n    <div class="study-modal-body"></div>\n  </div>\n</div>\n', "", "BODY modal 제거")
 
     # 2. 호환 셤 + Region A
-    mark = "# ----------------------------------------------------------------\n# Tab 1.5 — Paper Study"
+    mark = "# ----------------------------------------------------------------\n# Tab 1.5 - Paper Study"
     anchor = 'tab_reading = "\\n".join(render_section(s) for s in struct["sections"])'
     sub1(anchor, anchor + "\n\n" + SHIM + REGION_A, "region A + shim")
     # 3. STUDY_CSS / 모바일
@@ -163,7 +163,7 @@ def retrofit(rel):
     t, k = re.subn(r"(querySelectorAll\('\.tab-pane \.col p[^']*)'\)",
                    r"\1, .study-claude-body p, .study-guide, .study-qlist li, .v-claim, .v-note, .alt-card p, .v-claude-body p')", t, count=1)
     assert k == 1, f"[FAIL] {rel} autoLink"
-    # 7. lightbox 훅 (lightbox 있는 논문만 — 뷰어 이미지 클릭 시 확대. 없으면 window.__lbOpen 미정의 → no-op)
+    # 7. lightbox 훅 (lightbox 있는 논문만 - 뷰어 이미지 클릭 시 확대. 없으면 window.__lbOpen 미정의 → no-op)
     if HAS_LB and GEN == "B":
         sub1("      lb.classList.remove('open');\n      document.body.style.overflow = '';\n    }",
              "      lb.classList.remove('open');\n      var avOpen = document.querySelector('.asset-viewer.open');\n"

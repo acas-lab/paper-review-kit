@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""콘텐츠 JSON의 HTML 이스케이프 검사 (빌드 전 의무 — component_rules.md 체크리스트 18번).
+"""콘텐츠 JSON의 HTML 이스케이프 검사 (빌드 전 의무 - component_rules.md 체크리스트 18번).
 
 수식 표기(`X_{a<i}`, `ℓ<k` 류)의 이스케이프 안 된 `<`가 HTML 태그로 파싱되면, 브라우저의
-태그 수프 복구 규칙이 그 지점 이후 문서 전체를 <b>/<i>로 재구성한다 — 문서 뒷부분 전체가
+태그 수프 복구 규칙이 그 지점 이후 문서 전체를 <b>/<i>로 재구성한다 - 문서 뒷부분 전체가
 굵게 보이는 버그의 원인 (정본 학습 사례: 24. geollava8k Eq 5, 2026-07-08).
 
 검사 2종:
@@ -28,7 +28,7 @@ except Exception:
 
 REPO = Path(__file__).parent.parent
 
-# 잘 정의된 태그 (여는/닫는/self-closing, 속성 허용) — 이걸 제거하고 남는 < 가 위험 신호
+# 잘 정의된 태그 (여는/닫는/self-closing, 속성 허용) - 이걸 제거하고 남는 < 가 위험 신호
 WELLFORMED = re.compile(r"</?[a-zA-Z][a-zA-Z0-9-]*(\s[^<>]*)?/?>")
 DANGLING = re.compile(r"<[a-zA-Z/]")
 BALANCE_TAGS = ("b", "i", "em", "strong", "span", "div", "sub", "sup", "code", "u", "mark")
@@ -36,7 +36,7 @@ BALANCE_TAGS = ("b", "i", "em", "strong", "span", "div", "sub", "sup", "code", "
 TARGET_GLOBS = ["config.json", "analysis.json", "tabs_data/*.json", "translations/*.json"]
 
 
-# 빌더가 esc()로 자동 이스케이프하는 필드 — 원문 텍스트는 위험하지 않다
+# 빌더가 esc()로 자동 이스케이프하는 필드 - 원문 텍스트는 위험하지 않다
 ESCAPED_KEYS = {"original", "text", "title", "caption", "captions", "captions_en"}
 
 
@@ -53,7 +53,7 @@ def iter_strings(obj, path="", key=None):
 
 
 def check_string(s):
-    """(fails, warns) — fails: 태그 수프 위험 지점 컨텍스트, warns: 태그 불균형."""
+    """(fails, warns) - fails: 태그 수프 위험 지점 컨텍스트, warns: 태그 불균형."""
     fails = []
     stripped = WELLFORMED.sub("", s)
     for m in DANGLING.finditer(stripped):
@@ -104,7 +104,7 @@ def main():
         print(f"[{status}] {paper.name}: fail={n_fail} warn={n_warn}")
         total_fail += n_fail
     if total_fail:
-        raise SystemExit(f"\n[FAIL] 태그 수프 위험 {total_fail}건 — tex는 \\lt/\\gt, 텍스트는 &lt;/&gt;로 수정하세요.")
+        raise SystemExit(f"\n[FAIL] 태그 수프 위험 {total_fail}건 - tex는 \\lt/\\gt, 텍스트는 &lt;/&gt;로 수정하세요.")
     print("\n[ok] 태그 수프 위험 0건")
 
 

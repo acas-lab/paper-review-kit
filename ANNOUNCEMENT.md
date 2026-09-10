@@ -18,7 +18,7 @@ https://github.com/acas-lab/paper-review-kit
 ## 📖 시작 방법
 - 저장소를 받은 뒤 **`SETUP.md`부터** 읽으면 설치~첫 논문 빌드까지 단계별로 따라할 수 있습니다.
 - 논문 PDF를 `rawpaper/` 폴더에 넣고, 폴더에서 Claude Code를 열어 시작 명령(README의 "시작 명령" 블록)을 붙여넣으면 됩니다.
-- 잘 만든 기준 예시는 `samples/`(SAFE·FrameFusion·SGL)와 완성 워크드 예제 `samples/cares/`에 있습니다.
+- 잘 만든 기준 예시는 완성 워크드 예제 `samples/cares/`에 있습니다(1~3세대 SAFE·FrameFusion·SGL 인터랙션은 CARES 정본이 흡수했습니다).
 
 ---
 

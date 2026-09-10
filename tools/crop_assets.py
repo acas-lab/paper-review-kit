@@ -26,7 +26,7 @@ Usage (per-paper script `papers/<name>/_recrop.py`):
         crop_figures(PDF, OUT, SPECS)
 
 For vector PDFs (figures as separate image objects), prefer
-`page.get_image_bbox(item)` directly — this module is overkill for that case.
+`page.get_image_bbox(item)` directly - this module is overkill for that case.
 """
 import re
 from pathlib import Path
@@ -64,7 +64,7 @@ _CAP_WORD_RX = re.compile(r'(?i)^(fig[.,]?|table[.,]?|figure)$')
 
 def _detect_columns(page):
     """Detect column boundaries from the OCR word x-distribution.
-    Robust to figures that span the column gutter visually — we look at where
+    Robust to figures that span the column gutter visually - we look at where
     text words actually live. Returns [(x_min, x_max), ...] per column."""
     page_w = page.rect.width
     page_h = page.rect.height
@@ -97,7 +97,7 @@ def _detect_columns(page):
             cur = None
     if cur is not None and cur_end - cur + 1 >= MIN_RUN:
         runs.append((cur, cur_end))
-    # Internal runs only — leading/trailing empty bins are figure/page padding
+    # Internal runs only - leading/trailing empty bins are figure/page padding
     internal = [r for r in runs if r[0] > 1 and r[1] < n_bins - 2]
     if not internal:
         return [(MARGIN, page_w - MARGIN)]
@@ -117,7 +117,7 @@ def _column_for(cap_bbox, columns):
     for c in columns:
         if c[0] - 4 <= cap_xc <= c[1] + 4:
             return c
-    # Fallback — closest column
+    # Fallback - closest column
     return min(columns, key=lambda c: abs(cap_xc - (c[0] + c[1]) / 2))
 
 
@@ -375,7 +375,7 @@ def crop_one(pdf, asset_id: str, page_num: int, pattern: str, orient: str,
              out_dir: Path, wide: bool = False) -> Optional[Tuple[float, float, float, float]]:
     """Crop one figure/table to `out_dir/<asset_id>.png`.
     Returns the chosen bbox or None on failure.
-    `orient`: "above" (figure ABOVE caption — FIG. ...) or "below" (table BELOW caption).
+    `orient`: "above" (figure ABOVE caption - FIG. ...) or "below" (table BELOW caption).
     `wide`: True when the figure spans across columns (caption sits in one column
     but the figure body extends past the column gutter)."""
     page = pdf[page_num - 1]
@@ -421,7 +421,7 @@ def crop_one(pdf, asset_id: str, page_num: int, pattern: str, orient: str,
     x_min = max(body_min_x, min(x_min, cap_x0 - 4))
     x_max = min(body_max_x, max(x_max, cap_x1 + 4))
 
-    # Pass 3 — axis-line snap. Only fires when there is real body-paragraph
+    # Pass 3 - axis-line snap. Only fires when there is real body-paragraph
     # text between fig_top and the candidate axis (= we are stripping wrap
     # text/equations, not figure labels).
     if orient == "above":
@@ -454,7 +454,7 @@ def crop_one(pdf, asset_id: str, page_num: int, pattern: str, orient: str,
 
 
 def crop_figures(pdf_path: Path, out_dir: Path, specs: Iterable[tuple]) -> None:
-    """Each spec is (asset_id, page, caption_pattern, orientation) — or
+    """Each spec is (asset_id, page, caption_pattern, orientation) - or
     (..., wide:bool) if the figure spans across columns."""
     pdf = fitz.open(pdf_path)
     print(f"=== crop_assets: {pdf_path.name} -> {out_dir} ===")

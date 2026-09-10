@@ -97,7 +97,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
 - 안쪽: `.bilingual` 좌(원문) / 우(번역) 그리드
 - 문장은 `<span class="sent" data-pair="pN_sM">` — JS 호버 시 같은 `data-pair` 짝 강조
 - 콜아웃은 `.callout-stack > .callout.callout-warn|key`
-- 자산은 `.asset-stack > .asset-with-commentary > <figure class="asset-card">`
+- 자산은 `.asset-stack > <figure class="asset-card">` (v4 정본 CARES 기준 - 중간 래퍼 `.asset-with-commentary` 는 쓰지 않는다)
 - 자산 아래 `.interpretation` (항상 표시) + `<details class="beginner-note">` (토글)
 - 섹션 끝에 `<aside class="recall-card">` 자가 점검 퀴즈
 
@@ -113,7 +113,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
 - 헤더 `<h3 class="diss-title">{title}</h3>` + `<p class="diss-lead">{lead}</p>`
 - `rows`는 `<dl class="diss-rows">` + `<dt class="diss-tag">{tag}</dt>` / `<dd class="diss-body">{body}</dd>`
 - 상단(선택): `<svg class="diss-flow">` 요약 다이어그램 또는 `assets/generated/dissection_flow_*.png` 삽입
-- **마지막 카드 `diss-summary`** — 정본은 `samples/cares/CARES_output.html`의 `diss-summary` 카드. rows는 정확히 4행 (`관찰 과정` / `해결 방법` / `다른 논문과의 차별점` / `결과 및 결론`). 각 body는 `<b>`로 sub-tag 강조한 한 단락(3~6 문장). 자세한 규약은 `prompts/04_research_analysis.md` "8번 카드 — diss-summary 세부 규약" 참조.
+- **마지막 카드 `diss-summary`** — 정본은 **9-row 정형**(2026-05-12 갱신 - SGL 의 4-row 카드는 구식. 동봉 예제 = `samples/cares/CARES_output.html`). rows는 9행 (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약), 각 body 300~600자에 `<strong>`·`<em>` 강조, 헤더 아래·rows 위에 `<figure class="diss-overview-figure">`(`assets/generated/dissection_overview.png` base64 인라인. codex 미사용 시 빌더가 인라인 SVG 로 폴백 - `rules/component_rules.md` §11.9 · §14.5). 자세한 규약은 `prompts/04_research_analysis.md` "8번 카드 — diss-summary 세부 규약" · `rules/component_rules.md` §14 참조.
 
 ### ③ `tab-knowledge`
 - `primer`: 다이어그램 SVG 또는 `assets/generated/knowledge_*.png` + `.knw-grid > .fund-card`
@@ -196,14 +196,14 @@ You are Claude, building a learning HTML directly in conversation with the user.
 
 ② Dissection · ③ Background Knowledge · ④ Questions · ⑤ Simulator · ⑥ QA에서 학습 효과를 위해 추가하는 시각 자료. 정책: **Claude가 Bash로 codex CLI를 직접 호출**해 만들고 곧장 base64로 박는다 (별도 플러그인·MCP 자동화 없음).
 
-> **호출 형식·5계명·검증된 명령 템플릿·`<figure class="concept-figure">` 정본 컴포넌트·자동화 스크립트 골격: `rules/component_rules.md` §11.** 이 절은 빌드 흐름만, 정확한 형식은 §11이 정본.
+> **호출 형식(6계명)·명령 템플릿·`<figure class="concept-figure">` 정본 컴포넌트·자동화 스크립트 골격: `rules/component_rules.md` §11.2~11.6 / 🔴 prompt.txt 본문 작성 정본(5블록 구조·패널 3요소·밀도 등급·검수 체크리스트): 같은 문서 §11.8.** 이 절은 빌드 흐름만, 정확한 형식은 §11이 정본.
 
 빌드 흐름:
 1. ②③④⑤⑥ 탭의 콘텐츠 JSON을 작성하면서 시각 자료가 부족한 위치를 식별.
 2. **Step A** — `papers/[name]/assets/generated/prompt_<purpose>.txt` (UTF-8 한글) 작성. 스타일 지시에 "NOT a transparent cutout" 명시 (컴포넌트_rules §11.3 골격).
 3. **Step B** — Bash 툴로 `codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox --cd <abs_path> "<ASCII 한 줄: read prompt file, save to <output>.png>" < /dev/null` (정확한 템플릿: §11.3).
 4. **Step C** — `_inject_concept_figures.py` 패턴 (§11.6)으로 PNG를 base64로 변환해 `<figure class="concept-figure">` 마크업과 함께 정확한 자리에 삽입. CSS는 `</style>` 직전 한 번만 추가.
-5. 검수는 사후 — 사용자가 결과 HTML을 보고 수정이 필요한 이미지가 있으면 별도 재생성 요청.
+5. 검수 2단 — 생성 직후 Claude가 PNG를 Read로 열어 `rules/component_rules.md` §11.8.6 체크리스트를 확인(미달 시 프롬프트 수정 후 재생성), 그 뒤 사용자가 결과 HTML을 보고 필요하면 별도 재생성 요청.
 
 생성 이미지 참조처 (콘텐츠 JSON 안에서 미리 가리킨 경우):
 - `tabs_data/knowledge.json` — `primer.image_path`, `fund_cards[].image_path`, `concept_cards[].image_path`

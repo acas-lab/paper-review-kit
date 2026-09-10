@@ -14,7 +14,7 @@ INPUTS (read from papers/<name>/):
   config.json                (asset_layout, wide_assets)
 
 OUTPUT
-  Just the body of the tab-reading section — splice into [ShortName].html
+  Just the body of the tab-reading section - splice into [ShortName].html
   between `<section id="tab-reading" ...>` and its closing `</section>`.
 
 CONVENTIONS (matched to samples/cares/ and existing outputs)
@@ -90,14 +90,14 @@ def render_asset(asset_id, asset_kind, interpretations, beginner_notes, wide_set
 
     interp_html = (
         '    <div class="interpretation">\n'
-        '      <h4>해석 — Reviewer 노트</h4>\n'
+        '      <h4>해석 - Reviewer 노트</h4>\n'
         f'      <p>{esc(interp)}</p>\n'
         '    </div>'
     ) if interp else ""
 
     beginner_html = (
         '    <details class="beginner-note">\n'
-        '      <summary>처음 보는 사람에게 — 한 번 더 풀어쓰기</summary>\n'
+        '      <summary>처음 보는 사람에게 - 한 번 더 풀어쓰기</summary>\n'
         f'      <div class="beginner-body">{esc(beginner)}</div>\n'
         '    </details>'
     ) if beginner else ""

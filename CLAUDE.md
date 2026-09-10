@@ -8,7 +8,7 @@ JSON으로 정제된 콘텐츠 + 정본 샘플의 디자인 + 규칙 문서를 �
 
 ## 표준 학습 템플릿
 
-모든 논문은 다음 8개 탭으로 구성된다. **신규 논문은 v4 대시보드 디자인(저채도 grey-lavender · topbar · 숫자 없는 8탭 · 해시 라우팅)을 따른다** (정본·전체 규약 = `rules/design_v4_dashboard.md`, 2026-07-02 제정). 이전 v3(white+lavender, hero+6탭)·v2(베이지+마룬)는 폐기. (이 배포 툴킷은 논문 데이터를 포함하지 않는다 — 셸·토큰·인터랙션 정본은 `samples/`에, 빌드/변환 도구는 `tools/`에 있다. 모체 작업 폴더는 papers 4~26 전부 v4 + Paper Study 완비·캡션 KR.) 기존 v4 논문에 Paper Study 소급: `tools/paper_study_retrofit.py`(세대 자동 감지 — GEN A/B + lightbox 유무), `tools/paper_study_retrofit_groupc.py`(single-brace 구식 빌더 전용 bespoke). **`_build.py`가 없는 대화형·수작업 빌드**(빌더 기반 소급 불가)에는 빌더리스 직접 주입: `tools/study_inject.py`(CARES Region A 렌더 이식 + 자산 id 소급 + nav/패널/뷰어 주입) + `tools/study_runtime.py`(자립형 런타임 — 근거 점프·플로팅 리더·도표 뷰어·노트 내보내기·형광펜) + `tools/memo_inject.py`(자립형 학습 메모). Stage 11 데이터 + 캡션 번역 후 검증: `tools/check_study_refs.py`(ref 실존 + 캡션 KR — 단, 문장이 structured.json이 아닌 translations/manual.json에 있는 구세대 논문에서는 DOM ref 대조로 대체) · `tools/check_html_escape.py`. LLM 서술 톤 점검: `tools/tone_lint.py`(감성 온도 0 안티패턴 탐지·`--fix`).
+모든 논문은 다음 8개 탭으로 구성된다. **신규 논문은 v4 대시보드 디자인(저채도 grey-lavender · topbar · 숫자 없는 8탭 · 해시 라우팅)을 따른다** (정본·전체 규약 = `rules/design_v4_dashboard.md`, 2026-07-02 제정). 이전 v3(white+lavender, hero+6탭)·v2(베이지+마룬)는 폐기. (이 배포 툴킷은 논문 데이터를 포함하지 않는다 — 셸·토큰·인터랙션 정본은 `samples/`에, 빌드/변환 도구는 `tools/`에 있다. 모체 작업 폴더는 papers 1~35 전부 v4 + Paper Study + 학습 메모 완비·캡션 KR(2026-09-02).) 기존 v4 논문에 Paper Study 소급: `tools/paper_study_retrofit.py`(세대 자동 감지 — GEN A/B + lightbox 유무), `tools/paper_study_retrofit_groupc.py`(single-brace 구식 빌더 전용 bespoke). **`_build.py`가 없는 대화형·수작업 빌드**(빌더 기반 소급 불가)에는 빌더리스 직접 주입: `tools/study_inject.py`(CARES Region A 렌더 이식 + 자산 id 소급 + nav/패널/뷰어 주입) + `tools/study_runtime.py`(자립형 런타임 — 근거 점프·플로팅 리더·도표 뷰어·노트 내보내기·형광펜) + `tools/memo_inject.py`(자립형 학습 메모). Stage 11 데이터 + 캡션 번역 후 검증: `tools/check_study_refs.py`(ref 실존 + 캡션 KR — 단, 문장이 structured.json이 아닌 translations/manual.json에 있는 구세대 논문에서는 DOM ref 대조로 대체) · `tools/check_html_escape.py`. LLM 서술 톤 점검: `tools/tone_lint.py`(감성 온도 0 안티패턴 탐지·`--fix`).
 
 **정본 레퍼런스 (수정 금지 — 신규 논문이 따라갈 기준)**
 - **디자인 정본 (v4, 신규 논문 기준)** — `samples/cares/CARES_output.html`(4세대 — 대시보드 topbar·숫자 없는 8탭(Paper Study 포함)·해시 라우팅·저채도 팔레트) + **범용 변환 도구 `tools/restyle_dash_v4.py`**(config#meta 기반 — 논문별 수정 0곳). 전체 규약: `rules/design_v4_dashboard.md`
@@ -37,7 +37,7 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 - **근거 점프**: 모든 분석·주장에 `.ev-chip` — sentence_id/자산 id로 Translation 탭 해당 위치로 점프 + 하이라이트, 해시 라우팅이라 뒤로 가기로 복귀.
 - **메모 지속성**: localStorage 자동 저장 + 내보내기/가져오기 (단일 HTML 특성상 노트는 파일이 아닌 브라우저에 남으므로). 내보내기는 최초 1회 폴더 지정 후 `papers/[name]/study/`에 무다이얼로그 저장.
 - **문장 형광펜**: 플로팅 리더·Translation 탭에서 문장 클릭 = 하이라이트 토글 (영·한 쌍 동기, localStorage `hl:*` 영구 저장, 노트 내보내기 포함). 단락 읽음 체크(read:*)는 반대로 **세션 한정** — 파일 재오픈 시 초기화, 노트 파일로만 보존.
-- **학습 메모(플로팅)**: 우측 상단 플로팅 "메모" 버튼(to-top의 x · topbar 바로 아래 y) → 자유 서식 메모장 드로어. 쓰는 대로 자동 저장(localStorage), 내보내기 JSON의 `notes.memo`(plain text)에 포함되며, **⑥ Q&A 탭을 작성할 때 이 메모의 질문들이 1순위 재료가 된다** (전용 카테고리 "내가 남긴 질문" — 정본 규칙: `prompts/10_qa.md` § 사용자 학습 메모 반영).
+- **학습 메모(플로팅)**: 우측 상단 플로팅 "메모" 버튼(to-top의 x · topbar 바로 아래 y) → 자유 서식 메모장 드로어. **어떤 오버레이가 열려 있어도 항상 쓸 수 있어야 한다** (아래 § 메모 상시 접근 레이어). 쓰는 대로 자동 저장(localStorage), 내보내기 JSON의 `notes.memo`(plain text)에 포함되며, **⑥ Q&A 탭을 작성할 때 이 메모의 질문들이 1순위 재료가 된다** (전용 카테고리 "내가 남긴 질문" — 정본 규칙: `prompts/10_qa.md` § 사용자 학습 메모 반영).
 - 데이터 = `tabs_data/study.json` (작성 규칙 `prompts/11_paper_study.md`), 컴포넌트 = `rules/component_rules.md` §17, 탭 규약 = `rules/design_v4_dashboard.md` §3-bis. study.json이 없으면 빌더가 자동으로 셸 렌더.
 - 정본 사례: `samples/cares` (첫 적용, 2026-07-08).
 
@@ -46,11 +46,13 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 학습 중 메모 드로어에 남긴 질문으로 **그 자리에서 ⑥ Q&A 카드를 증분 생성**하는 기능. 메모 드로어 안 **"🤖 Q&A 생성" 버튼**(amber `.qa-gen-bar`). 브라우저는 CLI를 직접 못 부르므로 **로컬 다리 서버**를 경유한다.
 
 - **브릿지 `tools/qa_bridge.py`** (사용자가 미리 `python tools/qa_bridge.py` 실행, 기본 `127.0.0.1:8787`, stdlib만): 버튼 → `POST /gen-qa {short, memo}` → 헤드리스 `claude -p`(`--permission-mode acceptEdits --allowedTools Bash Edit MultiEdit Write Read Glob Grep`) spawn → **Stage 9+10 자동 수행**(prompts/10_qa.md 지침대로 qa.json 카테고리 M "내가 남긴 질문"에 append + `<section id="tab-qa">`에 `.qa-mem-card` 주입 + 필요 시 codex 보조 이미지 base64 인라인). 모델 지정 `QA_BRIDGE_MODEL=sonnet`, 권한 우회 `QA_BRIDGE_SKIP_PERMS=1`.
-- **증분 + 중복 방지**: `study/.qa_state.json`에 (a) 마지막 메모 sha256 (b) 이미 생성한 질문 원문 목록 기록. 동일 해시면 claude 미실행 `nochange`. 다르면 이미 생성한 질문 목록을 프롬프트로 넘겨 **의미 겹침 dedup + 새 질문만 append**. HTML `data-qid` 레벨에서도 중복 카드 방지. 클라이언트도 djb2 해시로 선차단(+'그래도 다시 생성' 우회).
+- **증분 + 중복 방지**: `study/.qa_state.json`에 (a) 마지막 메모 sha256 (b) 이미 생성한 질문 원문 목록 기록. 동일 해시면 claude 미실행 `nochange`. 다르면 이미 생성한 질문 목록을 프롬프트로 넘겨 **의미 겹침 dedup + 새 질문만 append**. HTML `data-qid` 레벨에서도 중복 카드 방지. 클라이언트도 djb2 해시로 선차단(+'그래도 다시 생성' 우회). 장부는 카드가 아니라 **메모 항목 단위**로 남긴다(`QA_RESULT.new_cards[].covers` 평탄화 → `generated_questions`).
+- 🔴 **카드 수 상한 없음 + 군집화 (2026-09-10, 브릿지 v1.2)**: 이전 프롬프트의 "한 번에 최대 6개" 상한은 성공 시 메모 **전체** 해시가 `processed_hash`로 봉인되는 구조와 결합해, 미뤄진 질문을 **영구히 생성 불가**로 만들었다(papers 26·30이 정확히 6개에서 멈춰 있었다). 상한을 없애고 대신 **관련 있는 메모 항목을 한 카드로 묶어 연결된 설명**으로 답한다 — 한 질문의 답이 다음 질문의 전제가 되도록 논리 사슬로 잇고, 카드가 답하는 메모 원문 질문은 `<ul class="qa-mem-covers">`로 헤더 아래 표시한다(하위 질문 1개면 생략). 억지 병합 금지, 한 묶음이 5개를 넘으면 논리적으로 쪼갠다. 카드 수는 메모의 주제 수가 결정한다. 정본: `prompts/10_qa.md` § 군집화.
+- 🔴 **해시 봉인 규칙 — 영구 차단 경로 제거**: `ok`+`deferred==0`이면 `processed_hash` 갱신, `ok`+`deferred>0`(남긴 질문 있음)이면 **갱신하지 않는다**(같은 메모로 다시 눌러 이어받기). `noop`(새 질문 없음 판정)은 `processed_hash` 대신 **`noop_hash`**에만 기록하고, 게이트는 둘 중 하나라도 맞으면 `nochange`를 돌려주되 `reason`으로 구분해 noop 쪽은 '그래도 다시 생성' 우회를 노출한다 — claude의 오판이 그 메모를 영구 차단하지 못하게.
 - **자동 JSON 저장**: 생성 직전 메모를 `study/{Short}_study_notes_YYMMDD.json`으로 저장(Stage 9 입력 형식).
 - **내용 무손실 + 우아한 실패**: 메모 textarea/localStorage는 절대 비우지 않고 새로고침 전에도 확정 저장. 브릿지가 꺼져 있고 자동 시작도 실패하면 실행 방법 안내(다른 PC의 self-contained HTML에서도 버튼만 무해하게 존재).
 - **버튼 클릭 = 브릿지 자동 시작 (`qabridge://` 프로토콜, 2026-07-09)**: 브라우저는 CLI를 직접 못 켜므로, 버튼이 `/ping` 실패를 감지하면 숨김 iframe 으로 `qabridge://start` 를 열고 → Windows 가 `tools/qa_bridge_start.bat`(ASCII 전용 런처)을 실행 → 브릿지 기동 → 클라이언트가 최대 16초 폴링 후 진행. 공용 헬퍼 `window.__qaBridgeEnsure(onReady,onStatus)`(두 주입 스크립트가 가드로 1회 정의)가 담당. **최초 1회 등록**: `python tools/qa_bridge_register.py`(HKCU\Software\Classes\qabridge, 관리자 불필요 · `--unregister`/`--status`). 브릿지는 프로토콜 재실행·URL 인자(`parse_known_args`)·포트 사용중(graceful exit)에 견딤.
-- **버튼 주입기 `tools/qa_button_inject.py`**: `.memo-drawer`(자립형·CARES-통합형 공통 DOM)에 런타임 JS로 버튼 + `.qa-mem-*` 카드 CSS를 additive 주입. 헤더 주석으로 구버전 블록을 식별해 **제거 후 재주입(업데이터)** — `--all`로 일괄 갱신. z-index는 드로어(1650) 상속.
+- **버튼 주입기 `tools/qa_button_inject.py`**: `.memo-drawer`(자립형·CARES-통합형 공통 DOM)에 런타임 JS로 버튼 + `.qa-mem-*` 카드 CSS를 additive 주입. 헤더 주석으로 구버전 블록을 식별해 **제거 후 재주입(업데이터)** — `--all`로 일괄 갱신. z-index는 드로어(2400) 상속.
 - 정본 사례: `samples/cares` (버튼 주입 완료). 배포 킷은 논문 데이터를 포함하지 않으므로, 신규 논문은 빌드 후 `python tools/qa_button_inject.py "papers/N. name"`로 주입. ⑥ 실제 채움은 사용자가 버튼을 눌러 온디맨드.
 
 ### 기본 빌드 범위 — ⑤ ⑥은 셸만 (사용자 명시 정책)
@@ -173,6 +175,32 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 - **적용 범위**: 신규 논문 생성(위 모든 Stage)에 기본 적용. 정본 사례 `samples/cares`는 이 정책으로 정리 완료(tone_lint 0건).
 - 교차 참조: `prompts/03_translation.md`, `rules/analysis_rules.md`, `rules/coaching_rules.md`, `rules/knowledge_rules.md`, `prompts/10_qa.md`, `prompts/11_paper_study.md`.
 - 검출·수정 도구: `tools/tone_lint.py "papers/N. name"`(단일) / `--all`(전체 리포트) / `--fix`(안전한 치환만 자동 적용).
+
+### 🔴 메모 상시 접근 레이어 — 어떤 오버레이 위에서도 메모 가능 (정책, 2026-09-02 신설)
+
+학습 메모는 **읽는 도중에 떠오른 것을 그 자리에서 적는** 도구다. 그림을 확대해 놓고, 자산 학습 가이드를 펼쳐 놓고, 플로팅 리더로 문단을 읽는 **그 순간**이 메모가 가장 필요한 순간이므로, 메모는 다른 UI 뒤로 숨거나 그것과 겹쳐서는 안 된다.
+
+- **세로(z-index) 규약**: `.memo-fab` · `.memo-drawer` = **2400** — 라이트박스(2000) · 노트 선택(1700) · 학습 가이드 드로어(1600) · 자산 뷰어(1500) · 플로팅 리더(1450) **위**. (이전 규약 1650은 라이트박스·노트 선택 아래라 불충분했다.)
+- **가로(자리) 규약**: z만 올리면 겹쳐 가린다. 그래서 자리도 배분한다 — ① 학습 가이드 **사이드 드로어**가 열리면 메모 버튼·드로어를 그 **왼쪽에 나란히** 세운다. ② 메모가 열리면 전체화면 오버레이(라이트박스·자산 뷰어·플로팅 리더·노트 선택·구세대 `.study-modal`)의 `right` 를 메모 폭만큼 좁혀 겹침을 0으로 만든다(내부 vw 기반 폭도 함께 축소 → 가운데 정렬 유지).
+- 🔴 **가로 규약의 상한 — 겹침 0보다 읽을 수 있음이 먼저다 (2026-09-02 추가, v5)**: 위 ①②를 **상한 없이** 적용하면 좁은 화면에서 정작 봐야 할 것이 사라진다. 1080px 에서 가이드(440) + 메모(380) 를 함께 열면 자산 뷰어에 260px 만 남아 내부 `.av-panel` 이 `calc(95vw − 820px)` = 206px 로 뭉개졌다(세로 한 줄). `@media (min-width:1000px)` 게이트는 1080px 을 통과시키므로 방어가 되지 않는다. **뷰포트 폭 상수로 가르지 말고, 남는 폭을 계산해 판정한다.**
+  - **판정 기준**: 오버레이가 열려 있으면 `0.95·vw − 예약폭 ≥ 560px`, 없으면 `vw − 예약폭 ≥ 360px`. (오버레이 내부 패널이 vw 의 95% 안에서 다시 좁아지므로 그 몫까지 빼고 본다.)
+  - **예약폭**: 나란히 서면 `메모 + 가이드`, 겹쳐 뜨면 `max(메모, 가이드)` — 겹쳐 뜰 때 넓은 쪽(가이드 440)으로 잡아야 가이드가 오버레이 위로 삐져나오지 않는다.
+  - **3단 강등**: 나란히 → (자리 없으면) 메모가 가이드 **위에** 뜨고 오버레이는 예약폭만큼만 축소 → (그것도 안 되면) **축소를 포기**하고 메모가 오버레이 위에 뜬다(`body.mlx-float`). 좁혀서 못 읽게 만드는 것보다 낫고, 메모를 닫으면 즉시 원래 폭으로 돌아온다.
+  - **CSS 하한**: 모든 `calc(… − var(--overlay-right))` 에 `max(540px, …)`(캡션류 340px) 를 씌워, JS 판정이 한 프레임 늦어도 패널이 하한 아래로 찌그러지지 않게 한다.
+  - 측정값(papers 30 · 자산 뷰어 + 가이드 + 메모 동시): 1600px 나란히·뷰어 780 / 1440~1080px 겹침·뷰어 1000~640 / 900px 이하 `mlx-float`·뷰어 전폭. **v4 는 1080px 에서 뷰어 260px 이었다.**
+- 🔴 **가이드는 메모에 덮이지 않는다 + 이미지 전용 모드 (2026-09-02 추가, v6)**: v5 는 자리가 부족하면 메모를 가이드 **위에** 띄웠는데, 그러면 정작 학습 가이드가 안 보인다(1080px 에서 가이드 440 + 메모 380 이 그 경우). 두 가지로 푼다.
+  - **좁은 화면에서 두 드로어를 함께 줄인다** — 가이드 `clamp(300px, 36vw, 440px)` · 메모 `clamp(280px, 32vw, 380px)` (`vw < 1200` 에서만; 그 위에서는 clamp 상한에 걸려 원래 폭). 나란히 서는 구간이 1440px → 950px 까지 내려간다.
+  - **학습 가이드를 열면 자산 뷰어는 이미지 전용이 된다** (`body.mlx-guided`) — 원문 캡션·번역(`.av-text`)을 감추고 `.av-img img{max-height:82vh}` 로 이미지를 키운다. 캡션·번역은 가이드가 이미 담고 있으므로 중복이고, 이미지만 남으면 필요한 폭이 560 → 260px 로 줄어 세 패널이 1080px 에서도 공존한다. **가이드를 닫으면 캡션·번역이 그대로 돌아온다.**
+  - 뷰어를 왼쪽으로 미는 논문 자체 규칙(`.av-shift{padding-right:470px}` 고정값)은 실제 가이드 폭(`calc(var(--sd-w) + 22px)`)으로 교정한다.
+  - 측정값(papers 30 · 셋 다 열림): 1600px 이미지 647 → **681**(가이드 열면 오히려 커진다) / 1080px 겹침 0 · 패널 291 / 950px 겹침 0 · 패널 260.
+- **닫기 규약**: ① × 버튼 ② 메모 안 ESC ③ **메모 바깥 두 번 연속 클릭**(2026-09-02 추가). 한 번 클릭으로는 닫지 않는다 — 그림·문장·가이드를 클릭하며 읽는 도중에 메모가 저절로 사라지면 안 되기 때문. 더블클릭은 `document` capture 에서 받되 `.memo-drawer`/`.memo-fab` 안에서 난 것은 제외하고, 뒤의 가이드·뷰어는 그대로 둔다.
+- **키 입력 격리**: 메모에 포커스가 있는 동안 keydown 을 window capture 에서 가둔다. ESC 는 **메모만** 닫고(뒤의 라이트박스·드로어는 유지), 화살표·문자키가 플로팅 리더 이동이나 라이트박스 단축키로 새지 않는다.
+- **클릭 격리**: 구세대 자산 해설(`.study-modal`, papers 3·24 계열)은 `document` 에 "바깥 클릭이면 닫는다"를 걸어 두는데 그 바깥에 메모도 포함돼, **메모 버튼을 누르면 해설이 닫혀** 버렸다. 메모 UI 안에서 시작한 click·mousedown 은 `document` 까지 올려보내지 않는다.
+- **도구**: `tools/memo_layer_fix.py "papers/N. name"` (견본은 "samples/cares") / `--all` (additive · idempotent · 업데이터). **`restyle_dash_v4.py` 이후, 다른 주입기들과 같은 자리에서 돌린다.**
+- **검사**: `tools/check_memo_layer.py "papers/N. name"` (견본은 "samples/cares") / `--all` — 헤드리스 Chromium 으로 bounding box 교집합이 실제로 0인지 측정한다(정적 grep 은 z-index 숫자만 볼 수 있어 "겹치는가"를 못 본다). **1600px(겹침 0) 과 1080px(자리 배분) 두 뷰포트를 모두 돈다** — 좁은 화면 항목은 자산 뷰어 + 가이드 + 메모를 동시에 열고 ① 캡션·번역이 감춰졌는지 ② 메모 ↔ 가이드 겹침 0 · 둘 다 화면 안 ③ 패널 ≥ 260px ④ 한 번 클릭으로는 안 닫히고 두 번 클릭이면 메모만 닫히는지를 확인한다. playwright 없으면 skip.
+- **세대 차이 주의**: 자산 학습 가이드가 papers 4~35 는 사이드 드로어(`.study-drawer`)지만 papers 3(SGL)은 **화면을 덮는 `.study-modal`** 이고, papers 1~2 는 아예 없다. 라이트박스 닫기 버튼도 papers 4~25 는 `position:fixed`(뷰포트 기준이라 컨테이너를 좁혀도 안 따라옴), 26~35 는 `absolute`(자동으로 따라옴)로 갈린다. 그래서 도구는 **폭이 뷰포트의 60% 이하일 때만 사이드 드로어로 취급**하고, `position:fixed` 자식은 계산된 스타일로 찾아 직접 밀어준다.
+
+> 🔴 **정본 학습 사례 (회귀의 원인)**: 2026-07-09 의 z-index 1650 수정은 **빌드된 HTML 에만** 적용되고 `_build.py` 템플릿에는 반영되지 않았다. 그 결과 CARES(26) 의 `_build.py` 를 복사해 만든 **papers 27~35 전부가 205/300 으로 회귀**했다(2026-09-02 발견). 교훈: **산출물만 고치고 빌더를 안 고치면 다음 논문에서 그대로 되살아난다.** 이번에 papers 26~35 의 `_build.py` 10개와 `tools/memo_inject.py` 를 함께 고쳐 원천을 막았다.
 
 ### 🔴 Study 답변 검토 + 보완 학습 (로컬 브릿지, 2026-07-09 신설)
 
@@ -306,24 +334,38 @@ codex CLI로 학습 보조 이미지를 생성할 때 prompt.txt 마지막에 **
 - **모드 A — codex PNG (기본)**: Claude가 Bash로 codex CLI ImageGen 직접 호출 → 래스터 PNG. 아래 6계명을 따른다. 전제: `codex` CLI 설치·로그인.
 - **모드 B — Claude SVG (대체·자체 생성)**: Claude가 **외부 도구 없이 인라인 `<svg>` 도식을 직접 작성**. codex 미설치 환경의 폴백이자, 벡터 도식이 더 적합할 때의 선택지. v3 토큰(`fill="var(--accent-soft)"` 등)으로 테마 일관.
 
-**선택 방법** — CLI: 사용자가 "codex로" / "SVG로(자체 생성)"로 지시(무지시 시 codex 가용하면 codex, 없으면 claude_svg 자동 폴백). 웹: 상단 토글에서 선택 → 매 메시지에 `[이미지 생성 모드: codex|claude_svg]` 태그가 붙어 전달됨. 두 모드의 전체 규약·SVG 작성 규칙·공통 임베드(`<figure class="concept-figure">`): **`rules/component_rules.md` §11.8**.
+**선택 방법** — CLI: 사용자가 "codex로" / "SVG로(자체 생성)"로 지시(무지시 시 codex 가용하면 codex, 없으면 claude_svg 자동 폴백). 웹: 상단 토글에서 선택 → 매 메시지에 `[이미지 생성 모드: codex|claude_svg]` 태그가 붙어 전달됨. 두 모드의 전체 규약·SVG 작성 규칙·공통 임베드(`<figure class="concept-figure">`): **`rules/component_rules.md` §11.9**.
 
-아래 6계명은 **모드 A(codex)** 에만 적용된다 (모드 B는 §11.8의 SVG 규약).
+아래 6계명은 **모드 A(codex)** 에만 적용된다 (모드 B는 §11.9의 SVG 규약).
 
 **생성 방식 — Claude가 Bash로 codex CLI 직접 호출** (별도 플러그인·MCP 자동화 없음, Bash 한 줄):
 
 > 정식 호출 형식·검증된 명령 템플릿·`<figure class="concept-figure">` 컴포넌트·자동화 스크립트 골격: **`rules/component_rules.md` §11**. 신규 논문 빌드 전 반드시 통독.
 
-**5계명 — Windows에서 한 번에 통과시키는 형식** (생략 시 인코딩/hang/컷아웃으로 막힘):
+**6계명 — Windows에서 한 번에 통과시키는 *호출* 형식** (생략 시 인코딩/hang/컷아웃/제목 잔존으로 막힘):
 1. **Bash 툴 사용** — PowerShell 5.1은 native exe로 한글을 CP949로 깨뜨림.
 2. **prompt.txt를 UTF-8로 작성**, codex 인자는 **ASCII 한 줄**로 그 파일을 읽으라는 지시만.
 3. **stdin은 `< /dev/null`** — codex가 stdin 입력 대기로 hang하는 것 차단.
 4. **스타일 명시** — 프롬프트에 "풀 블리드 일러스트 / 사진, 배경 가득, NOT a transparent cutout" 박아두기. imagegen 기본값이 컷아웃.
 5. **출력 경로 + 해상도 명시** — 절대 경로 + WxH (예: `1024x1024`).
+6. **이미지 내 논문 제목·헤더·저자명 금지** — prompt.txt 마지막 줄에 `NO paper title at top, NO standalone header, NO author names.`
+
+### 🔴 prompt.txt 본문 작성 = 이미지 품질의 단일 변수 (정책, 2026-08-01)
+
+위 6계명은 **호출**을 안정화할 뿐, 그림의 정보량은 **prompt.txt 본문**이 100% 결정한다. imagegen은 쓰지 않은 것을 채워 넣지 않는다 — 안 적은 패널은 여백이 되고, 안 적은 숫자는 나오지 않는다. 프롬프트는 그려 달라는 요청이 아니라 **완성된 그림을 글로 옮겨 적는 기술(記述)** 이다. 자가 점검: "이 글만 보고 내가 손으로 그릴 수 있는가?"
+
+- **정본 = `rules/component_rules.md` §11.8** — 필수 5블록 구조(캔버스·레이아웃·패널 명세·팔레트·스타일+6계명) / 패널마다 **(시각 형태 + 실제 수치 + 영어 캡션) 3요소** 의무 / 이미지 종류별 밀도 등급 / 병렬 호출 시 `--cd` 격리 / 생성 후 검수 체크리스트 / 실패 모드→처방 표.
+- **밀도 등급**: `dissection_overview`(1536×864)는 5단 × 서브패널 3~4개 = **15~20 패널로 최대 밀도**, 개념도(`knowledge_*`/`questions_*`, 1024×1024)는 **논점 하나 · 5~9 패널**, `qa_*`는 3~5 패널. 개념도에 overview 밀도를 넣으면 글자가 뭉개진다.
+- **숫자 의무**: "성능이 향상된다" 금지 → 논문 표·그림에서 읽은 실제 값(`12.5% -> 5.1% at L = 192`, `33,000 -> 14,000 -> 3,600`).
+- **기계 게이트 (선택)**: 키트에는 훅 스크립트만 들어 있고 `.claude/` 설정은 배포되지 않는다 - 각자 `.claude/settings.json` 에 PreToolUse(Bash) 훅을 걸면 그 훅이 `codex` 호출을 가로채 `tools/hook_precheck_codex.py` → `tools/check_image_prompts.py` 로 프롬프트를 검사하고, FAIL이 있으면 **호출을 차단**한다. 수동 확인은 `python tools/check_image_prompts.py "papers/N. name"` (훅 없이 그냥 돌려도 된다). 캔버스·5단 헤더·본문 수치 개수·분량 하한·`NOT a transparent cutout`·6계명·한자 이물을 기계적으로 잡는다.
+- **검수 2단**: ① 생성 직후 Claude가 PNG를 Read로 열어 §11.8.6 체크리스트 확인 → 미달이면 **프롬프트를 고쳐** 재생성(같은 프롬프트 재시도 금지). ② 사용자 검수는 사후.
+- 밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt`.
+
+> 정본 학습 사례 (실패→복구): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤을 그대로 따라 단마다 요소를 1~2개만 적어 헐거운 그림이 나왔고, 병렬 호출이 작업 디렉토리를 공유해 다른 프롬프트의 그림이 저장되는 사고도 함께 발생. §11.8 신설·§11.3 스켈레톤 교체·Stage 4 템플릿 교체가 그 직접 결과물이다 (2026-08-01).
 
 **저장**: `papers/[name]/assets/generated/` (prompt 파일·원본 PNG 둘 다 재생성·디버깅용으로 보존).
 **최종 HTML 임베드**: 위의 자산 임베딩 정책에 따라 **base64 인라인 의무**. 정본 컴포넌트 = `<figure class="concept-figure">` (§11.5).
-**검수**: 사후. 결과 HTML 보고 마음에 안 드는 이미지 있으면 별도 재생성 요청 — 사전 검수로 흐름 막지 않음.
+**검수**: 2단 — ① Claude 자체(의무): 생성 직후 PNG를 Read로 열어 §11.8.6 체크리스트 확인, 미달이면 프롬프트를 고쳐 재생성. ② 사용자: 사후 — 결과 HTML 보고 마음에 안 드는 이미지 있으면 별도 재생성 요청. **사용자** 사전 검수로 흐름을 막지는 않는다.
 
 ---
 
@@ -349,12 +391,12 @@ Paper_review_html/
 │   ├── 2. frame_fusion/   · ICCV 2025 (FrameFusion)      — 2세대
 │   ├── 3. sgl/            · CVPR 2025 (SGL, A Stitch …)  — 3세대 인터랙션 (견본 HTML은 배포본 미포함 — 개념 기록)
 │   └── 4. perceptron/     · Psych. Review 1958
-├── prompts/               ← LLM 단계별 프롬프트 (Stage 0~11 — workflow.md 참조)
+├── prompts/               ← LLM 단계별 프롬프트 (Stage 0~12 — workflow.md 참조)
 ├── rules/                 ← 디자인 / 분석 / 컴포넌트 규약
 ├── rawpaper/              ← 원본 PDF
 ├── samples/               ← 정본 HTML (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대)
-├── tools/                 ← 재사용 도구 (crop_assets.py, gen_tab_reading.py, reparse_pdf.py)
-└── workflow.md            ← 단계별 작업 흐름 (Stage 0~11)
+├── tools/                 ← 재사용 도구 (.py 25 + .bat 1 - 주요: crop_assets.py, restyle_dash_v4.py, memo_layer_fix.py, check_html_escape.py, tone_lint.py; 실행 순서는 workflow.md Stage 10 체인)
+└── workflow.md            ← 단계별 작업 흐름 (Stage 0~12)
 ```
 
 ### `papers/[name]/` 표준 레이아웃
@@ -387,7 +429,7 @@ papers/[name]/
 - **본문 구조화(Stage 2)** = `python tools/structure_paper.py "<pdf>" "papers/N. name/structured.json"` — 본문(Abstract→Conclusion) 전체를 컬럼 순서로 1:1 캡처(de-hyphenate·문장 분할·figure 내부 라벨 제외·References/Appendix 중단). **손으로 본문 일부만 담거나 문장을 합치지 말 것** — 이게 "번역 본문 찾기 문제"의 근본 해결.
 - **figure/표 크롭** = `python tools/autocrop_assets.py "<pdf>" "papers/N. name/assets"` → `--verify`로 여백(잘림) 점검. 좌표 하드코딩 금지(§Vector PDF 자산 크롭).
 - **HTML 조립** = 폴더의 `_build.py`. (정본 = `samples/cares/_build.py`.)
-- **dissection 총정리 오버뷰 이미지** = codex로 1회 생성해 `assets/generated/dissection_overview.png`로 **커밋**(그 PNG를 양쪽이 그대로 임베드 → 통일). codex 미사용/실패 시 빌더가 `overview` 데이터로 **결정적 인라인 SVG**를 렌더(§14 / §11.8 mode B).
+- **dissection 총정리 오버뷰 이미지** = codex로 1회 생성해 `assets/generated/dissection_overview.png`로 **커밋**(그 PNG를 양쪽이 그대로 임베드 → 통일). codex 미사용/실패 시 빌더가 `overview` 데이터로 **결정적 인라인 SVG**를 렌더(§14 / §11.9 mode B).
 
 **생성적 단계 = 공유 규칙으로 구조는 동일하게** (문장 wording은 run마다 다를 수 있음 — LLM 본질, byte 동일은 불가):
 - 번역(`translations/manual.json`)은 `structure_paper.py`가 만든 **동일한 sentence_id 전체**를 1:1로 채운다 → 커버리지·구조가 양쪽 동일.
@@ -433,6 +475,6 @@ papers/[name]/
 ## 참고 문서
 
 - `workflow.md` — 단계별 작업 흐름 (Cleaning → Structuring → Translation → Research Analysis → Coaching → Figure Interpretation → Background Knowledge → Simulator Design → QA Design → HTML Generation + Stage 11 Paper Study)
-- `prompts/01~11_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study 탭 study.json 작성)
+- `prompts/01~12_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study 탭 study.json 작성, 12 = 빌드 완료 논문의 정립·연구 멘토 세션 - 빌드 밖)
 - `rules/` — 파싱 / 분석 / 코칭 / 지식 / 수식 / 컴포넌트 규약 (특히 `rules/component_rules.md`가 탭 횡단 공용 컴포넌트 규약을 담는다)
 - `samples/` — 정본 (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대)

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-"""tone_lint.py — "감성 온도 0 · 논리 최대" 정책(CLAUDE.md, 2026-07-09) 위반 탐지.
+"""tone_lint.py - "감성 온도 0 · 논리 최대" 정책(CLAUDE.md, 2026-07-09) 위반 탐지.
 
 Claude 가 직접 쓴 한국어 서술 prose 에서 감성·감탄·응원·과장 수사를 찾아낸다.
 번역(① manual.json/refined.json)은 원문 충실성이 우선이라 **검사 대상에서 제외**한다.
 
 검사 대상 파일(논문 폴더 내):
   analysis.json · tabs_data/*.json(qa/dissection/knowledge/questions/study) · config.json
-  그리고 *_output.html 의 텍스트 노드(대략적 — 태그/스크립트 제외).
+  그리고 *_output.html 의 텍스트 노드(대략적 - 태그/스크립트 제외).
 
 사용법:
   python tools/tone_lint.py "samples/cares"      # 단일 논문 리포트
@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# (카테고리, 정규식, 설명) — 근거→함의 논리에 불필요한 감성 수사
+# (카테고리, 정규식, 설명) - 근거→함의 논리에 불필요한 감성 수사
 PATTERNS = [
     ("감탄·평가", r"흥미롭게도|흥미로[운움]|흥미롭다|흥미로웠|놀랍게도|놀라운|경이로[운움]|인상적(?:인|이다|으로|이었)|압도적(?:인|이다|으로)|주목할\s*만한|눈길을\s*끄는"),
     ("평가 형용사", r"우아(?:한|하게|함|하다)|훌륭(?:한|하다|합니다|해요|히)|매력적(?:인|이다|이었)|아름다[운움]|보기\s*드[문물]|기발한|절묘한|영리(?:한|하게)"),
@@ -38,7 +38,7 @@ COMPILED = [(c, re.compile(p), p) for c, p in PATTERNS]
 
 # 문법적으로 안전한 자동 치환(JSON 문자열 값 한정). 명사 수식어 삭제·문두 부사 삭제 등
 # 앞뒤 맥락을 파괴하지 않는 것만. 술어("특히 흥미롭다") 삭제나 의미 있는 부사("정말"→상황별)는
-# 문법·의미 파괴 위험이 있어 제외 — 리포트만 남기고 사람/Claude 가 직접 Edit.
+# 문법·의미 파괴 위험이 있어 제외 - 리포트만 남기고 사람/Claude 가 직접 Edit.
 SAFE_FIX = [
     (re.compile(r"흥미롭게도,?\s*"), ""),             # 문두 감성 부사 → 삭제
     (re.compile(r"놀랍게도,?\s*"), ""),
@@ -106,7 +106,7 @@ def apply_fix(folder):
             try:
                 json.loads(new)
             except Exception as e:
-                print(f"  [skip-fix] {p.name}: 치환 후 JSON 깨짐 ({e}) — 수동 확인 필요")
+                print(f"  [skip-fix] {p.name}: 치환 후 JSON 깨짐 ({e}) - 수동 확인 필요")
                 continue
             p.write_text(new, encoding="utf-8")
             changed.append(p.name)
@@ -122,7 +122,7 @@ def report_folder(folder, verbose=True):
             per[p.name] = hits
             total += len(hits)
     if verbose:
-        print(f"\n=== {folder.name} — 감성 안티패턴 {total}건 ===")
+        print(f"\n=== {folder.name} - 감성 안티패턴 {total}건 ===")
         for name, hits in per.items():
             print(f"  [{name}] {len(hits)}건")
             for cat, word, ctx in hits[:40]:
