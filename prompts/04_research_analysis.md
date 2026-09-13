@@ -53,11 +53,13 @@ Your role is to **reconstruct the author's research thinking process**.
 | 7 | `diss-extend` | Research Expansion | 자연스럽게 이어지는 후속 질문은? |
 | **8** | **`diss-summary`** | **논문 총정리** | **위 1~7을 한 카드에 압축. 9-row 정형 + 한 장 overview 이미지** |
 
-### 8번 카드 — `diss-summary` 세부 규약 (5세대 정본 = `papers/21. lv_pruning`)
+### 8번 카드 — `diss-summary` 세부 규약 (정본 = `samples/cares/tabs_data/dissection.json`)
 
 > **갱신 정책 (2026-05-12)**: 기존 4-row(관찰/방법/차별/결과) 정형은 **9-row 정형**으로 확장. \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해할 수 있는 깊이</em>\"가 기준. 기존 4-row paper(SAFE/FrameFusion/SGL/SparseVLM 등)는 점진적 마이그레이션 권장.
 
 마지막 카드는 다른 카드들과 같은 마크업 구조(`diss-card diss-summary` + `diss-step "08"` + `diss-head` + `diss-rows`)를 쓰되, **rows는 다음 9개를 모두 포함**한다.
+
+(예: AI/CS 논문 — 아래 표의 예시 문구는 LVPruning 기준. 실제 작성 시 `config.json#domain.evidence_types`·`metric_conventions` 의 단위·증거로 치환한다.)
 
 | # | tag | 내용 |
 |---|---|---|
@@ -67,7 +69,7 @@ Your role is to **reconstruct the author's research thinking process**.
 | 4 | **기존 방법은 왜 부족한가 (Gap)** | 비교 대상 갈래(A/B/C)별로 무엇이 부족한지. 단순 단점 나열이 아닌 \"<em>아무도 X+Y를 동시에 안 했다</em>\"의 구조적 빈자리 명시. |
 | 5 | **어떻게 해결했나 (Method)** | 핵심 메커니즘을 단계(① → ② → ③)로 나열. 수식 번호·변수·핵심 트릭(예: Gumbel-Softmax, attention masking)을 그대로. 가정/제약(training-free 여부 등) 한 줄. |
 | 6 | **다른 논문과 무엇이 다른가 (Novelty)** | 1~3개 차별점을 굵게. \"<em>축이 다르다</em>\" 식의 구조적 차이를 잡는다 — \"layer 진행 중 점진 가지치기 + cross-modal 가이드 + plug-and-play\". |
-| 7 | **효과 — 숫자 (Results)** | ① 핵심 절감/정량 수치 ② 비교 baseline 대비 격차 ③ 추가 trade-off 옵션 ④ 자체 overhead. 모든 숫자에 단위 표기 (TFLOPs / %p / × / +N.Np). |
+| 7 | **효과 — 숫자 (Results)** | ① 핵심 절감/정량 수치 ② 비교 baseline 대비 격차 ③ 추가 trade-off 옵션 ④ 자체 overhead. 모든 숫자에 단위 표기 (예: AI/CS — TFLOPs / %p / × / +N.Np; 단위·지표는 `config.json#domain.metric_conventions`). |
 | 8 | **한계와 의미 (Limitations & Implication)** | ablation 부재·단일 base model·real-world 미검증 등 구체적 한계 + \"그럼에도 의미\"의 시사점 한 줄. |
 | 9 | **30초 요약 (For Beginners)** | 전혀 모르는 사람을 위한 한 단락. 비유·일상어로 풀어쓰며 학술 용어는 괄호 병기. 다른 row들이 학자 대상이라면 이건 일반인 대상. |
 
@@ -176,7 +178,7 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 
 `papers/[name]/assets/generated/prompt_dissection_overview.txt` (UTF-8) 안에 포함할 표준 구성 — 5단 좌→우 흐름.
 
-> 🔴 **밀도가 품질을 결정한다 (정책, 2026-08-01)** — 아래 골격에 단마다 요소를 1~2개만 채워 넣으면 imagegen이 여백 큰 헐거운 그림을 낸다. **단마다 번호 붙인 서브패널 3~4개**를 각각의 시각 형태와 **논문의 실제 수치**까지 지정해야 20·24·25번 수준이 나온다.
+> 🔴 **밀도가 품질을 결정한다 (정책, 2026-08-01)** — 아래 골격에 단마다 요소를 1~2개만 채워 넣으면 imagegen이 여백 큰 헐거운 그림을 낸다. **단마다 번호 붙인 서브패널 3~4개**를 각각의 시각 형태와 **논문의 실제 수치**까지 지정해야 정본(`samples/cares`) 수준이 나온다.
 > 프롬프트 본문 작성의 일반 정본(5블록 구조 · 패널 3요소 · 밀도 등급 · 병렬 격리 · 검수 체크리스트 · 실패 처방)은 `rules/component_rules.md` **§11.8**, overview 전용 추가 제약은 같은 문서 **§14.5**.
 
 ```
@@ -245,7 +247,7 @@ Follow every sub-panel it lists - do not simplify or omit panels, and do not lea
 ```
 
 생성 후 **PNG를 직접 열어** 수치 오기·패널 누락·여백 과다를 확인한다. 헐거우면 프롬프트를 더 조밀하게 고쳐 재생성.
-밀도 정본 3편: `papers/20. sparse_vlm` · `papers/24. geollava8k` · `papers/25. visiondrop` 의 `prompt_dissection_overview.txt`.
+밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt` (모체의 papers/20·24·25 는 배포본 미포함).
 
 ---
 

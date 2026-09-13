@@ -108,7 +108,7 @@ claude -p \
 
 1. 대시보드 접속(localhost) → 상단에 인증 상태 표시("Claude 로그인됨: ○○" / 미로그인 시 안내).
 2. **PDF 업로드** → 백엔드가 `rawpaper/`에 저장하고 `papers/N. shortname/` 골격 생성. 폴더명 규약(`N. shortname`) 자동 제안.
-3. 채팅에 자연어로: *"이 논문 workflow.md Stage 0~11로 v4 8탭 HTML 만들어줘. 디자인은 rules/design_v4_dashboard.md 정본(_build.py 조립 → tools/restyle_dash_v4.py 변환), Paper Study는 준비되면 채우고 ⑤⑥은 셸만."*
+3. 채팅에 자연어로: *"이 논문 workflow.md 빌드 단계(Stage 0~11)로 v4 8탭 HTML 만들어줘. 디자인은 rules/design_v4_dashboard.md 정본(_build.py 조립 → tools/restyle_dash_v4.py 변환), Paper Study는 준비되면 채우고 ⑤⑥은 셸만."*
 4. 진행이 실시간 로그로 흐름(텍스트 + 도구 배지). 중간에 "그림 다시", "이 번역 어색해" 교정 가능.
 5. 완성되면 **미리보기 iframe** + **다운로드 버튼**. 결과는 self-contained HTML 한 장.
 

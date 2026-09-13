@@ -28,7 +28,9 @@ observation → dissatisfaction with prior work → new idea → implementation 
 
 - 본문 문단 ID (`p3`, `p20`)
 - Figure / Table ID (`fig_2`, `table_1`)
-- 구체적 수치 (예: "C=30%에서 2.4%p 하락")
+- 구체적 수치 (예: AI/CS — "C=30%에서 2.4%p 하락"; 재료공학 — "100 사이클 후 용량 유지율 92%")
+
+"증거"로 인정하는 것의 종류(표·벤치마크 / 측정 그래프·현미경 이미지 / 사료·설문·통계표)와 수치 단위·표기는 `config.json#domain.evidence_types`·`metric_conventions`(정본: `rules/domain_profile.md`)를 따른다.
 
 ## Output Discipline
 
@@ -63,5 +65,5 @@ CSS와 직접 결합되어 있으므로 클래스명을 임의로 바꾸면 렌�
 2. key observation (저자가 직접 본 것)
 3. difference from prior work (무엇이 다른가)
 4. execution logic (아이디어 → 메서드)
-5. evidence (실험이 무엇을 증명하는가)
+5. evidence (실험·관측·자료가 무엇을 증명하는가 — 종류는 `config.json#domain.evidence_types`)
 6. limitations (어디서 무너지는가)

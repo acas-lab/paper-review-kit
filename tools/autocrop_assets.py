@@ -37,8 +37,8 @@ USAGE (library):
   from tools.autocrop_assets import autocrop
   autocrop("rawpaper/Paper.pdf", out_dir="papers/N. name/assets", dpi=200)
 USAGE (cli):
-  python tools/autocrop_assets.py "rawpaper/Paper.pdf" "papers/1. fastvlm/assets"
-  python tools/autocrop_assets.py --verify "papers/1. fastvlm/assets"   # margin check
+  python tools/autocrop_assets.py "rawpaper/Paper.pdf" "papers/1. shortname/assets"
+  python tools/autocrop_assets.py --verify "papers/1. shortname/assets"   # margin check
 """
 from __future__ import annotations
 import re

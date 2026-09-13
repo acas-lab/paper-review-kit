@@ -15,7 +15,7 @@
 
 사용법:
   python tools/reader_asset_chip.py --all
-  python tools/reader_asset_chip.py "papers/20. sparse_vlm"
+  python tools/reader_asset_chip.py "papers/1. shortname"
   python tools/reader_asset_chip.py "samples/cares"
   python tools/reader_asset_chip.py --check            # 주입 여부만 보고(무수정)
 """
@@ -148,7 +148,7 @@ def _block(close_stmt, jump_stmt, indent):
     return "".join((indent + ln).rstrip() + "\n" for ln in lines)
 
 
-# ------------------------------------------------- 세대 A: papers 4~35 (빌더/산출물)
+# ------------------------------------------------- 세대 A: 빌더/산출물 세대 (모체 papers 4~35 — 배포본 미포함)
 A_ANCHOR = "    function readerRender(){\n"
 A_OLD = "      clone.querySelectorAll('.asset-stack, .pid-tag').forEach(function(n){ n.remove(); });"
 A_NEW = ("      clone.querySelectorAll('.pid-tag').forEach(function(n){ n.remove(); });\n"

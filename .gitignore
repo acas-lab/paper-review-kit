@@ -18,6 +18,10 @@ venv/
 **/assets/pages/
 **/_contact.png
 
+# 사용자 개인 연구 프로파일 (Stage 12)
+research_profile.json
+research/
+
 # Claude Code 로컬 설정
 .claude/
 

@@ -4,6 +4,8 @@
 콘텐츠가 된다. 탭 등록·라우팅 규약 = `rules/design_v4_dashboard.md` §3-bis, 컴포넌트 정본 =
 `rules/component_rules.md` §17, 구현 정본 = `samples/cares/_build.py` + `samples/cares/tabs_data/study.json` (배포본에 동봉된 실제 v4 8탭 정본).
 
+> 이 킷은 특정 분야(AI/ML)에 묶이지 않는다. 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만든다. 분야에 따라 달라지는 것(용어 표기 관행·증거의 종류·대안 설명 축·배경지식 단위·학회/저널 메타)은 `config.json#domain`(정본: `rules/domain_profile.md`)에서 읽어 채운다. 문서 안의 ML 논문 예시는 **예시일 뿐** 규칙이 아니다.
+
 ## 이 탭의 성격 — 다른 탭과 무엇이 다른가
 
 Dissection·Background·Diagrams는 Claude의 **완성된 해설**이다. Paper Study는 **사용자가 직접 쓰는
@@ -59,13 +61,13 @@ Dissection·Background·Diagrams는 Claude의 **완성된 해설**이다. Paper 
       "guide_questions": [                          // 3~4개 — 답을 주지 않는 열린 질문 + 단락 리더 버튼
         {"q": "...", "ref": "p_m_label", "label": "§3.2 보기"}   // ref = paragraph id → 플로팅 리더
       ],
-      "placeholder", "min_chars": 80, "claude_html", "evidence"
+      "placeholder", "min_chars": 80, "claude_html" /* 🔴 필수 */, "evidence"
     },
     "conclusion": {      // Step 5 — prompt 없음 (지시문 금지, read 패널이 대신)
       "title",
       "read": [{"sec": "s_results", "label": "§4.2~ 결과", "pids": [/* 4.2 이후만 */]}],
       "result_assets": ["table_2", "..."],         // §4(결과)의 자산만 — 클릭 시 도표 뷰어
-      "placeholder", "min_chars": 80, "claude_html", "evidence"
+      "placeholder", "min_chars": 80, "claude_html" /* 🔴 필수 */, "evidence"
     }
   },
   "phase3": {
@@ -85,6 +87,10 @@ Dissection·Background·Diagrams는 Claude의 **완성된 해설**이다. Paper 
   }
 }
 ```
+
+🔴 **`phase2.method.claude_html`·`phase2.conclusion.claude_html`은 필수** — 빌더가 `met["claude_html"]`·`conc["claude_html"]`로
+직접 인덱싱하므로(`samples/cares/_build.py` L316·L323) 키가 없으면 KeyError로 빌드가 중단된다. 다른 Step의 prompt/guide/evidence와
+달리 `.get()` 폴백이 없다.
 
 빌더(`guide_p()`)는 prompt/guide가 없으면 지시문 단락을 렌더하지 않는다 — **Step 4의 prompt(가이드
 질문 사용법 한 줄)만 유일한 예외**로 유지하고, 나머지 Step은 지시문 없이 read 패널 + placeholder로
@@ -147,19 +153,22 @@ Step 1·5 썸네일 클릭 시 열리는 도표 뷰어는 **이미지 + 원문 �
 - **`config.json#captions_en` = 영어 원문 캡션** (뷰어 "원문 캡션"). fulltext.txt에서 추출하되,
   PDF 열 흐름이 섞이므로 캡션의 자연스러운 끝에서 수동으로 잘라내고 하이픈 분절(`num- ber`)을 복원.
 - **`config.json#captions` = 한국어 번역 캡션** (뷰어 "번역"). 🔴 **기존 `captions`가 영어면 반드시 한국어로
-  번역**한다 — 구세대 논문(4~19, 21)은 `parsing_rules.md`의 옛 정의("원문 캡션") 탓에 여기에 영어가 들어
-  있다(정본 사례: 21. lv_pruning). 영어 그대로 두면 뷰어 "번역"에 원문이 노출된다. 번역은 `prompts/03`의
-  무리한 한국어 변환 금지 정책 적용(ML 표준 용어는 영문 유지). 정정된 규약: `rules/parsing_rules.md` §3-2.
+  번역**한다 — 구세대 빌드는 `parsing_rules.md`의 옛 정의("원문 캡션") 탓에 여기에 영어가 들어
+  있을 수 있다(모체 사례 — 배포본 미포함). 두 필드가 올바르게 분리된 정본: `samples/cares/config.json`.
+  영어 그대로 두면 뷰어 "번역"에 원문이 노출된다. 번역은 `prompts/03`의
+  무리한 한국어 변환 금지 정책 적용(`config.json#domain.keep_english`의 용어는 영문 유지). 정정된 규약: `rules/parsing_rules.md` §3-2.
 - **검증**: `python tools/check_study_refs.py "papers/N. name"` — 캡션이 순수 영문이면 FAIL.
 
 ## 🔴 작성 규칙
 
 ### 1. Step 5 "Claude의 데이터-only 결론" — Discussion 인용 절대 금지
 
-이 텍스트는 사용자와 **같은 조건**(결과 표·그림만 본 상태)의 공정한 비교 상대다.
+이 텍스트는 사용자와 **같은 조건**(결과 섹션의 데이터만 본 상태)의 공정한 비교 상대다.
+여기서 "데이터"란 `config.json#domain.evidence_types`가 정하는 것이다 — AI/CS 논문이면 표·벤치마크 수치,
+실험과학이면 측정 그래프·현미경 이미지, 인문사회면 사료·설문·통계표.
 
 - §5 Discussion/Conclusion의 문장·표현·프레임을 인용하거나 바꿔 쓰지 않는다.
-- 근거는 오직 §4의 표·그림 번호. 첫머리에 "Discussion을 인용하지 않고 §4만 근거로 내린
+- 근거는 오직 결과 섹션(§4)의 표·그림 번호(= 그 분야의 evidence_types). 첫머리에 "Discussion을 인용하지 않고 §4만 근거로 내린
   결론"임을 이탤릭 한 줄로 명시한다.
 - 숫자가 지지하는 것과 지지하지 않는 것을 구분한다 — "이 표만으로 말할 수 없는 것"을
   최소 1개 포함 (증거의 한계 명시가 비판적 읽기의 모범).
@@ -185,9 +194,10 @@ Step 1·5 썸네일 클릭 시 열리는 도표 뷰어는 **이미지 + 원문 �
 
 ### 4. Step 7 대안 설명 — 흔한 유형 4가지에서 출발하되 논문 맞춤으로
 
-벤치마크/데이터 구성 효과 · 평가 지표의 선택 효과 · 상관의 다른 원인(공유 관행 등) ·
-효과의 다른 메커니즘(주장한 이유가 아닌 다른 이유로 같은 결과). 각 항목은 "그 경우 저자의
-결론이 어떻게 약화/재해석되는가"까지 한 줄.
+기본 4축: 표본/측정 구성 효과 · 지표/평가 기준 선택 효과 · 교란 변수(상관의 다른 원인 — 공유 관행 등) ·
+다른 메커니즘(주장한 이유가 아닌 다른 이유로 같은 결과) (ML 예: 벤치마크 구성·평가 지표 선택).
+논문에 실제로 적용할 구체 축은 `config.json#domain.alt_explanations`에서 읽는다(비어 있으면 위 기본 4축).
+각 항목은 "그 경우 저자의 결론이 어떻게 약화/재해석되는가"까지 한 줄.
 
 ### 5. guide_questions·prompt — 답을 흘리지 않는다
 
@@ -202,8 +212,9 @@ claude_html·note·body 안의 수식 표기에서 `<`+영문자 금지 — `&lt
 
 ### 7. 한국어 표기
 
-`prompts/03_translation.md` § 🔴 무리한 한국어 변환 금지 전면 적용. supervision·rollout·
-ablation·baseline·plug-in 같은 용어는 한국 ML 커뮤니티 표준 표기 그대로.
+`prompts/03_translation.md` § 🔴 무리한 한국어 변환 금지 전면 적용. 용어 표기는
+`config.json#domain.term_style`·`keep_english`를 따른다 (예: AI/CS 논문이면 supervision·rollout·ablation·
+baseline·plug-in 같은 용어는 한국 ML 커뮤니티 표준 표기 그대로; 재료 논문이면 SEI·CV·EIS 같은 약어는 영문 유지).
 
 ### 8. 감성 온도 0 · 논리 최대
 

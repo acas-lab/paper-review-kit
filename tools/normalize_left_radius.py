@@ -31,8 +31,8 @@ normalize_left_radius.py - 좌측 바 제거의 잔재 정리.
 
 사용
   python tools/normalize_left_radius.py --all
-  python tools/normalize_left_radius.py --all --root "D:/1. 논문/paper-review-kit"
-  python tools/normalize_left_radius.py "papers/1. safe_learning" --dry-run
+  python tools/normalize_left_radius.py --all --root "<킷 루트>"
+  python tools/normalize_left_radius.py "papers/1. shortname" --dry-run
   python tools/normalize_left_radius.py --all --dry-run --verbose
 """
 from __future__ import annotations

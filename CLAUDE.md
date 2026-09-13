@@ -4,6 +4,8 @@
 **대화형(conversational) 작업 방식** — 빌드 스크립트나 파이프라인 자동화 없이, 사람과 Claude가 한 논문씩 함께 만들어 나간다.
 JSON으로 정제된 콘텐츠 + 정본 샘플의 디자인 + 규칙 문서를 입력으로 두고, Claude가 그 자리에서 단일 HTML을 작성한다.
 
+이 킷은 특정 분야(AI/ML)에 묶이지 않는다. 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만든다. 분야에 따라 달라지는 것(용어 표기 관행·증거의 종류·대안 설명 축·배경지식 단위·학회/저널 메타)은 `config.json#domain`(정본: `rules/domain_profile.md`)에서 읽어 채운다. 문서 안의 ML 논문 예시는 **예시일 뿐** 규칙이 아니다.
+
 ---
 
 ## 표준 학습 템플릿
@@ -47,7 +49,7 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 
 - **브릿지 `tools/qa_bridge.py`** (사용자가 미리 `python tools/qa_bridge.py` 실행, 기본 `127.0.0.1:8787`, stdlib만): 버튼 → `POST /gen-qa {short, memo}` → 헤드리스 `claude -p`(`--permission-mode acceptEdits --allowedTools Bash Edit MultiEdit Write Read Glob Grep`) spawn → **Stage 9+10 자동 수행**(prompts/10_qa.md 지침대로 qa.json 카테고리 M "내가 남긴 질문"에 append + `<section id="tab-qa">`에 `.qa-mem-card` 주입 + 필요 시 codex 보조 이미지 base64 인라인). 모델 지정 `QA_BRIDGE_MODEL=sonnet`, 권한 우회 `QA_BRIDGE_SKIP_PERMS=1`.
 - **증분 + 중복 방지**: `study/.qa_state.json`에 (a) 마지막 메모 sha256 (b) 이미 생성한 질문 원문 목록 기록. 동일 해시면 claude 미실행 `nochange`. 다르면 이미 생성한 질문 목록을 프롬프트로 넘겨 **의미 겹침 dedup + 새 질문만 append**. HTML `data-qid` 레벨에서도 중복 카드 방지. 클라이언트도 djb2 해시로 선차단(+'그래도 다시 생성' 우회). 장부는 카드가 아니라 **메모 항목 단위**로 남긴다(`QA_RESULT.new_cards[].covers` 평탄화 → `generated_questions`).
-- 🔴 **카드 수 상한 없음 + 군집화 (2026-09-10, 브릿지 v1.2)**: 이전 프롬프트의 "한 번에 최대 6개" 상한은 성공 시 메모 **전체** 해시가 `processed_hash`로 봉인되는 구조와 결합해, 미뤄진 질문을 **영구히 생성 불가**로 만들었다(papers 26·30이 정확히 6개에서 멈춰 있었다). 상한을 없애고 대신 **관련 있는 메모 항목을 한 카드로 묶어 연결된 설명**으로 답한다 — 한 질문의 답이 다음 질문의 전제가 되도록 논리 사슬로 잇고, 카드가 답하는 메모 원문 질문은 `<ul class="qa-mem-covers">`로 헤더 아래 표시한다(하위 질문 1개면 생략). 억지 병합 금지, 한 묶음이 5개를 넘으면 논리적으로 쪼갠다. 카드 수는 메모의 주제 수가 결정한다. 정본: `prompts/10_qa.md` § 군집화.
+- 🔴 **카드 수 상한 없음 + 군집화 (2026-09-10, 브릿지 v1.2)**: 이전 프롬프트의 "한 번에 최대 6개" 상한은 성공 시 메모 **전체** 해시가 `processed_hash`로 봉인되는 구조와 결합해, 미뤄진 질문을 **영구히 생성 불가**로 만들었다(papers 26·30 — 모체 사례, 배포본 미포함 — 이 정확히 6개에서 멈춰 있었다). 상한을 없애고 대신 **관련 있는 메모 항목을 한 카드로 묶어 연결된 설명**으로 답한다 — 한 질문의 답이 다음 질문의 전제가 되도록 논리 사슬로 잇고, 카드가 답하는 메모 원문 질문은 `<ul class="qa-mem-covers">`로 헤더 아래 표시한다(하위 질문 1개면 생략). 억지 병합 금지, 한 묶음이 5개를 넘으면 논리적으로 쪼갠다. 카드 수는 메모의 주제 수가 결정한다. 정본: `prompts/10_qa.md` § 군집화.
 - 🔴 **해시 봉인 규칙 — 영구 차단 경로 제거**: `ok`+`deferred==0`이면 `processed_hash` 갱신, `ok`+`deferred>0`(남긴 질문 있음)이면 **갱신하지 않는다**(같은 메모로 다시 눌러 이어받기). `noop`(새 질문 없음 판정)은 `processed_hash` 대신 **`noop_hash`**에만 기록하고, 게이트는 둘 중 하나라도 맞으면 `nochange`를 돌려주되 `reason`으로 구분해 noop 쪽은 '그래도 다시 생성' 우회를 노출한다 — claude의 오판이 그 메모를 영구 차단하지 못하게.
 - **자동 JSON 저장**: 생성 직전 메모를 `study/{Short}_study_notes_YYMMDD.json`으로 저장(Stage 9 입력 형식).
 - **내용 무손실 + 우아한 실패**: 메모 textarea/localStorage는 절대 비우지 않고 새로고침 전에도 확정 저장. 브릿지가 꺼져 있고 자동 시작도 실패하면 실행 방법 안내(다른 PC의 self-contained HTML에서도 버튼만 무해하게 존재).
@@ -135,7 +137,7 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 
 (개념 기록 — 견본 HTML은 배포본 미포함) SAFE(1세대)·FrameFusion(2세대)·SGL(3세대)은 원래 warm beige + maroon 팔레트(v2)였고 이후 v3 → v4로 리컬러됐다. 현재 배포본의 색 정본은 v4(`rules/design_v4_dashboard.md`)뿐이다.
 
-리컬러 스크립트 (이미 실행 완료, historical record — 모두 `_archive/`):
+리컬러 스크립트 (이미 실행 완료, historical record — 모두 모체 `_archive/`, 배포본 미포함):
 - `_archive/samples_recolor_v3.py` — SAFE/FrameFusion 처리 (당시 `samples/_recolor_v3.py`)
 - `_archive/sgl_recolor_v3.py` — SGL 처리 (당시 `papers/3. sgl/_recolor_v3.py`)
 - v2 backup: `_archive/v2_backups/*.before_v3` 3편
@@ -148,15 +150,15 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 
 번역(① tab-reading)뿐 아니라 LLM이 직접 한국어 문장을 쓰는 모든 자리(② dissection 카드, ③ knowledge primer/eq/concept, ④ coaching q·a, figure interpretations·beginner_notes·study_modals·callouts)에 동일 적용.
 
-**원칙** — 한국 ML 커뮤니티에 굳어진 표기가 없으면 영문 그대로 둔다. 자체 신조어·음역어를 만들지 않는다. "이게 한국어 학회 발표에서 자주 듣는 표현인가?" 자가 점검을 통과해야 한다.
+**원칙** — 해당 분야의 한국 학계에 굳어진 표기(`config.json#domain.term_style`)가 없으면 영문 그대로 둔다. 자체 신조어·음역어를 만들지 않는다. "이게 한국어 학회 발표에서 자주 듣는 표현인가?" 자가 점검을 통과해야 한다.
 
 **대표 안티패턴** (재도입 금지) — `거친 데이터셋`(crude dataset) / `이진 투표`(Binary Polling) / `워밍업 파인튜닝`(warm-up fine-tuning) / `고충실도`(high-fidelity) / `강한 정렬`(strong alignment) / `정보성 있는`(informative) / `노동을 요구하는`(laborious) / `적합성을 높이고`(relevance를 fitness로 오역) / `능력 차원 커버리지`(3-단어 한자 합성) / `순위화`(일본식 한자조어).
 
-**OK인 표기** (한국 ML 표준) — 어텐션·파인튜닝·풀링·임베딩·그래디언트·투영·노름·환각·프루닝·어블레이션·레지스터 토큰·음의 로그우도.
+**OK인 표기** (예: AI/CS 논문 — 한국 ML 표준) — 어텐션·파인튜닝·풀링·임베딩·그래디언트·투영·노름·환각·프루닝·어블레이션·레지스터 토큰·음의 로그우도.
 
 정본 규칙·전체 안티패턴 표·자동 점검 정규식: `prompts/03_translation.md § 🔴 무리한 한국어 변환 금지`. cross-ref: `rules/knowledge_rules.md §2`, `rules/analysis_rules.md § Forbidden`, `rules/coaching_rules.md § 절대 금지`.
 
-> 정본 학습 사례 (실패→복구): `papers/24. geollava8k` 1차 빌드에서 위 안티패턴 다수 사용. 사용자 지적 후 manual.json·analysis.json·dissection.json·knowledge.json·config.json·HTML 18곳 일괄 정리. 동일 실수 재발 방지가 이 정책의 직접 동기.
+> 정본 학습 사례 (실패→복구): `papers/24. geollava8k`(모체 사례 — 배포본 미포함) 1차 빌드에서 위 안티패턴 다수 사용. 사용자 지적 후 manual.json·analysis.json·dissection.json·knowledge.json·config.json·HTML 18곳 일괄 정리. 동일 실수 재발 방지가 이 정책의 직접 동기.
 
 ### 🔴 감성 온도 0 · 논리 최대 — 모든 LLM 서술 prose에 적용 (정책, 2026-07-09 신설)
 
@@ -187,7 +189,7 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
   - **예약폭**: 나란히 서면 `메모 + 가이드`, 겹쳐 뜨면 `max(메모, 가이드)` — 겹쳐 뜰 때 넓은 쪽(가이드 440)으로 잡아야 가이드가 오버레이 위로 삐져나오지 않는다.
   - **3단 강등**: 나란히 → (자리 없으면) 메모가 가이드 **위에** 뜨고 오버레이는 예약폭만큼만 축소 → (그것도 안 되면) **축소를 포기**하고 메모가 오버레이 위에 뜬다(`body.mlx-float`). 좁혀서 못 읽게 만드는 것보다 낫고, 메모를 닫으면 즉시 원래 폭으로 돌아온다.
   - **CSS 하한**: 모든 `calc(… − var(--overlay-right))` 에 `max(540px, …)`(캡션류 340px) 를 씌워, JS 판정이 한 프레임 늦어도 패널이 하한 아래로 찌그러지지 않게 한다.
-  - 측정값(papers 30 · 자산 뷰어 + 가이드 + 메모 동시): 1600px 나란히·뷰어 780 / 1440~1080px 겹침·뷰어 1000~640 / 900px 이하 `mlx-float`·뷰어 전폭. **v4 는 1080px 에서 뷰어 260px 이었다.**
+  - 측정값(papers 30 · 모체 사례 — 배포본 미포함 · 자산 뷰어 + 가이드 + 메모 동시): 1600px 나란히·뷰어 780 / 1440~1080px 겹침·뷰어 1000~640 / 900px 이하 `mlx-float`·뷰어 전폭. **v4 는 1080px 에서 뷰어 260px 이었다.**
 - 🔴 **가이드는 메모에 덮이지 않는다 + 이미지 전용 모드 (2026-09-02 추가, v6)**: v5 는 자리가 부족하면 메모를 가이드 **위에** 띄웠는데, 그러면 정작 학습 가이드가 안 보인다(1080px 에서 가이드 440 + 메모 380 이 그 경우). 두 가지로 푼다.
   - **좁은 화면에서 두 드로어를 함께 줄인다** — 가이드 `clamp(300px, 36vw, 440px)` · 메모 `clamp(280px, 32vw, 380px)` (`vw < 1200` 에서만; 그 위에서는 clamp 상한에 걸려 원래 폭). 나란히 서는 구간이 1440px → 950px 까지 내려간다.
   - **학습 가이드를 열면 자산 뷰어는 이미지 전용이 된다** (`body.mlx-guided`) — 원문 캡션·번역(`.av-text`)을 감추고 `.av-img img{max-height:82vh}` 로 이미지를 키운다. 캡션·번역은 가이드가 이미 담고 있으므로 중복이고, 이미지만 남으면 필요한 폭이 560 → 260px 로 줄어 세 패널이 1080px 에서도 공존한다. **가이드를 닫으면 캡션·번역이 그대로 돌아온다.**
@@ -198,9 +200,9 @@ Translation과 Paper Dissection 사이의 `tab-study`. 논문을 소설처럼 �
 - **클릭 격리**: 구세대 자산 해설(`.study-modal`, papers 3·24 계열)은 `document` 에 "바깥 클릭이면 닫는다"를 걸어 두는데 그 바깥에 메모도 포함돼, **메모 버튼을 누르면 해설이 닫혀** 버렸다. 메모 UI 안에서 시작한 click·mousedown 은 `document` 까지 올려보내지 않는다.
 - **도구**: `tools/memo_layer_fix.py "papers/N. name"` (견본은 "samples/cares") / `--all` (additive · idempotent · 업데이터). **`restyle_dash_v4.py` 이후, 다른 주입기들과 같은 자리에서 돌린다.**
 - **검사**: `tools/check_memo_layer.py "papers/N. name"` (견본은 "samples/cares") / `--all` — 헤드리스 Chromium 으로 bounding box 교집합이 실제로 0인지 측정한다(정적 grep 은 z-index 숫자만 볼 수 있어 "겹치는가"를 못 본다). **1600px(겹침 0) 과 1080px(자리 배분) 두 뷰포트를 모두 돈다** — 좁은 화면 항목은 자산 뷰어 + 가이드 + 메모를 동시에 열고 ① 캡션·번역이 감춰졌는지 ② 메모 ↔ 가이드 겹침 0 · 둘 다 화면 안 ③ 패널 ≥ 260px ④ 한 번 클릭으로는 안 닫히고 두 번 클릭이면 메모만 닫히는지를 확인한다. playwright 없으면 skip.
-- **세대 차이 주의**: 자산 학습 가이드가 papers 4~35 는 사이드 드로어(`.study-drawer`)지만 papers 3(SGL)은 **화면을 덮는 `.study-modal`** 이고, papers 1~2 는 아예 없다. 라이트박스 닫기 버튼도 papers 4~25 는 `position:fixed`(뷰포트 기준이라 컨테이너를 좁혀도 안 따라옴), 26~35 는 `absolute`(자동으로 따라옴)로 갈린다. 그래서 도구는 **폭이 뷰포트의 60% 이하일 때만 사이드 드로어로 취급**하고, `position:fixed` 자식은 계산된 스타일로 찾아 직접 밀어준다.
+- **세대 차이 주의** (모체 사례 — 배포본 미포함): 자산 학습 가이드가 papers 4~35 는 사이드 드로어(`.study-drawer`)지만 papers 3(SGL)은 **화면을 덮는 `.study-modal`** 이고, papers 1~2 는 아예 없다. 라이트박스 닫기 버튼도 papers 4~25 는 `position:fixed`(뷰포트 기준이라 컨테이너를 좁혀도 안 따라옴), 26~35 는 `absolute`(자동으로 따라옴)로 갈린다. 그래서 도구는 **폭이 뷰포트의 60% 이하일 때만 사이드 드로어로 취급**하고, `position:fixed` 자식은 계산된 스타일로 찾아 직접 밀어준다.
 
-> 🔴 **정본 학습 사례 (회귀의 원인)**: 2026-07-09 의 z-index 1650 수정은 **빌드된 HTML 에만** 적용되고 `_build.py` 템플릿에는 반영되지 않았다. 그 결과 CARES(26) 의 `_build.py` 를 복사해 만든 **papers 27~35 전부가 205/300 으로 회귀**했다(2026-09-02 발견). 교훈: **산출물만 고치고 빌더를 안 고치면 다음 논문에서 그대로 되살아난다.** 이번에 papers 26~35 의 `_build.py` 10개와 `tools/memo_inject.py` 를 함께 고쳐 원천을 막았다.
+> 🔴 **정본 학습 사례 (회귀의 원인, 모체 사례 — 배포본 미포함)**: 2026-07-09 의 z-index 1650 수정은 **빌드된 HTML 에만** 적용되고 `_build.py` 템플릿에는 반영되지 않았다. 그 결과 CARES(26) 의 `_build.py` 를 복사해 만든 **papers 27~35 전부가 205/300 으로 회귀**했다(2026-09-02 발견). 교훈: **산출물만 고치고 빌더를 안 고치면 다음 논문에서 그대로 되살아난다.** 이번에 papers 26~35 의 `_build.py` 10개와 `tools/memo_inject.py` 를 함께 고쳐 원천을 막았다.
 
 ### 🔴 Study 답변 검토 + 보완 학습 (로컬 브릿지, 2026-07-09 신설)
 
@@ -224,7 +226,7 @@ Paper Study 탭에서 학습자가 쓴 답변(skey: rq·gap_*·method·conclusio
 
 structured.json 작성 후 **반드시 fulltext.txt와 섹션 수·subsection 수·paragraph별 문장 수를 대조**한다. 자세한 검증 절차·금지 패턴·정본 사례: `prompts/02_structuring.md` § 🔴 CRITICAL 완전성 규칙.
 
-> 정본 학습 사례 (실패→복구): `papers/20. sparse_vlm`은 1차 빌드에서 본문 70문장으로 압축됐다가 사용자 지적 후 163문장으로 재작성된 케이스. Related Work 전체·3.4 Theoretical Analysis가 누락됐었다. 동일 실수 재발 방지가 이 정책의 직접 동기.
+> 정본 학습 사례 (실패→복구): `papers/20. sparse_vlm`(모체 사례 — 배포본 미포함)은 1차 빌드에서 본문 70문장으로 압축됐다가 사용자 지적 후 163문장으로 재작성된 케이스. Related Work 전체·3.4 Theoretical Analysis가 누락됐었다. 동일 실수 재발 방지가 이 정책의 직접 동기.
 
 ### 🔴 Study Modal — 자산별 학습 가이드 모달 (정책)
 
@@ -240,11 +242,11 @@ structured.json 작성 후 **반드시 fulltext.txt와 섹션 수·subsection �
 
 **UX — 오른쪽 사이드 드로어 (정책, 2026-05-19 갱신)**: 학습 가이드는 풀스크린 모달(어두운 백드롭 + 중앙 카드)이 **아니라** 오른쪽에서 슬라이드-인되는 폭 ~440px 드로어로 연다. 학습자가 가이드 4섹션을 읽는 동안 정작 봐야 할 figure가 가려지면 안 되기 때문 (24. geollava8k 학습 중 사용자 직접 지적). 드로어 열린 상태에서 figure·문장·lightbox 모두 사용 가능. 닫기는 ① ×버튼 ② ESC ③ 드로어 바깥 클릭 (단 다른 `.study-fab` 클릭은 예외 — 내용 전환 시 깜빡임 방지). CSS·JS 정본 = `rules/component_rules.md` §12.5 / §12.6. 이전 세대(SGL)의 풀스크린 모달 CSS는 폐기됐다 — 현재 정본은 아래 우측 드로어다 (SGL 견본 HTML은 배포본 미포함).
 
-> 안티패턴 (정본이 아닌 잘못된 관성): papers 4~19의 일부 빌드에서 모달이 "캡션 + 전문가 해석 + 초보자 해설" 3-block으로 채워져 figure 하단 내용과 거의 동일했던 경우. 신규 빌드는 4-섹션 정형으로 깊이 분해.
+> 안티패턴 (정본이 아닌 잘못된 관성, 모체 사례 — 배포본 미포함): papers 4~19의 일부 빌드에서 모달이 "캡션 + 전문가 해석 + 초보자 해설" 3-block으로 채워져 figure 하단 내용과 거의 동일했던 경우. 신규 빌드는 4-섹션 정형으로 깊이 분해.
 
 ### 🔴 Vector PDF 자산 크롭 — 콘텐츠 인식 자동 bbox 정본 (정책, 2026-06-29 갱신)
 
-자산(figure / table) PNG는 **`tools/autocrop_assets.py`로 자동 크롭**한다. 좌표를 손으로 추측·하드코딩하지 말 것. 한 figure가 수십 개 image object로 분해되는 현대 ML/CV 논문에서 `page.get_image_bbox()` 단독은 실패하므로, 캡션 + **실제 벡터 드로잉(plot 축·화살표·표 ruling line)과 raster image**로 진짜 경계를 계산해 **한 번에 figure·도표 전체**(모든 sub-panel + 라벨 + 캡션)를 잡는다.
+자산(figure / table) PNG는 **`tools/autocrop_assets.py`로 자동 크롭**한다. 좌표를 손으로 추측·하드코딩하지 말 것. 한 figure가 수십 개 image object로 분해되는 벡터 조판 논문에서 `page.get_image_bbox()` 단독은 실패하므로, 캡션 + **실제 벡터 드로잉(plot 축·화살표·표 ruling line)과 raster image**로 진짜 경계를 계산해 **한 번에 figure·도표 전체**(모든 sub-panel + 라벨 + 캡션)를 잡는다.
 
 ```bash
 python tools/autocrop_assets.py "rawpaper/<논문>.pdf" "papers/N. name/assets"
@@ -258,9 +260,9 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 - Page running header(y<56)/footer(y>745) 제외. PDF pt → pixel: `pixel = pt × (DPI/72)`.
 - **시각 검증 의무** — 각 PNG를 직접 열어 헤더 누수·캡션 잘림·sub-panel 누락·본문 섞임 확인. 어긋나는 자산만 수동 보정.
 
-정본 구현 = `tools/autocrop_assets.py`. 진단 보조: `tools/detect_assets.py`. 적용 사례: `papers/1. fastvlm/_crop.py`(autocrop 호출 + 사용 자산 선별). 수동 fallback 예시: `samples/cares/_crop.py`.
+정본 구현 = `tools/autocrop_assets.py`. 진단 보조: `tools/detect_assets.py`. 적용 사례 = `samples/cares/_crop.py`(autocrop 호출 + 사용 자산 선별, 수동 fallback 포함).
 
-> 정본 학습 사례 (실패→복구): FastVLM(CVPR 2025) 1차 빌드에서 좌표를 손으로 잡아 **fig_1 위쪽 subplot 잘림 / table_6 캡션만 / table_3 마지막 행만** 잡혔다(적층 패널 gap·zero-thickness rule 탈락·full-width 누수). `autocrop_assets.py`로 12개 figure/table 전부 본체+캡션 완전 캡처. (그 이전 SparseVLM 사례: 페이지 픽셀 좌표 하드코딩 → Figure/Table 다수 잘림·본문 섞임 → 캡션 anchor 재크롭으로 복구.)
+> 정본 학습 사례 (실패→복구, 모체 사례 — 배포본 미포함): FastVLM(CVPR 2025) 1차 빌드에서 좌표를 손으로 잡아 **fig_1 위쪽 subplot 잘림 / table_6 캡션만 / table_3 마지막 행만** 잡혔다(적층 패널 gap·zero-thickness rule 탈락·full-width 누수). `autocrop_assets.py`로 12개 figure/table 전부 본체+캡션 완전 캡처. (그 이전 SparseVLM 사례: 페이지 픽셀 좌표 하드코딩 → Figure/Table 다수 잘림·본문 섞임 → 캡션 anchor 재크롭으로 복구.)
 
 ### 🔴 자산 등장 순서 — 번호 순(numerical order) 정본 (정책)
 
@@ -270,7 +272,7 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 - **개념 정합성과 충돌 시**: 번호 순서 우선. 개념 cross-reference는 `analysis.json#interpretations` / `beginner_notes` / `study_modals`에서 풀어주면 충분 — 자산 자체를 옮기지 않는다.
 - 자세한 검증 스크립트와 정본 사례: `rules/parsing_rules.md` §3-2-bis.
 
-> 정본 학습 사례 (실패→복구): SparseVLM 초기 빌드는 fig_7(Appendix A redundancy diagram)이 "개념적으로 p8 rank-기반 redundancy에 어울린다"는 이유로 p8에 붙어 등장 순서가 `1→2→3→7→4→5→6`이 됐다. 사용자 지적 후 fig_7을 p12_vis(5.4 Qualitative 끝)로 이동해 `1→2→3→4→5→6→7` 자연 순서 회복.
+> 정본 학습 사례 (실패→복구): SparseVLM(모체 사례 — 배포본 미포함) 초기 빌드는 fig_7(Appendix A redundancy diagram)이 "개념적으로 p8 rank-기반 redundancy에 어울린다"는 이유로 p8에 붙어 등장 순서가 `1→2→3→7→4→5→6`이 됐다. 사용자 지적 후 fig_7을 p12_vis(5.4 Qualitative 끝)로 이동해 `1→2→3→4→5→6→7` 자연 순서 회복.
 
 ### 🔴 Dissection Summary 카드 — 9-row 정형 + 한 장 overview 이미지 (정책)
 
@@ -280,7 +282,7 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 - **깊이 기준**: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 각 row 본문 300~600자, `<strong>`·`<em>` 강조 활용
 - **한 장 overview 이미지**: `assets/generated/dissection_overview.png` (1536×864, 5단 PROBLEM→OBSERVATION→METHOD→NOVELTY→RESULTS 가로 인포그래픽). codex 6계명으로 생성. summary 카드 헤더 아래·rows 위에 `<figure class="diss-overview-figure">`로 base64 인라인
 - 자세한 규약: `prompts/04_research_analysis.md` Stage 4 / `rules/component_rules.md` §14
-- 정본 사례: `papers/21. lv_pruning`
+- 정본 사례: `samples/cares/_build.py` + `samples/cares/CARES_output.html`
 
 ### 🔴 Dissection 카드 레이아웃 — 수직 적층 + tag 위·body 아래 (정책, 2026-05-13)
 
@@ -295,10 +297,10 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 
 **원래 9-row summary 카드뿐 아니라 모든 dissection 카드(motivation/observe/compare/logic/verify/risk/extend/summary)에 동일 적용**.
 
-- 정본 사례: `papers/22. free/_build.py`
+- 정본 사례: `samples/cares/_build.py`
 - 자세한 CSS: `rules/component_rules.md` §16
 
-> 안티패턴 (이전 정본의 잘못된 관성): papers 4~21까지의 빌드는 2-column grid + tag-body 옆 배치였다. 카드 텍스트가 길어질수록 좌우로 흐름이 끊겨 \"한 카드를 한 호흡에 읽기\"가 깨졌다. 사용자 지적 후 22. free에서 수직 적층으로 재작성.
+> 안티패턴 (이전 정본의 잘못된 관성, 모체 사례 — 배포본 미포함): papers 4~21까지의 빌드는 2-column grid + tag-body 옆 배치였다. 카드 텍스트가 길어질수록 좌우로 흐름이 끊겨 \"한 카드를 한 호흡에 읽기\"가 깨졌다. 사용자 지적 후 22. free에서 수직 적층으로 재작성.
 
 ### 🔴 Image Lightbox — 모든 콘텐츠 이미지 비율 유지 확대 (정책)
 
@@ -309,7 +311,7 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 - **study-fab 충돌 회피**: study-fab 클릭 핸들러에 `e.stopPropagation() + e.preventDefault()` 필수. 없으면 버튼 누를 때 모달 + lightbox 동시 열림 버그
 - **`@media print`**: lightbox·study-modal·to-top 모두 `display: none`
 - 마크업·CSS·JS 정본: `rules/component_rules.md` §13
-- 정본 사례: `papers/21. lv_pruning/_build.py`
+- 정본 사례: `samples/cares/_build.py`
 
 ### 🔴 codex ImageGen 6계명 — 마지막 한 줄에 \"NO title text\" 명시 (정책)
 
@@ -361,7 +363,7 @@ codex CLI로 학습 보조 이미지를 생성할 때 prompt.txt 마지막에 **
 - **검수 2단**: ① 생성 직후 Claude가 PNG를 Read로 열어 §11.8.6 체크리스트 확인 → 미달이면 **프롬프트를 고쳐** 재생성(같은 프롬프트 재시도 금지). ② 사용자 검수는 사후.
 - 밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt`.
 
-> 정본 학습 사례 (실패→복구): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤을 그대로 따라 단마다 요소를 1~2개만 적어 헐거운 그림이 나왔고, 병렬 호출이 작업 디렉토리를 공유해 다른 프롬프트의 그림이 저장되는 사고도 함께 발생. §11.8 신설·§11.3 스켈레톤 교체·Stage 4 템플릿 교체가 그 직접 결과물이다 (2026-08-01).
+> 정본 학습 사례 (실패→복구): `papers/27. lupi`(모체 사례 — 배포본 미포함) 1차 생성 시 §11.3의 얇은 스켈레톤을 그대로 따라 단마다 요소를 1~2개만 적어 헐거운 그림이 나왔고, 병렬 호출이 작업 디렉토리를 공유해 다른 프롬프트의 그림이 저장되는 사고도 함께 발생. §11.8 신설·§11.3 스켈레톤 교체·Stage 4 템플릿 교체가 그 직접 결과물이다 (2026-08-01).
 
 **저장**: `papers/[name]/assets/generated/` (prompt 파일·원본 PNG 둘 다 재생성·디버깅용으로 보존).
 **최종 HTML 임베드**: 위의 자산 임베딩 정책에 따라 **base64 인라인 의무**. 정본 컴포넌트 = `<figure class="concept-figure">` (§11.5).
@@ -385,24 +387,21 @@ codex CLI로 학습 보조 이미지를 생성할 때 prompt.txt 마지막에 **
 ## 디렉토리 구조
 
 ```
-Paper_review_html/
-├── papers/                ← 논문별 데이터 + 자산. 폴더명 = `N. shortname`
-│   ├── 1. safe_learning/  · NAACL 2025 (SAFE)            — 1세대
-│   ├── 2. frame_fusion/   · ICCV 2025 (FrameFusion)      — 2세대
-│   ├── 3. sgl/            · CVPR 2025 (SGL, A Stitch …)  — 3세대 인터랙션 (견본 HTML은 배포본 미포함 — 개념 기록)
-│   └── 4. perceptron/     · Psych. Review 1958
+paper-review-kit/
+├── papers/                ← 논문별 데이터 + 자산. 폴더명 = 'N. shortname' (배포본은 비어 있음 — 첫 논문 = '1. shortname')
 ├── prompts/               ← LLM 단계별 프롬프트 (Stage 0~12 — workflow.md 참조)
-├── rules/                 ← 디자인 / 분석 / 컴포넌트 규약
+├── rules/                 ← 디자인 / 분석 / 컴포넌트 규약 + domain_profile.md(논문별 분야 프로파일 · Stage 12 research_profile)
+├── research_profile.example.json ← Stage 12 사용자 연구 프로파일 템플릿 (복사 → research_profile.json, .gitignore)
 ├── rawpaper/              ← 원본 PDF
-├── samples/               ← 정본 HTML (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대)
-├── tools/                 ← 재사용 도구 (.py 25 + .bat 1 - 주요: crop_assets.py, restyle_dash_v4.py, memo_layer_fix.py, check_html_escape.py, tone_lint.py; 실행 순서는 workflow.md Stage 10 체인)
+├── samples/               ← 정본 (수정 금지) — cares/(v4 8탭 + Paper Study 워크드 예제) + design/ + README.md(1~3세대 개념 히스토리)
+├── tools/                 ← 재사용 도구 (.py 28 + .bat 1 - 킷 전용 3종 structure_paper.py·autocrop_assets.py·detect_assets.py 포함; 주요: crop_assets.py, restyle_dash_v4.py, memo_layer_fix.py, check_html_escape.py, tone_lint.py; 실행 순서는 workflow.md Stage 10 체인)
 └── workflow.md            ← 단계별 작업 흐름 (Stage 0~12)
 ```
 
 ### `papers/[name]/` 표준 레이아웃
 ```
 papers/[name]/
-├── config.json            · 메타데이터, asset_layout, wide_assets, captions(캡션 번역/KR — 뷰어 "번역"·asset-cap), captions_en(영어 원문/EN — 뷰어 "원문 캡션")
+├── config.json            · 메타데이터(meta), domain(분야 프로파일 — `rules/domain_profile.md`), asset_layout, wide_assets, captions(캡션 번역/KR — 뷰어 "번역"·asset-cap), captions_en(영어 원문/EN — 뷰어 "원문 캡션")
 ├── analysis.json          · callouts, interpretations, beginner_notes, quizzes, hotspots
 ├── structured.json        · 섹션/문단 단위 본문
 ├── translated.json        · 문장 단위 원문/번역 매핑 (선택, 편의용)
@@ -458,7 +457,7 @@ papers/[name]/
 
 ### 단계
 
-1. **PDF → 텍스트 / 자산** — Claude에게 PDF를 주고 텍스트 추출 + Figure/Table PNG 크롭을 요청한다 (PyMuPDF 등). 결과를 `papers/N. shortname/assets/`로 가져옴. OCR'd 스캔본은 `tools/crop_assets.py` 3-pass 알고리즘 사용 — `rules/parsing_rules.md` §4-A 참조, 정본 사례 `papers/4. perceptron/_recrop.py`.
+1. **PDF → 텍스트 / 자산** — Claude에게 PDF를 주고 텍스트 추출 + Figure/Table PNG 크롭을 요청한다 (PyMuPDF 등). 결과를 `papers/N. shortname/assets/`로 가져옴. OCR'd 스캔본은 `tools/crop_assets.py` 3-pass 알고리즘 사용 — `rules/parsing_rules.md` §4-A 참조 (정본 사례 `papers/4. perceptron/_recrop.py` 는 모체 사례 — 배포본 미포함; 도구 docstring 참조).
 2. **구조화** — `prompts/02_structuring.md` 가이드에 따라 `structured.json` 작성. 섹션/문단 ID 부여.
 3. **번역** — `prompts/03_translation.md`에 따라 sentence_id 단위 번역 → `translations/manual.json`. 필요 시 직접 또는 Claude 도움으로.
 4. **분석 데이터 작성**
@@ -477,4 +476,5 @@ papers/[name]/
 - `workflow.md` — 단계별 작업 흐름 (Cleaning → Structuring → Translation → Research Analysis → Coaching → Figure Interpretation → Background Knowledge → Simulator Design → QA Design → HTML Generation + Stage 11 Paper Study)
 - `prompts/01~12_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study 탭 study.json 작성, 12 = 빌드 완료 논문의 정립·연구 멘토 세션 - 빌드 밖)
 - `rules/` — 파싱 / 분석 / 코칭 / 지식 / 수식 / 컴포넌트 규약 (특히 `rules/component_rules.md`가 탭 횡단 공용 컴포넌트 규약을 담는다)
-- `samples/` — 정본 (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대)
+- `rules/domain_profile.md` — 논문별 분야 프로파일 (config.json#domain) + Stage 12 research_profile
+- `samples/` — 정본 (수정 금지) — `cares/`(v4 8탭 + Paper Study 워크드 예제, 1~3세대 인터랙션 흡수) + `design/` + `README.md`

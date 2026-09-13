@@ -1,7 +1,7 @@
 # Design v4 — Dashboard 스타일 (정본: cares)
 
 **2026-07-02부터 모든 신규 논문 HTML이 따라갈 디자인 정본.** 연구실 실험 대시보드
-(`D:/2. 실험/Server/Geollava_Test/실험_대시보드_v3.html`, ACAS GeoLLaVA 관찰연구)의 디자인 체계를
+(ACAS 실험 대시보드 v3 — 모체 내부 자료, 배포본 미포함)의 디자인 체계를
 논문 학습 HTML에 이식한 것. 기존 v3(white + lavender, hero 카드 + 숫자 pill 6탭)는 폐기.
 
 > 🔵 **배포 툴킷 참고**: 이 배포본은 **CARES 논문 전체를 `samples/cares/`에 정본으로 동봉**한다
@@ -62,6 +62,7 @@ hero 카드 폐기. 대시보드처럼 **로고 + 3줄 텍스트 + 우측 메타
       </div>
     </div>
     <div class="brand-meta">
+      <!-- 우측 1줄: venue_type 별 형식(아래 표) — 이 예는 conference -->
       <b>{학회}</b> ({트랙}) · <b>{Oral/Poster 등 상태}</b> · arXiv {id} · 등재 {YYYY-MM-DD}<br>
       코드 <a href="{repo}" target="_blank" rel="noopener">{repo 축약}</a><br>
       생성일 {YYYY-MM-DD}
@@ -74,7 +75,14 @@ hero 카드 폐기. 대시보드처럼 **로고 + 3줄 텍스트 + 우측 메타
 
 - `.topbar{position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line)}`
 - 활성 탭 = `font-weight:800` + 바 하단 밑줄 인디케이터(`--accent-mid`, 2.5px). 탭 사이 1px 구분선.
-- 미채택 논문이면 우측 1줄은 `arXiv preprint {id} · {YYYY-MM} 투고` 형태.
+- 우측 1줄의 형식은 `config.json#domain.venue_type`(정본: `rules/domain_profile.md`)에 따른다. arXiv 는 **선택**이며 ML 관행일 뿐이다 — 없으면 해당 조각을 생략한다.
+
+| venue_type | 우측 1줄 형식 |
+|---|---|
+| `conference` (예: CARES) | `{학회} ({트랙}) · {Oral/Poster} · {preprint id} · 등재 {YYYY-MM-DD}` |
+| `journal` | `{저널} {권(호)} · DOI {doi} · {게재 연월}` |
+| `preprint` | `{arXiv/bioRxiv/SSRN id} · {v}` · `{YYYY-MM} 투고` (미채택 논문 포함) |
+| `book` / `thesis` | `{출판사/대학} · {연도}` |
 - CSS 전문은 `tools/restyle_dash_v4.py`의 `NEW_TOPBAR_CSS` 블록이 정본.
 
 ## 3. 탭 구조 — 숫자 없는 8탭 (Paper Study 포함)
@@ -170,7 +178,7 @@ route();
 
 **EN/KR 컬럼 배경 색 강도 - 현행 유지.** `.col-en{background:var(--accent-soft)}` / `.col-kr{background:var(--azure-soft)}` 의 색차는 ΔE2000 = 2.90 이다. 인접 면 JND(1~2)를 넘으므로 두 컬럼은 구별되지만 대비는 옅다. 더 벌리려면 `--azure-pale`(ΔE 6.40)로 바꿔야 하는데, §1 이 `--*-pale` 을 그라디언트·데코 전용으로 못박고 있어 본문 면 배경으로 쓸 수 없다. 토큰 규약을 깨면서까지 대비를 올릴 이유가 없다고 보아 채택하지 않았다.
 
-**`.col{min-width:0}` 의 세대 불일치 - 현행 유지.** 이 선언은 papers 27~35 에만 있고 1~26 에는 없다. 없는 쪽에서 papers/3 이 900px 폭에서 페이지 가로 33px 밀림을 낸다. 그러나 1~26 에 `min-width:0` 을 넣으면 그리드 아이템의 최소 콘텐츠 폭 방어가 풀려 **인라인 수식이 옆 컬럼을 침범**한다(900px 에서 6곳, 760px 에서 9곳). 가로 33px 밀림보다 수식 침범이 나쁘므로 통일하지 않는다. 신규 논문(27 이후 계보)은 `min-width:0` 을 유지한다.
+**`.col{min-width:0}` 의 세대 불일치 - 현행 유지 (모체 사례 — 배포본 미포함).** 이 선언은 papers 27~35 에만 있고 1~26 에는 없다. 없는 쪽에서 papers/3 이 900px 폭에서 페이지 가로 33px 밀림을 낸다. 그러나 1~26 에 `min-width:0` 을 넣으면 그리드 아이템의 최소 콘텐츠 폭 방어가 풀려 **인라인 수식이 옆 컬럼을 침범**한다(900px 에서 6곳, 760px 에서 9곳). 가로 33px 밀림보다 수식 침범이 나쁘므로 통일하지 않는다. 신규 논문(27 이후 계보)은 `min-width:0` 을 유지한다.
 
 **인라인 SVG 다이어그램 안의 `font-family="Georgia, serif"` - 현행 유지.** §1 의 serif 금지는 페이지 타이포그래피(제목·본문·카드 헤더)를 겨냥한 것이고, 이 선언들은 손으로 그린 `class="diagram"`/`class="diagram-svg"` 캔버스 **안쪽의 `<text>` 라벨**이다(papers 1·2·3·4·7~10·12·17, 총 71곳: `Input`/`Conv1`/`softmax` 같은 단계 라벨, `X`·`Z`·`R_t` 같은 기호, 캔버스 내부 제목 2곳). 그림의 일부이므로 규약 대상이 아니고, SVG `<text>` 는 리플로우가 없어 좌표가 고정된 `<rect>` 안에 놓여 있다. 폰트를 바꾸면 advance width 가 달라져 박스를 넘치거나 이웃 라벨과 충돌하며, 67곳을 전수 시각 검증하지 않고는 확인할 수 없다. 얻는 것보다 위험이 크다.
 
@@ -179,11 +187,16 @@ route();
 **신규 논문 (권장)** — v3 템플릿 조립 + 범용 변환 도구의 2단:
 1. 빌더 `_build.py`를 복사해 데이터(JSON·assets)를 조립한다 (복사 출발점 = `samples/cares/_build.py`).
    **_build.py에서 논문별로 바꿀 곳**: ①~④ 탭의 `tab-intro` 문구(dissection/knowledge/questions),
-   footer 한 줄. 출력 파일명은 `meta.short_name`에서 자동 유도(영숫자만 — GeoLLaVA-8K → GeoLLaVA8K_output.html). ③ knowledge intro에는 수식 언급을 넣지 않는다(수식은 Mathematics 탭 — 분리는 도구가).
+   footer 한 줄. 출력 파일명은 `meta.short_name`에서 자동 유도(영숫자만 — 예: GeoLLaVA-8K → GeoLLaVA8K_output.html). ③ knowledge intro에는 수식 언급을 넣지 않는다(수식은 Mathematics 탭 — 분리는 도구가).
 2. `config.json#meta`에 topbar 필드를 채운다 (도구가 여기서 헤더를 생성):
    `title` `short_name` `authors` `affiliation` (필수) +
    `keyword`(2줄째) · `venue_short` · `status`(Oral 등) · `arxiv` · `listed`(등재일) · `code` · `generated`(생성일).
-   미채택 논문은 venue_short~listed를 비우면 `venue` 문자열로 대체된다.
+   venue_short~listed 는 conference 형식(예: CARES)이며 빈 필드는 생략된다. journal·preprint·book/thesis 는 §2 표의 형식으로
+   `venue_short`(저널 권(호)·출판사 등)·`listed`(게재 연월·연도)를 채우고 `arxiv`를 비우거나, venue_short~listed 를 모두 비우고
+   `venue` 문자열 한 줄로 대체한다.
+   🔴 `code`는 URL 전용 — 도구가 값을 **그대로 `href`에 넣어** topbar "코드" 링크를 만든다(`restyle_dash_v4.py` L259~261,
+   `href="{meta["code"]}"`). 코드 URL이 없으면 **키 자체를 생략**한다 — "공개 예정" 같은 서술을 넣으면 깨진 링크가 된다.
+   (다른 meta 키는 텍스트로만 렌더되므로 이 제약은 `code`에만 해당.)
 2-bis. **Paper Study 준비물** — `tabs_data/study.json`(Stage 11, `prompts/11_paper_study.md`) +
    `config.json#captions_en`(도표 뷰어용 원문 캡션) + `study/` 폴더(+.gitkeep). study.json이 없으면
    빌더가 ①′를 자동 셸 렌더하므로 빌드 자체는 막히지 않는다.
@@ -197,8 +210,8 @@ route();
 
 **Paper Study 탭 소급 (이미 v4인 논문)** — **범용 도구 `tools/paper_study_retrofit.py "papers/N. name"`**
 한 줄로 이식한다(정본 빌더 `samples/cares/_build.py`에서 블록 추출 → 앵커 기반 주입 — 배포본·모체 모두에서 동작). 도구가 **빌더 세대를 자동 감지**한다:
-- **GEN B** — CARES 호환(JS-created 학습가이드 modal · `STUDY_GUIDES_PLACEHOLDER` · `JS_FINAL` 조립 · `lb`/`lbCloseFn` lightbox). 예: 22. free, 23. adaptinfer, 25. visiondrop.
-- **GEN A** — 구세대(BODY 배치 modal · `__STUDY_JSON__`/`STUDY_DATA` · `lightbox`/`lbOpen`/`lbClose`). 예: 20. sparse_vlm, 21. lv_pruning.
+- **GEN B** — CARES 호환(JS-created 학습가이드 modal · `STUDY_GUIDES_PLACEHOLDER` · `JS_FINAL` 조립 · `lb`/`lbCloseFn` lightbox). 예: 22. free, 23. adaptinfer, 25. visiondrop (모체 사례 — 배포본 미포함).
+- **GEN A** — 구세대(BODY 배치 modal · `__STUDY_JSON__`/`STUDY_DATA` · `lightbox`/`lbOpen`/`lbClose`). 예: 20. sparse_vlm, 21. lv_pruning (모체 사례 — 배포본 미포함).
 
 도구 수행: ① 학습가이드 **풀스크린 모달 → CARES 우측 드로어 승격**(CSS+JS+print, 세대별)
 ② 호버 페어링 요소별 바인딩 → **문서 위임**(리더 복제 문장 대응) ③ Paper Study 12단계(Region A·STUDY_CSS·
@@ -208,13 +221,13 @@ route();
 
 ⚠️ **v3-dict-format config 논문**(asset_layout이 `{aid:{caption,wide}}` dict): study.json 도입 전 config를
 v4 list-format으로 마이그레이션(asset_layout 리스트화 + captions 톱레벨 dict화)하고, 빌더의 캡션 조회를
-top-level `captions`에서 읽도록 1줄 수정한다(정본 사례: 20. sparse_vlm — `CAPS_KR = config.get("captions",{})`).
+top-level `captions`에서 읽도록 1줄 수정한다(사례: 20. sparse_vlm — `CAPS_KR = config.get("captions",{})` — 모체 사례, 배포본 미포함).
 
 정본 소급 사례(모두 2026-07-08): `24. geollava8k`·`25. visiondrop`(드로어 승격), 그리고
 `20. sparse_vlm`·`21. lv_pruning`(GEN A) + `22. free`·`23. adaptinfer`(GEN B) — 4편 일괄, 세대 자동 감지.
 추가 소급(2026-07-08): papers **4·7~19**(GEN A/B, `paper_study_retrofit.py`) + **5·6 backprop·lenet**
 (single-brace 구식 빌더 — raw CSS·함수형 tab_reading·fragment BODY·`__STUDY_DATA__`, 전용 도구
-`tools/paper_study_retrofit_groupc.py`로 bespoke 이식). **결과: v4 논문 4~26 전부(23편) Paper Study 완비 + 캡션 KR.**
+`tools/paper_study_retrofit_groupc.py`로 bespoke 이식). **결과: v4 논문 4~26 전부(23편) Paper Study 완비 + 캡션 KR.** (이 단락의 논문 번호는 모두 모체 사례 — 배포본 미포함.)
 
 ## 7. 검증 체크리스트 (빌드 후 의무)
 

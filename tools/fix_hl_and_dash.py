@@ -373,7 +373,7 @@ def paper_folders():
 def main():
     ap = argparse.ArgumentParser(description="핫스팟 막대 제거 + 형광펜 우선 + em-dash 하이픈화")
     ap.add_argument("folders", nargs="*", help='"papers/30. adaptvision" 형태')
-    ap.add_argument("--all", action="store_true", help="papers 1~35 전부 + tools/*.py")
+    ap.add_argument("--all", action="store_true", help="papers/ 전부 + tools/*.py")
     ap.add_argument("--tools", action="store_true", help="tools/*.py 만")
     ap.add_argument("--only", choices=["hotspot", "dash", "both"], default="both")
     ap.add_argument("--dry-run", action="store_true")

@@ -1,5 +1,5 @@
 """
-Re-parse a CVPR-style two-column PDF into papers/<name>/structured.json.
+Re-parse a two-column academic PDF into papers/<name>/structured.json.
 
 USAGE:
   python tools/reparse_pdf.py <paper_name>           # → writes structured.json
@@ -28,11 +28,12 @@ SUPPORTING A NEW PAPER
   1. Drop the source PDF into rawpaper/ and reference it from
      papers/<name>/config.json metadata.source_pdf.
   2. Author papers/<name>/_parse_config.py with PAGES_BODY, SECTION_PATTERNS,
-     FRONT_MATTER_SENTENCES (see papers/3. sgl/_parse_config.py for an example).
+     FRONT_MATTER_SENTENCES (papers/3. sgl/_parse_config.py in the parent repo is
+     the reference example; it is not shipped with this kit).
   3. Run this script. Inspect structured.json. Iterate on the patterns until
      section/paragraph/sentence counts look right.
 
-Layouts other than CVPR-style two-column 10pt body may need the BODY_LO/HI and
+Other layouts (single-column, three-column, non-10pt body) may need the BODY_LO/HI and
 HEADER_MIN constants tuned, or a new tool entirely.
 """
 import argparse
@@ -201,7 +202,7 @@ def load_paper_config(paper_dir):
     """Import papers/<name>/_parse_config.py and return its module."""
     cfg_path = paper_dir / "_parse_config.py"
     if not cfg_path.exists():
-        sys.exit(f"missing {cfg_path}; see papers/3. sgl/_parse_config.py for the template")
+        sys.exit(f"missing {cfg_path}; author it with PAGES_BODY / SECTION_PATTERNS / FRONT_MATTER_SENTENCES (see `python tools/reparse_pdf.py --help` and the module docstring)")
     spec = importlib.util.spec_from_file_location("paper_parse_config", cfg_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

@@ -27,8 +27,8 @@ strip_left_bars.py - 카드/콜아웃/패널 좌측 색상 바(border-left) 일�
 
 사용
   python tools/strip_left_bars.py --all
-  python tools/strip_left_bars.py --all --root "D:/1. 논문/paper-review-kit"
-  python tools/strip_left_bars.py "papers/30. adaptvision" --dry-run
+  python tools/strip_left_bars.py --all --root "<킷 루트>"
+  python tools/strip_left_bars.py "papers/1. shortname" --dry-run
   python tools/strip_left_bars.py --all --dry-run --verbose
 """
 from __future__ import annotations

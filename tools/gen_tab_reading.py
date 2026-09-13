@@ -1,6 +1,6 @@
 """
 Generate the inner content of <section id="tab-reading"> for a paper's
-[ShortName].html.
+[ShortName]_output.html.
 
 USAGE:
   python tools/gen_tab_reading.py <paper_name>            # → papers/<name>/_tab_reading.html
@@ -14,7 +14,7 @@ INPUTS (read from papers/<name>/):
   config.json                (asset_layout, wide_assets)
 
 OUTPUT
-  Just the body of the tab-reading section - splice into [ShortName].html
+  Just the body of the tab-reading section - splice into [ShortName]_output.html
   between `<section id="tab-reading" ...>` and its closing `</section>`.
 
 CONVENTIONS (matched to samples/cares/ and existing outputs)

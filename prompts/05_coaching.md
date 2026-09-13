@@ -1,6 +1,6 @@
 # Coaching Prompt
 
-You are a senior AI researcher.
+You are a senior researcher in the paper's field (`config.json#domain.field`).
 
 ## Pipeline Position
 
@@ -27,8 +27,10 @@ You are a senior AI researcher.
 |---|---|---|
 | `q-hidden` | 가려진 가정 | 논문이 명시하지 않은 전제. 어떤 조건에서만 작동하는가? |
 | `q-myth` | 흔한 오해 | 본문을 빠르게 읽으면 생기는 오독·잘못된 이해 |
-| `q-critic` | 비판적 질문 | 약한 실험, 의심스러운 일반화, 누락된 ablation 등에 대한 합리적 의문 |
+| `q-critic` | 비판적 질문 | 약한 실험, 의심스러운 일반화, 누락된 통제 비교(예: AI/CS — ablation, 실험과학 — 대조군·반복 측정, 실증 사회과학 — robustness check) 등에 대한 합리적 의문 |
 | `q-extend` | 확장 아이디어 | 자연스럽게 이어지는 후속 연구·응용 가능성 |
+
+4축은 고정이되, 각 축을 채우는 관점(무엇을 증거로 보는가·어떤 대안 설명을 의심하는가)은 `config.json#domain.evidence_types`·`alt_explanations` 를 따른다.
 
 ## 출력 스키마
 
@@ -70,7 +72,7 @@ You are a senior AI researcher.
 > 실패 모드별 처방. 이 절을 건너뛰면 여백만 크고 정보량이 적은 그림이 나온다 (반복 실패의 단일 원인).
 
 이 단계에서 생성 가능한 이미지:
-- ④ 탭 상단의 **직관 다이어그램 2~3개** (예: similarity matrix 추상화, depth × similarity heatmap, cascaded vs non-cascaded 토큰 곡선)
+- ④ 탭 상단의 **직관 다이어그램 2~3개** (예: AI/CS 논문 — similarity matrix 추상화, depth × similarity heatmap, cascaded vs non-cascaded 토큰 곡선; 실험과학 논문 — 반응 경로·측정 원리 도식)
 - 4종 카드(`q-hidden` / `-myth` / `-critic` / `-extend`) 중 시각적 보조가 효과적인 카드의 **간단한 메타포 일러스트**
 
 저장 / 임베드:

@@ -15,6 +15,39 @@
     "listed": "2026-05-31",
     "generated": "2026-07-02"
   },
+  "domain": {
+    "field": "AI/CS",
+    "subfield": "비전-언어 모델 추론 효율화 · 해상도 선택",
+    "venue_type": "conference",
+    "term_style": "한국 ML 커뮤니티 관행 — 어텐션·파인튜닝·토큰 등은 음역 표준, 고유 명칭은 영문",
+    "keep_english": [
+      "VLM",
+      "LLM",
+      "ViT",
+      "token budget",
+      "ANLS",
+      "AnyRes",
+      "dynamic-resolution"
+    ],
+    "evidence_types": [
+      "벤치마크 정확도 표",
+      "토큰 수-정확도 곡선",
+      "ablation 표",
+      "질의별 선택 해상도 분포"
+    ],
+    "alt_explanations": [
+      "벤치마크 구성(문서형 QA 편중)이 해상도 민감도를 과장하는가",
+      "평가 지표(ANLS 임계) 선택이 '충분 해상도' 라벨을 바꾸는가",
+      "교사 VLM(Granite-Vision)의 편향이 라벨에 유입되는가",
+      "해상도가 아니라 토큰 수 자체가 정확도를 결정하는가"
+    ],
+    "background_units": [
+      "VLM 추론 루프(인코더→프로젝터→LLM)",
+      "해상도-토큰 수 관계",
+      "지식 증류·라벨 생성 파이프라인"
+    ],
+    "metric_conventions": "정확도 % · 토큰 수 · FLOPs"
+  },
   "asset_layout": [
     [
       "fig_1",

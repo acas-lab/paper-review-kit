@@ -25,6 +25,8 @@ You are an AI tutor specializing in foundational explanations.
 
 ## 출력 스키마
 
+(아래 예시 값은 AI/CS 논문 기준. 카드 단위 후보는 `config.json#domain.background_units` — ML: 추론 루프·토큰 / 실험과학: 실험 흐름·측정 원리 / 인문사회: 이론 계보·개념 정의·방법론.)
+
 ```json
 {
   "primer": {
@@ -66,8 +68,8 @@ You are an AI tutor specializing in foundational explanations.
 
 ### 1. `primer` — 도입 다이어그램 + 기초 카드
 
-- **다이어그램:** 논문이 다루는 시스템의 큰 그림 (예: LVLM이면 추론 루프, 학습 알고리즘이면 학습 루프). 여기서는 `svg_key`로만 참조하고, 실제 SVG 마크업은 Stage 10에서 Claude가 단일 HTML에 인라인으로 작성한다 (또는 `assets/generated/knowledge_*.png`로 대체).
-- **fund_cards:** 다이어그램의 각 구성 요소를 짧게 풀이하는 카드 4~6개.
+- **다이어그램:** 논문이 다루는 시스템의 큰 그림 (예: AI/CS — LVLM이면 추론 루프, 학습 알고리즘이면 학습 루프; 실험과학 — 합성 → 특성 분석 → 평가 흐름; 인문사회 — 이론 계보·방법론 흐름). 여기서는 `svg_key`로만 참조하고, 실제 SVG 마크업은 Stage 10에서 Claude가 단일 HTML에 인라인으로 작성한다 (또는 `assets/generated/knowledge_*.png`로 대체).
+- **fund_cards:** 다이어그램의 각 구성 요소를 짧게 풀이하는 카드 4~6개. 카드 단위는 `config.json#domain.background_units` 를 따른다.
 
 ### 2. `equations` — 핵심 수식 카드
 
@@ -101,7 +103,7 @@ You are an AI tutor specializing in foundational explanations.
 English Term (한글 설명)
 ```
 
-예:
+예 (AI/CS 논문):
 - `Attention (주의 메커니즘)`
 - `Token (데이터 단위 표현)`
 - `KV-Cache (key/value 캐시)`
@@ -122,7 +124,7 @@ English Term (한글 설명)
 
 ## 이미지 생성 — ③ 탭의 핵심 학습 채널
 
-배경지식 탭은 **시각 아키텍처가 학습 효과를 결정한다.** 추론 루프, 토큰 흐름, KV-Cache 메모리 구조 같은 것들은 글 두 단락보다 그림 한 장이 더 빠르게 들어온다. 글로만 채우지 말 것.
+배경지식 탭은 **시각 아키텍처가 학습 효과를 결정한다.** 추론 루프, 토큰 흐름, KV-Cache 메모리 구조(예: AI/CS) 또는 측정 원리·장치 구성(예: 실험과학) 같은 것들은 글 두 단락보다 그림 한 장이 더 빠르게 들어온다. 글로만 채우지 말 것.
 
 ### 생성 방식 — Claude가 Bash로 codex CLI 직접 호출
 
@@ -142,9 +144,9 @@ English Term (한글 설명)
 
 ### 이 단계에서 만들 수 있는 이미지
 
-- `primer.svg_key`로 참조되는 **시스템 큰 그림** (예: LVLM 추론 루프 5단계, 학습 알고리즘 흐름)
+- `primer.svg_key`로 참조되는 **시스템 큰 그림** (예: AI/CS — LVLM 추론 루프 5단계, 학습 알고리즘 흐름; 실험과학 — 실험 흐름·측정 원리 도식)
 - `fund_cards`의 각 구성 요소를 시각화한 **단계별 일러스트**
-- `concept_cards`의 핵심 개념을 직관적으로 설명하는 **메타포 이미지** (예: KV-Cache의 메모리 구조, Attention의 토큰 상호작용)
+- `concept_cards`의 핵심 개념을 직관적으로 설명하는 **메타포 이미지** (예: AI/CS — KV-Cache의 메모리 구조, Attention의 토큰 상호작용)
 - `equations`의 수식을 풀어 설명하는 **시각화 보조** (선택)
 
 ### 저장 / 임베드

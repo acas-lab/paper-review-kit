@@ -2,6 +2,7 @@
 
 ## 핵심 원칙
 
+- 수식이 없는 분야(인문사회·일부 실험과학)에서는 Mathematics 탭이 셸 또는 "핵심 정량 관계"(통계 모형·측정 방정식·회귀식) 카드로 대체된다 — 어느 쪽인지는 `config.json#domain`(정본: `rules/domain_profile.md`)을 보고 정한다.
 - 수식은 **LaTeX 형태로 유지**한다
 - 수식 자체의 의미·구조 변경 금지
 - 의미 설명은 별도로 (수식 카드의 `what` / `why` / `links` 필드 또는 본문 산문)
@@ -42,7 +43,7 @@ HTML에 raw 삽입되는 문자열(번역문, tabs_data의 body/where/intuition,
 
 > 정본 학습 사례 (실패→복구): `24. geollava8k` Eq 5의 `X_{a<i}`가 태그로 파싱되어 수식 탭
 > 이후 문서 전체가 굵게 렌더 (2026-07-08 발견). 전수 스캔에서 10. yolo(`0.1<IOU<0.5`),
-> 25. visiondrop(`y_<t`)도 같은 유형 발견·수정. 이 정책과 검사 도구의 직접 동기.
+> 25. visiondrop(`y_<t`)도 같은 유형 발견·수정. 이 정책과 검사 도구의 직접 동기 (모체 사례 — 배포본 미포함).
 
 ---
 
@@ -69,7 +70,7 @@ HTML에 raw 삽입되는 문자열(번역문, tabs_data의 body/where/intuition,
 
 > **폐기 (2026-09-10 확인)**: 평문 수식을 사후에 LaTeX 로 패치하는 스크립트 `apply_math_latex.py` 는 저장소에 존재한 적이 없다. 변환 자체는 Stage 2 에서 `structured.json` 을 작성할 때 직접 수행한다 (`prompts/02_structuring.md` 규칙 3). 아래 규칙은 그 작성 규칙으로만 유효하다.
 
-- 본문(`structured.json`)과 번역(`translations/manual.json`) 양쪽에 동일한 `$...$` / `$$...$$` 블록을 바이트 단위로 복사한다 (정본 생성기: `papers/27. lupi/_mk_structured.py`)
+- 본문(`structured.json`)과 번역(`translations/manual.json`) 양쪽에 동일한 `$...$` / `$$...$$` 블록을 바이트 단위로 복사한다 (정본 생성기 `papers/27. lupi/_mk_structured.py` 는 모체 사례 — 배포본 미포함. 킷에서는 `tools/structure_paper.py` 출력 + `samples/cares/structured.json`·`translations/` 의 `$...$` 표기를 따른다)
 - 인라인 수식(예: `S_t`, `X_{t-P}`)은 `$...$`로 감싼다
 - Display 수식 블록(예: 식 1, 2, 3)은 `$$...$$`로 감싼다
 - 이미 `$` 안에 들어 있는 부분을 다시 감싸지 않는다
