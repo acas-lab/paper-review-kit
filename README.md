@@ -68,12 +68,13 @@ paper-review-kit/
 
 👉 **[SETUP.md](SETUP.md)** 를 먼저 읽으세요 — 필요한 프로그램 설치부터 첫 논문 빌드까지 단계별로 안내합니다.
 
-핵심만 요약하면:
+**처음이면 이 순서입니다** (프로그래밍 경험 불필요):
 
-1. **Claude Code** + Claude 계정/구독 (엔진)
-2. **Python 3.10 이상** — PDF 텍스트/그림 추출용 (PyMuPDF 등 라이브러리는 **자동 설치**: 웹앱은 런처(`win_start.bat`/`linux_start.sh`)가 venv에, CLI는 `tools/`가 첫 실행 때 스스로 깐다 — Python 본체만 있으면 됨)
-3. (선택) **codex CLI** — 학습 보조 이미지 생성용
-4. 논문 PDF를 **`rawpaper/`** 폴더에 넣고, 이 폴더에서 `claude` 실행 → 아래 시작 명령으로 대화 시작
+1. **`GUIDE.html`** 을 브라우저로 엽니다 — 복사 버튼이 달린 단계별 안내서입니다.
+2. `setup/` 폴더의 실행 파일을 **`0_check.bat` → `1_install_python.bat` → `2_install_node_and_claude.bat` → `3_login_claude.bat` → `4_install_kit_packages.bat`** 순서로 더블클릭합니다 (각각 마지막 줄 `[OK]` 확인).
+3. 매일 쓸 때는 `setup/5_start_web.bat`(웹앱) 또는 `setup/6_start_cli.bat`(터미널) 더블클릭.
+4. (선택) `setup/7_install_codex_optional.bat` — 학습 보조 이미지를 PNG로 만들고 싶을 때만.
+5. 논문 PDF는 **`rawpaper/`** 폴더에 넣습니다 → 웹앱은 업로드 시 시작 문장이 자동 입력되고, CLI는 아래 시작 명령을 붙여넣습니다.
 
 ### 시작 명령 (CLI — 복사해서 `<논문 파일명>`만 채우기)
 
