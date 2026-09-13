@@ -77,7 +77,7 @@ JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.js
 ## 번역 원칙
 
 - **직역 우선:** 의역은 별도 `interpretation` 필드에서 한다.
-- **기술 용어 유지:** `Attention`, `KV-cache`, `Token` 등은 영문 그대로. 처음 등장 시 `Attention (주의 메커니즘)` 식으로 한글 풀이를 괄호 병기 (이후엔 영문만).
+- **기술 용어 유지:** `Attention`, `KV-cache`, `Token` 등은 영문 그대로 (예: AI/CS 논문 — 유지 목록의 기준은 `config.json#domain.keep_english`·`term_style`). 처음 등장 시 `Attention (주의 메커니즘)` 식으로 한글 풀이를 괄호 병기 (이후엔 영문만).
 - **수식 보존:** `$...$`, `$$...$$`는 LaTeX 그대로 옮긴다. 수식 안의 변수/심볼은 번역하지 않는다.
 - **인용/각주/Equation 참조:** `Eq. 1`, `Fig. 2`, `Table 3` 같은 표기는 그대로 유지 (탭 간 ref-link 자동 anchor가 이 패턴을 인식).
 
@@ -96,15 +96,17 @@ JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.js
 
 ## 🔴 무리한 한국어 변환 금지 (정책)
 
-기본 전문용어·일반 영어 표현을 **자력으로 한국어 신조어로 옮기지 않는다.** "한국어로 옮길 수 있다"와 "한국어로 옮겨야 한다"는 다르다. 한국 ML 커뮤니티에서 굳어진 표기가 없으면 영문을 그대로 둔다. 직역하면 "사전적으로는 맞지만 한국어로는 어색"한 경우가 가장 흔한 실패 모드.
+기본 전문용어·일반 영어 표현을 **자력으로 한국어 신조어로 옮기지 않는다.** "한국어로 옮길 수 있다"와 "한국어로 옮겨야 한다"는 다르다. 그 논문 분야의 한국 학계에 굳어진 표기가 없으면 영문을 그대로 둔다. 직역하면 "사전적으로는 맞지만 한국어로는 어색"한 경우가 가장 흔한 실패 모드.
+
+> 이 킷은 특정 분야(AI/ML)에 묶이지 않는다. 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만든다. 분야에 따라 달라지는 것(용어 표기 관행·증거의 종류·대안 설명 축·배경지식 단위·학회/저널 메타)은 `config.json#domain`(정본: `rules/domain_profile.md`)에서 읽어 채운다. 문서 안의 ML 논문 예시는 **예시일 뿐** 규칙이 아니다.
 
 ### 의사결정 순서 (각 영어 표현마다)
 
-1. 한국 ML 학계·커뮤니티에 굳어진 표기가 있는가? → 있으면 그것을 쓴다 (예: attention → 어텐션, fine-tuning → 파인튜닝, pooling → 풀링, hallucination → 환각, embedding → 임베딩, gradient → 그래디언트, projection → 투영, norm → 노름).
+1. 그 논문 분야의 한국 학계에 굳어진 표기가 있는가? (`config.json#domain.term_style`·`keep_english` 기준) → 있으면 그것을 쓴다 (예: AI/CS — attention → 어텐션, fine-tuning → 파인튜닝, pooling → 풀링, hallucination → 환각, embedding → 임베딩, gradient → 그래디언트, projection → 투영, norm → 노름; 재료 — cathode → 양극, SEI → SEI 유지; 경제학 — instrumental variable → 도구변수).
 2. 없으면 **영문 그대로** 쓴다. 음역도 만들지 않는다.
 3. 의미가 안 통할 우려가 있으면 **첫 등장에만** 괄호로 짧은 한글 풀이를 병기 (이후엔 영문만).
 
-### 안티패턴 — 다음 변환은 만들지 말 것
+### 안티패턴 — 다음 변환은 만들지 말 것 (ML 논문 사례 — 원리는 모든 분야 공통)
 
 | 안 좋은 한국어 변환 | 권장 | 이유 |
 |---|---|---|
@@ -119,6 +121,8 @@ JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.js
 | 능력 차원 커버리지 (capability dimensional coverage) | "능력 차원 분포" | 3-단어 한자어 합성은 거의 항상 어색 |
 | 순위화해 보존 (rank and retain) | "순위를 매겨 보존" | "순위화"는 일본식 한자조어 |
 | 정보성 토큰 / 정보성이 풍부한 | "정보가 풍부한 토큰" | 동일 |
+| (재료·지질) rough surface → 거친 표면 | `거친 표면` 그대로 OK | 첫 행과 반대 — `rough`의 "거친"은 정당한 표기. 금지 대상은 `crude`(정제 전)의 오역이지 단어 "거친" 자체가 아니다 |
+| (인문사회·경제학) narrative → 서사, agency → 행위성, robustness check → 강건성 검사 | 그대로 OK | 해당 분야 한국 학계에 정착한 표기. 판단 기준은 ML 관행이 아니라 `config.json#domain.term_style` |
 
 ### 추가 점검 — 의심 패턴 자동 감지
 
@@ -127,7 +131,7 @@ JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.js
 ```python
 import re, json
 sus_patterns = [
-    r"거친 [가-힣]",        # 거친 데이터셋·거친 학습셋 류
+    r"거친 (데이터|학습|표본|훈련)",  # 거친 데이터셋·거친 학습셋 류 — 명사를 한정한 이유: 재료·지질의 "거친 표면"은 정당한 표기라 오탐이 남
     r"^.{0,40}성 있는 ",     # 정보성 있는·실용성 있는 등 N성+있는
     r"화해 ",                # 순위화해·정량화해 — "X화해 Y한다" 패턴 의심
     r"노동을 요구",          # laborious 직역
@@ -150,7 +154,7 @@ for s in mj["sentences"]:
 
 번역문을 **소리 내어 한 번 읽어 보고** 다음 중 하나라도 해당하면 손본다:
 - "이게 한국어로 자주 쓰는 표현인가?" → No
-- "ML 학회 발표에서 사용자가 이렇게 말할까?" → No
+- "그 분야 학회 발표에서 사용자가 이렇게 말할까?" → No
 - "원문보다 더 어색하게 들리는가?" → Yes
 
 영문 그대로 두는 것이 직역보다 거의 항상 낫다 — 학습자도 어차피 영어 학회 발표·논문 PDF를 다시 읽기 때문이다.

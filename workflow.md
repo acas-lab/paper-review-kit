@@ -3,9 +3,11 @@
 > 한 편의 논문 PDF를 **8탭 학습용 HTML**(v4 대시보드 디자인 — `rules/design_v4_dashboard.md`, Paper Study 탭 포함)로 변환하는 단계별 흐름.
 > **자동화 빌드 없이** — Claude와 대화하며 한 단계씩 콘텐츠를 정제하고, 마지막 단계에서 HTML 한 장으로 조립한다.
 >
-> 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link, fig-hotspot, glossary), SGL(3세대 — study-fab 모달, 3-Part Simulator)
+> 정본 레퍼런스: `samples/cares/` — v4 8탭 + Paper Study 워크드 예제(데이터 + `_build.py` + `CARES_output.html`). 1~3세대(SAFE·FrameFusion·SGL) 인터랙션은 CARES가 흡수 — 개념 히스토리는 `samples/README.md`
 >
 > 표준 템플릿/디자인 토큰/디렉토리 규약: `CLAUDE.md` 참조
+>
+> 이 킷은 특정 분야(AI/ML)에 묶이지 않는다. 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만든다. 분야에 따라 달라지는 것(용어 표기 관행·증거의 종류·대안 설명 축·배경지식 단위·학회/저널 메타)은 `config.json#domain`(정본: `rules/domain_profile.md`)에서 읽어 채운다. 문서 안의 ML 논문 예시는 **예시일 뿐** 규칙이 아니다.
 
 ---
 
@@ -24,8 +26,8 @@
 - `papers/[name]/assets/fig_N.png`, `assets/table_N.png`
 
 **자산 크롭 — PDF 종류별:**
-- **vector PDF** (현대 ML/CV 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본 — `^Figure N\. ` / `^Table N\. ` 정규식으로 캡션 첫 줄을 anchor로 잡고, Figure는 위(`y_top=col_top, y_bot=cap_bottom+padding`) / Table은 아래(`y_top=cap_top-padding, y_bot=data_last_row+padding`) 컨벤션으로 bbox 계산. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패 — 캡션 anchor 방식이 더 안정. 정본 구현: `papers/20. sparse_vlm/_crop.py`. **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 캡션 잘림, 표 아래 본문 누수를 PNG 직접 열어 확인.
-- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py`, 정본 사례 `papers/4. perceptron/_recrop.py`
+- **vector PDF** (LaTeX 등 벡터 조판 논문 대부분): **캡션 좌표 기반 bbox 검출**이 정본 — `^Figure N\. ` / `^Table N\. ` 정규식으로 캡션 첫 줄을 anchor로 잡고, Figure는 위(`y_top=col_top, y_bot=cap_bottom+padding`) / Table은 아래(`y_top=cap_top-padding, y_bot=data_last_row+padding`) 컨벤션으로 bbox 계산. `page.get_image_bbox()` 단독 사용은 composite figure(다이어그램·여러 sub-panel)에서 한 그림이 수십 개 image object로 분해돼 실패 — 캡션 anchor 방식이 더 안정. 정본 구현: `tools/autocrop_assets.py`(적용 사례 `samples/cares/_crop.py`; `papers/20. sparse_vlm/_crop.py` 는 모체 사례 — 배포본 미포함). **시각 검증 의무** — 페이지 running header 누수(y_top ≥ 64), 캡션 잘림, 표 아래 본문 누수를 PNG 직접 열어 확인.
+- **OCR'd 스캔본** (페이지 전체가 한 비트맵): **3-pass 자동 알고리즘** 사용 — `rules/parsing_rules.md` §4-A. 정본 도구 `tools/crop_assets.py`(사용법은 도구 docstring; 정본 사례 `papers/4. perceptron/_recrop.py` 는 모체 사례 — 배포본 미포함)
 - per-paper 진입점은 `papers/[name]/_crop.py` 또는 `_recrop.py` 한 장. 일회성 헬퍼 정책
 
 **참조 규칙:** `rules/parsing_rules.md` (§4-A — vector PDF 캡션 좌표 정본 + OCR'd 스캔본 3-pass)
@@ -41,10 +43,11 @@
 - 깨진 단어 복구 (예: `con￾tinuity` → `continuity`)
 - 페이지 헤더/푸터 제거
 - 수식·인용·각주는 보존
+- **분야 프로파일**: `config.json#domain` 초안 작성(제목·초록·venue·키워드 기반) → 사용자 확인 1회. 정본 `rules/domain_profile.md`. 이후 모든 Stage 가 이 블록을 읽는다.
 
-**산출물:** 정제된 plain text
+**산출물:** 정제된 plain text + `config.json#domain`(사용자 확인 완료)
 
-**참조 규칙:** `rules/parsing_rules.md`, `rules/math_rules.md`
+**참조 규칙:** `rules/parsing_rules.md`, `rules/math_rules.md`, `rules/domain_profile.md`
 
 ---
 
@@ -143,7 +146,7 @@
    - `diss-verify` Validation Logic
    - `diss-risk` Hidden Assumptions and Risks
    - `diss-extend` Research Expansion
-   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 5세대 정본: `papers/21. lv_pruning`.
+   - **`diss-summary` 논문 총정리** — 마지막 1장. **9-row 정형 (2026-05-12 갱신)**: ① 한 줄 ② 이게 왜 문제인가(Problem) ③ 저자의 핵심 관찰(Observation) ④ 기존 방법은 왜 부족한가(Gap) ⑤ 어떻게 해결했나(Method) ⑥ 다른 논문과 무엇이 다른가(Novelty) ⑦ 효과 — 숫자(Results) ⑧ 한계와 의미(Limitations & Implication) ⑨ 30초 요약(For Beginners). 깊이 기준: \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해</em>\". 자세한 규약: `prompts/04_research_analysis.md`. 정본: `samples/cares/_build.py` + `CARES_output.html`.
 
    **summary 카드 한 장 overview 이미지 의무**: summary 카드 헤더 아래에 `assets/generated/dissection_overview.png` (1536×864, 5단 PROBLEM→OBSERVATION→METHOD→NOVELTY→RESULTS 인포그래픽)를 `<figure class="diss-overview-figure">`로 동봉. 마크업·CSS·빌더 헬퍼: `rules/component_rules.md` §14.
 
@@ -322,13 +325,13 @@
 - `papers/[name]/tabs_data/study.json` (①′ Paper Study — 없으면 빌더가 자동 셸 렌더)
 - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**. 사용자가 ⑤ ⑥을 명시 요청하지 않은 빌드에서는 사용 안 함.
 - `papers/[name]/assets/`, `assets/generated/`
-- 정본 레퍼런스: `samples/`의 3편 — SAFE(1세대), FrameFusion(2세대), SGL(3세대 — 인터랙션·시뮬레이터 3-Part·자산 모달)
+- 정본 레퍼런스: `samples/cares/_build.py` + `samples/cares/CARES_output.html` — 셸·토큰·문장 페어링·study-drawer·lightbox·hotspot·ref-link·Paper Study 모두 포함 (1~3세대 인터랙션 흡수)
 - 디자인 컨벤션: `rules/component_rules.md`, `rules/implementation_rules.md`
 
 **출력:** `papers/[name]/[ShortName]_output.html` — 단일 HTML
 
 **핵심 원칙:**
-- 정본 두 파일의 마크업/CSS/탭 셸을 따른다 (디자인 토큰 정확히, 클래스명 임의 변경 금지)
+- 정본(`samples/cares/_build.py` + `CARES_output.html`)의 마크업/CSS/탭 셸을 따른다 (디자인 토큰 정확히, 클래스명 임의 변경 금지)
 - 8탭 구조 고정 (`tab-reading`, `tab-study`, `tab-dissection`, `tab-knowledge`, `tab-math`, `tab-questions`, `tab-simulator`, `tab-qa`) — 라벨은 숫자 없이 (v4)
 - **모든 자산은 base64 인라인 의무** — `assets/`의 원본 figure/table + `assets/generated/`의 학습 보조 이미지 모두 `<img src="data:image/png;base64,...">`로 박는다. HTML 한 장만 다른 PC·모바일·USB로 옮겨도 그림이 그대로 떠야 한다. 외부 참조 잔존 = 빌드 불합격
 - MathJax 3 (CDN), 탭 전환 시 `MathJax.typesetPromise()` 재호출
@@ -350,7 +353,7 @@
 
 **프롬프트:** `prompts/12_research_mentor.md`
 
-**목표:** 빌드가 끝난 논문(papers 1~35)을 새 세션에서 다시 정립하는 프롬프트. 빌드 산출물을 만들지 않는다. 대상 논문 파일(`structured.json`·`tabs_data/*.json`·`assets/`)을 직접 읽은 뒤 A 논문 정립(한 줄 정의·문제·핵심 주장·분모를 명시한 결정적 수치 3개·증명하지 못한 것) → B 관찰 요소 → C 방법론 해부(텐서 흐름·개입 지점·학습 신호·비용 구조·제어 손잡이) → D 코퍼스 내 인접 논문 3~5편 차별성 매트릭스 → E 사용자 가설 H1~H4 좌표 배치(관련될 때만, 근거/반례 판정) → F 회수·판단 질문 3~5개 순으로 출력하고 답을 기다린다. 논문 지정 없이 아이디어만 말하면 선행 연구로 판정하지 않는 아이데이션 모드로 동작한다. 산출물은 선택적으로 `papers/0. Full_study/qa_log.json` 에 append 한다.
+**목표:** 빌드가 끝난 논문을 새 세션에서 다시 정립하는 프롬프트. 멘토 페르소나·가설·차별성 축은 사용자 연구 프로파일 `research_profile.json`(킷 루트 · 템플릿 `research_profile.example.json` · 없으면 첫 세션에서 함께 작성 — `rules/domain_profile.md` §3)에서 읽는다. 빌드 산출물을 만들지 않는다. 대상 논문 파일(`structured.json`·`tabs_data/*.json`·`assets/`)을 직접 읽은 뒤 A 논문 정립(한 줄 정의·문제·핵심 주장·분모를 명시한 결정적 수치 3개·증명하지 못한 것) → B 관찰 요소 → C 방법론 해부(텐서 흐름·개입 지점·학습 신호·비용 구조·제어 손잡이) → D 코퍼스 내 인접 논문 3~5편 차별성 매트릭스 → E 사용자 가설(`research_profile.json#hypotheses`) 좌표 배치(관련될 때만, 근거/반례 판정) → F 회수·판단 질문 3~5개 순으로 출력하고 답을 기다린다. 논문 지정 없이 아이디어만 말하면 선행 연구로 판정하지 않는 아이데이션 모드로 동작한다. 산출물은 선택적으로 `research/qa_log.json`(`research_profile.json#qa_log`) 에 append 한다.
 
 ---
 
@@ -391,9 +394,9 @@
   (`rules/math_rules.md` § 부등호·꺾쇠, 정본 사례: 24. geollava8k Eq 5)
 - 콜아웃/퀴즈/해석/초보자 노트가 의도한 위치에 표시
 - **모든 figure/table에 `.study-fab` 버튼 + 4-섹션 정형(s-look·s-num·s-author·s-check) 학습 가이드 모달** (interpretation/beginner-note의 단순 복제 ✗ — 한 단계 더 깊은 분해. §12 정본 = `samples/cares/`의 study-drawer)
-- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `papers/21. lv_pruning`)
+- **② Dissection의 `diss-summary` 카드가 9-row 정형** (한 줄 / 문제 / 관찰 / Gap / 방법 / 차별 / 효과 / 한계 / 30초 요약) + **`dissection_overview.png` 한 장 인포그래픽이 헤더 아래·rows 위에 base64 인라인** (`rules/component_rules.md` §14, 정본 = `samples/cares/_build.py`)
 - **`.diss-tag` pill이 본문 한 줄 높이의 작은 알약 모양** — grid cell의 세로 stretch로 큰 타원·이상한 모양이 안 보임. 5개 속성 필수: `align-self:start` / `justify-self:start` / `width:max-content` / `white-space:nowrap` / `line-height:1.4` (`rules/component_rules.md` §15)
-- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `papers/22. free`, 2026-05-13 갱신)
+- **② Dissection 카드가 단일 컬럼으로 수직 적층 + 각 row가 `[태그 pill, 한 줄]` → `[본문, 그 아래]` 상하 적층** — `.diss-grid` = `grid-template-columns:1fr` / `.diss-row` = `display:flex; flex-direction:column` / `dd.diss-body { margin-left:0 }` 모두 적용 (`rules/component_rules.md` §16, 정본 = `samples/cares/_build.py`, 2026-05-13 갱신)
 - **모든 콘텐츠 이미지(① 자산·② summary overview·③ 학습 보조)에 비율 유지 lightbox 동작** — `cursor:zoom-in` hover, 클릭 시 어두운 배경 모달에 비율 유지하며 확대, 휠/+/− 줌·드래그 pan·더블클릭 토글·ESC 닫기. `study-fab` 클릭은 `e.stopPropagation() + e.preventDefault()`로 lightbox 트리거 차단 (`rules/component_rules.md` §13)
 - ② ③ ④ 탭 콘텐츠가 비어 있지 않음
 - ⑤ ⑥ 탭은 셸만 — `tab-intro` + `.section-empty` placeholder ("이 탭은 별도 요청 시 작성됩니다") 표시
@@ -417,4 +420,4 @@
 - `CLAUDE.md` — 프로젝트 개요, 표준 템플릿, 디자인 토큰, 디렉토리 규약
 - `prompts/01~12_*.md` — 각 단계별 프롬프트 정본 (11 = Paper Study — 기본 빌드 포함, 12 = 논문 정립·연구 멘토 - 빌드 밖 별도 세션)
 - `rules/` — 파싱 / 분석 / 코칭 / 지식 / 수식 / 컴포넌트 / 구현 규약
-- `samples/` — 정본 HTML (수정 금지) — SAFE(1세대), FrameFusion(2세대), SGL(3세대). README + design/ 자산만 함께 보관 (pre-SAFE 시기 개인 학습 자료는 `_archive/personal_study/`로 분리됨)
+- `samples/` — 정본 (수정 금지) — `cares/`(v4 8탭 + Paper Study 워크드 예제) + `design/`(로고) + `README.md`(1~3세대 인터랙션 개념 히스토리)

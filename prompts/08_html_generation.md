@@ -19,7 +19,7 @@ You are Claude, building a learning HTML directly in conversation with the user.
   - `papers/[name]/tabs_data/study.json` + `config.json#captions_en` (①′ Paper Study — Stage 11, 없으면 자동 셸)
   - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**, ⑤/⑥ 명시 요청 시에만 사용
   - `papers/[name]/assets/` (원본 PNG), `assets/generated/` (학습 보조 이미지)
-- **정본 레퍼런스 (수정 금지):** **v4 = `samples/cares/CARES_output.html` (최종 디자인 기준)** · historical 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달)
+- **정본 레퍼런스 (수정 금지):** **v4 = `samples/cares/CARES_output.html` (최종 디자인 기준)** · historical 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달) (견본 HTML은 배포본 미포함 — `samples/cares/`가 흡수)
 - **Output:** `papers/[name]/[ShortName]_output.html` (단일 HTML, Claude가 직접 작성)
 
 ## Referenced Rules
@@ -34,13 +34,13 @@ You are Claude, building a learning HTML directly in conversation with the user.
 
 ## 작업 방식
 
-자동화 빌드 스크립트는 존재하지 않는다. **Claude가 정본 두 파일의 마크업/CSS/JS를 모방해 한 번에 단일 HTML을 작성**한다.
+자동화 빌드 스크립트는 존재하지 않는다. **Claude가 정본 `samples/cares/CARES_output.html`(+ `_build.py`)의 마크업/CSS/JS를 모방해 한 번에 단일 HTML을 작성**한다.
 
 흐름:
 1. 사용자가 어느 논문을 빌드할지 알려준다 (`papers/[name]/`).
-2. Claude는 `papers/[name]/`의 모든 JSON과 자산, `samples/`의 정본 두 파일, `rules/component_rules.md`를 읽는다.
+2. Claude는 `papers/[name]/`의 모든 JSON과 자산, `samples/cares/`의 정본 HTML·빌더, `rules/component_rules.md`를 읽는다.
 3. 정본 한 파일을 골라(보통 가장 가까운 영역의 논문) 그 마크업/CSS/JS를 골격으로 삼는다.
-4. 탭 콘텐츠를 데이터에서 채워 단일 HTML 파일로 출력한다. **v4 권장 경로: `samples/cares/_build.py`를 복사해 조립한 뒤 `tools/restyle_dash_v4.py "papers/N. shortname"` 실행 (헤더는 config#meta에서 자동 생성).**
+4. 탭 콘텐츠를 데이터에서 채워 단일 HTML 파일로 출력한다. **v4 권장 경로: `samples/cares/_build.py`를 복사해 조립한 뒤 `tools/restyle_dash_v4.py "papers/N. shortname"` 실행 (헤더는 config#meta에서 자동 생성. 우측 메타는 `config.json#domain.venue_type` 별 형식(`rules/domain_profile.md`)을 따르며 arXiv 표기는 선택이다).**
 
 ---
 

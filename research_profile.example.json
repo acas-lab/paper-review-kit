@@ -1,0 +1,15 @@
+{
+  "field": "대분야 — 예: 자연과학 / 공학 / AI·CS / 의학 / 인문사회",
+  "subfield": "세부 전공 한 줄 — 예: 리튬이온 배터리 양극 소재",
+  "big_question": "내 연구가 답하려는 큰 질문 한 문장",
+  "hypotheses": [
+    {"id": "H1", "text": "가설 1 — 검증 가능한 한 문장", "status": "open"},
+    {"id": "H2", "text": "가설 2 — 검증 가능한 한 문장", "status": "open"}
+  ],
+  "axes": ["차별성 축 1 — 선행 연구와 무엇이 다른가", "차별성 축 2"],
+  "intervention_points": ["개입 지점 1 — 방법·데이터·평가·이론 중 어디를 바꾸는가", "개입 지점 2"],
+  "corpus": [
+    {"paper": "papers/1. shortname", "role": "baseline", "note": "papers/ 에 실제 있는 폴더만 — role 은 baseline | evidence | counter"}
+  ],
+  "qa_log": "research/qa_log.json"
+}

@@ -24,6 +24,8 @@ You are a research-paper learning experience designer.
 
 논문의 **핵심 알고리즘**을 학습자가 손으로 만질 수 있는 시뮬레이터로 변환하는 설계서를 작성한다.
 
+(예: AI/CS 논문 — 이 문서의 예시(FrameFusion·Dense/FastV·prefill FLOPs)는 모두 AI/CS 기준. 시뮬레이터 대상은 논문의 핵심 절차: 알고리즘·실험 프로토콜·모형의 매개변수 탐색 등 분야에 맞게 잡는다.)
+
 이 단계는 JS를 직접 작성하는 단계가 아니다. **결정 사항 문서**(어떤 슬라이더, 어떤 시각화, 어떤 baseline)를 markdown으로 정리해 두면, Stage 10(HTML Generation)에서 Claude가 이 spec을 보고 vanilla JS 위젯까지 단일 HTML 안에 인라인으로 작성한다.
 
 ---
@@ -67,7 +69,7 @@ def algorithm_name(X, hyperparams):
 
 **결정 항목 (필수):**
 
-| 항목 | 형식 | 예시 (FrameFusion) |
+| 항목 | 형식 | 예시 (FrameFusion — AI/CS 논문) |
 |---|---|---|
 | 노출 슬라이더 | `[name, min, max, default, unit]` 4~6개 | `S_threshold` 0.5–0.95 step 0.01 / `N_threshold` 0–200 |
 | 입력 프리셋 | 토글 또는 드롭다운 | 초기 토큰 수 `N` 프리셋: 840 / 13440 |

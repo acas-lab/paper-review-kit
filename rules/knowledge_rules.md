@@ -14,11 +14,13 @@
 English Term (한글 설명)
 ```
 
-예시:
+예시 (예: AI/CS 논문):
 - `Attention (주의 메커니즘)`
 - `Token (데이터 단위 표현)`
 - `KV-Cache (key/value 캐시)`
 - `Cumulative Attention Score (누적 어텐션 점수)`
+
+다른 분야 예시 — 재료공학: `SEI (고체 전해질 계면)` · 경제학: `내생성 (endogeneity)`. 영문 유지 여부는 `config.json#domain.term_style`·`keep_english` 를 따른다.
 
 처음 등장 시 풀어 적고, 이후엔 영문만 사용한다.
 
@@ -29,11 +31,13 @@ English Term (한글 설명)
 - 용어는 번역하지 않고 영어 유지
 - 설명만 한글로 제공
 - 수식 안의 변수/심볼은 그대로 유지
-- **무리한 한국어 신조어 금지** — 한국 ML 커뮤니티에 굳어진 표기가 없으면 영문 그대로. "거친 데이터셋(crude dataset)", "이진 투표(Binary Polling)", "워밍업 파인튜닝(warm-up fine-tuning)", "고충실도(high-fidelity)" 같은 직역은 사용 금지. 정본 안티패턴 표·자동 점검 정규식: `prompts/03_translation.md § 🔴 무리한 한국어 변환 금지`.
+- **무리한 한국어 신조어 금지** — 해당 분야의 한국 학계에 굳어진 표기(`config.json#domain.term_style`)가 없으면 영문 그대로. 아래 안티패턴은 AI/CS 예시: "거친 데이터셋(crude dataset)", "이진 투표(Binary Polling)", "워밍업 파인튜닝(warm-up fine-tuning)", "고충실도(high-fidelity)" 같은 직역은 사용 금지. 정본 안티패턴 표·자동 점검 정규식: `prompts/03_translation.md § 🔴 무리한 한국어 변환 금지`.
 
 ---
 
 ## 3. 깊이 3단계
+
+개념 카드의 단위(무엇을 한 카드로 세우는가)는 `config.json#domain.background_units` 를 따른다 (예: AI/CS — 추론 루프·토큰; 실험과학 — 실험 흐름·측정 원리; 인문사회 — 이론 계보·개념 정의·방법론).
 
 모든 개념 카드(`fund_cards`, `concept_cards`)는 다음 3단계를 모두 포함:
 

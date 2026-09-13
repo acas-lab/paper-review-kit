@@ -7,7 +7,7 @@ translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + �
 **신규 논문의 셸·헤더·8탭·Paper Study·디자인 토큰은 모두 여기를 복사 출발점으로 한다.**
 
 - 빌드: `python samples/cares/_build.py` (v3 조립) → `python tools/restyle_dash_v4.py "samples/cares"` (v4 변환).
-  그 뒤 주입기 3개를 같은 자리에서 돌린다 - `tools/memo_layer_fix.py` (메모 레이어 z=2400·자리 배분) · `tools/qa_button_inject.py` (메모 Q&A 버튼) · `tools/study_review_inject.py` (Study 검토 버튼). 모두 인자는 "samples/cares", additive·idempotent 라 여러 번 돌려도 같다.
+  그 뒤 주입기 4개를 같은 자리에서 돌린다 - `tools/memo_layer_fix.py` (메모 레이어 z=2400·자리 배분) → `tools/qa_button_inject.py` (메모 Q&A 버튼) · `tools/study_review_inject.py` (Study 검토 버튼) · `tools/reader_asset_chip.py` (리더 자산 칩). 모두 인자는 "samples/cares", additive·idempotent 라 여러 번 돌려도 같다.
 - 8탭: Translation · Paper Study · Paper Dissection · Background · Mathematics · Diagrams · Code · Q&A.
 - 규약 정본: `rules/design_v4_dashboard.md`, Paper Study 컴포넌트 = `rules/component_rules.md` §17.
 

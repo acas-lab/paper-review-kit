@@ -50,7 +50,7 @@ You are a research paper structure analyzer.
 
 원문에서 **마침표(`.`)·물음표·느낌표로 종결되는 모든 문장**은 각각 별도의 `sentence_id`로 보존한다.
 
-**금지 패턴 (Bad)** — 다음은 모두 `OUTPUT IS INVALID`:
+**금지 패턴 (Bad)** — 다음은 모두 `OUTPUT IS INVALID` (예: AI/CS 논문):
 
 ```jsonc
 // ❌ 두 문장을 semicolon으로 합치기
@@ -66,7 +66,7 @@ You are a research paper structure analyzer.
 // 원문 끝에 있는 "More cases are in the Appendix H." 같은 한 문장을 "굳이 안 넣어도 되겠지" 생각하고 빼는 행위
 ```
 
-**허용 패턴 (Good)** — 마침표 단위 1:1 보존:
+**허용 패턴 (Good)** — 마침표 단위 1:1 보존 (예: AI/CS 논문 — 분야가 달라도 규칙은 동일):
 
 ```jsonc
 {"sentence_id": "p4_s1", "text": "The proposed method is simple yet practical."},
@@ -103,7 +103,7 @@ bullet 자체를 "그 문단의 한 줄"로 합치지 않는다.
 
 ### Check 2 — Subsection·문단 수
 
-원문의 `^[0-9]+\.[0-9]+\.? ` 라인 (예: `3.1`, `3.2`, …, `4.1`, `5.1`, …)과 **bold subsection 헤더** (예: "Estimation of Visual Token Significance.", "Token Aggregation.")를 모두 센다. structured.json에서 각각 별도의 paragraph로 등장해야 한다.
+원문의 `^[0-9]+\.[0-9]+\.? ` 라인 (예: `3.1`, `3.2`, …, `4.1`, `5.1`, …)과 **bold subsection 헤더** (예: AI/CS 논문 — "Estimation of Visual Token Significance.", "Token Aggregation."; 실험과학 논문 — "Sample preparation.", "Electrochemical measurements.")를 모두 센다. structured.json에서 각각 별도의 paragraph로 등장해야 한다.
 
 ### Check 3 — 문장 수 (paragraph-by-paragraph)
 
@@ -204,4 +204,4 @@ structured.json을 발행한 뒤 사용자가 "번역이 누락됐다" / "원문
 4. _build.py의 ASSET_FOR_PARA에 새 paragraph_id가 자산을 갖는 경우 추가
 5. translations/manual.json도 새 sentence_id에 맞춰 동기화 (누락 0건 / 잉여 0건 / 빈 값 0건 자가 검증)
 
-> **정본 사례 (학습용)**: `papers/20. sparse_vlm/`는 1차 빌드에서 본문을 70 문장으로 압축했다가, 사용자 지적 후 163 문장으로 재작성된 케이스. Related Work 전체와 3.4 Theoretical Analysis 섹션이 1차에서 누락되었고, 5건의 문장 압축(p4_s1·p4_s8·p10_s6·p10_s7·p12_rec_s1)과 1건의 누락(p12_vis_s7)이 발견됨. 신규 논문은 처음부터 이 사례 수준의 1:1 보존을 목표로 한다.
+> **정본 사례 (학습용)**: `papers/20. sparse_vlm/`(모체 사례 — 배포본 미포함)는 1차 빌드에서 본문을 70 문장으로 압축했다가, 사용자 지적 후 163 문장으로 재작성된 케이스. Related Work 전체와 3.4 Theoretical Analysis 섹션이 1차에서 누락되었고, 5건의 문장 압축(p4_s1·p4_s8·p10_s6·p10_s7·p12_rec_s1)과 1건의 누락(p12_vis_s7)이 발견됨. 신규 논문은 처음부터 이 사례 수준의 1:1 보존을 목표로 한다.

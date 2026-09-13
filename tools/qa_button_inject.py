@@ -35,7 +35,7 @@ JS 로 `.memo-drawer` 를 찾아 버튼 바를 붙이는 방식으로 26편 전�
         python tools/qa_button_inject.py --all        # papers 전체
 검증  :  재실행 시 이미 있으면 skip (idempotent).
 
-정본: papers 1~26 (2026-07-09) · v2 비동기 job (2026-09-10) · v3 묶음 카드(.qa-mem-covers) + noop 우회 안내 (2026-09-10, papers 1~35).
+정본: papers 1~26 (2026-07-09) · v2 비동기 job (2026-09-10) · v3 묶음 카드(.qa-mem-covers) + noop 우회 안내 (2026-09-10, 모체 papers 1~35 — 배포본 미포함).
 """
 import sys
 from pathlib import Path

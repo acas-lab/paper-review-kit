@@ -19,7 +19,7 @@ audit_fix_pass1.py - 전면 감사 1차 수정 (CSS / JS / 빌더 코드 전용)
 성질: additive · idempotent (두 번 돌리면 0바이트 변화).
 사용법:
     python tools/audit_fix_pass1.py --all [--dry-run]
-    python tools/audit_fix_pass1.py "papers/9. resnet" [--dry-run]
+    python tools/audit_fix_pass1.py "papers/1. shortname" [--dry-run]
     python tools/audit_fix_pass1.py --all --only hl,col
 """
 from __future__ import annotations

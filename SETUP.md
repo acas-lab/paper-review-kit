@@ -2,6 +2,7 @@
 
 이 문서대로 따라 하면, 자기 컴퓨터에서 논문 PDF 한 편을 v4 대시보드 8탭 학습 HTML로 만들 수 있습니다.
 **빌드 자동화는 없습니다.** Claude Code와 *대화하면서* 한 단계씩 만듭니다.
+이 킷은 특정 분야(AI/ML)에 묶이지 않습니다 — 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만듭니다.
 
 ---
 
@@ -77,13 +78,13 @@ Claude에게 이렇게 시작하세요:
 > 셸·디자인은 `rules/design_v4_dashboard.md` 정본(`_build.py` 조립 → `tools/restyle_dash_v4.py` 변환),
 > 학습 인터랙션은 `samples/cares/` 정본 베이스, Paper Study는 준비되면 채우고 ⑤⑥은 셸만 만들어줘."
 
-그러면 Claude가 대략 이 순서로 진행합니다 (`workflow.md` / `prompts/01~11` 기준):
+그러면 Claude가 대략 이 순서로 진행합니다 (`workflow.md` 빌드 단계 Stage 0~11 / `prompts/01~11` 기준):
 
 1. **PDF → 텍스트/자산** — 본문 구조화(`tools/structure_paper.py`) + Figure/Table 자동 크롭(`tools/autocrop_assets.py` +`--verify`)
 2. **구조화** — 섹션/문단/문장 단위 `structured.json` (원문 1:1 보존)
 3. **번역** — 문장 단위 영한 매핑 (`translations/manual.json`) + 캡션 KR(`config#captions`)/EN(`config#captions_en`)
 4. **분석 데이터** — `config.json`, `analysis.json`, `tabs_data/*.json`(dissection·knowledge·questions·**study**)
-5. **HTML 조립** — `_build.py`로 v3 조립 → `tools/restyle_dash_v4.py`로 v4 8탭 변환 → 주입기(`tools/memo_layer_fix.py` · `qa_button_inject.py` · `study_review_inject.py`), 그림은 base64 인라인
+5. **HTML 조립** — `_build.py`로 v3 조립 → `tools/restyle_dash_v4.py`로 v4 8탭 변환 → 주입기(`tools/memo_layer_fix.py` → `qa_button_inject.py` · `study_review_inject.py` · `reader_asset_chip.py`), 그림은 base64 인라인
 6. **검증** — `tools/check_study_refs.py`(Paper Study ref·캡션 KR) · `tools/check_html_escape.py`(수식 이스케이프) · `tools/tone_lint.py`(문체) · `tools/check_memo_layer.py`(메모 레이어, playwright 필요)
 
 ### 4-4. 결과 확인
@@ -102,8 +103,8 @@ Claude에게 이렇게 시작하세요:
 
 ## 6. 더 깊이
 
-- `workflow.md` — 전체 흐름 개요 (Stage 0~11)
-- `prompts/01~11_*.md` — 각 단계 프롬프트 정본 (11 = Paper Study)
+- `workflow.md` — 전체 흐름 개요 (Stage 0~12 — 빌드는 0~11, 12는 빌드 밖)
+- `prompts/01~12_*.md` — 각 단계 프롬프트 정본 (11 = Paper Study, 12 = 빌드 완료 논문의 정립·연구 멘토 세션)
 - `rules/` — 파싱/분석/코칭/지식/수식/컴포넌트 + `design_v4_dashboard.md` 세부 규약
 - `CLAUDE.md` — 이 모든 것을 묶는 운영 규칙 (가장 중요)
 

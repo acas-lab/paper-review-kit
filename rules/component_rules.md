@@ -390,7 +390,7 @@ codex exec \
 
 ### 11.5 정본 임베드 컴포넌트 — `<figure class="concept-figure">`
 
-학습 보조 이미지를 박는 표준 마크업. 4. perceptron에서 검증.
+학습 보조 이미지를 박는 표준 마크업. 4. perceptron에서 검증 (모체 사례 — 배포본 미포함); 킷 적용례는 `samples/cares/_build.py`.
 
 ```html
 <figure class="concept-figure">
@@ -421,7 +421,7 @@ CSS (정본 — `<style>` 블록에 추가):
 
 ### 11.6 base64 임베드 + 마크업 삽입 자동화 — `_inject_concept_figures.py`
 
-빌드 후 PNG를 base64로 변환해 figure 마크업과 함께 정확한 자리에 삽입하는 정본 스크립트 패턴. 4. perceptron 폴더의 `_inject_concept_figures.py` 참조 (재실행 가능, 백업 자동 생성).
+빌드 후 PNG를 base64로 변환해 figure 마크업과 함께 정확한 자리에 삽입하는 정본 스크립트 패턴. 4. perceptron 폴더의 `_inject_concept_figures.py` 참조 (재실행 가능, 백업 자동 생성 — 모체 사례, 배포본 미포함; 아래 골격이 정본).
 
 핵심 골격:
 
@@ -494,7 +494,7 @@ imagegen은 **쓰지 않은 것을 채워 넣지 않는다.** 안 적은 패널�
 **패널마다 번호를 붙이고, 각 패널에 아래 3요소를 빠짐없이 적는다.**
 
 1. **(a) 시각 형태** — 무엇으로 그릴지. 아래 어휘집에서 고른다.
-2. **(b) 그 안의 라벨과 실제 수치** — 축 이름, 계열 이름, 값, 모델명, 데이터셋 크기.
+2. **(b) 그 안의 라벨과 실제 수치** — 축 이름, 계열 이름, 값, 대상·조건 이름(예: AI/CS — 모델명·데이터셋 크기; 실험과학 — 시료·측정 조건), 단위는 `config.json#domain.metric_conventions`.
 3. **(c) 한 줄 캡션** — 이 패널이 말하는 명제. 영어.
 
 **시각 형태 어휘집** (imagegen이 안정적으로 그려내는 것들):
@@ -589,12 +589,10 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 
 #### 11.8.9 밀도 정본 (열어서 보고 따라 쓸 것)
 
-- `papers/20. sparse_vlm/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/24. geollava8k/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/25. visiondrop/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/27. lupi/assets/generated/prompt_dissection_overview.txt` — 이론 논문(자산 figure 1장) 적용례
+- 밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG). 개념도 정본: 같은 폴더의 `prompt_cares_pipeline.txt`·`prompt_query_resolution.txt`.
+- (모체의 papers/20·24·25·27 프롬프트 — 실험 논문 3편 + 이론 논문(자산 figure 1장) 1편 — 는 배포본 미포함.)
 
-> 정본 학습 사례 (실패→복구): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤(`[좌/상 패널] <설명>`)을
+> 정본 학습 사례 (실패→복구, 모체 사례 — 배포본 미포함): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤(`[좌/상 패널] <설명>`)을
 > 그대로 따라 단마다 요소를 1~2개만 적었고, 여백이 크고 정보량이 적은 그림이 나왔다.
 > 사용자가 20·24번과 비교 지적 → 프롬프트를 2.9 KB → 4.4 KB로 재작성해 재생성.
 > 같은 세션에서 병렬 호출 `--cd` 공유로 `knowledge_convergence.png`가 다른 그림으로 저장되는 사고도 발생.
@@ -679,7 +677,7 @@ imagegen은 **쓰지 않은 것을 채워 넣지 않는다.** 안 적은 패널�
 **패널마다 번호를 붙이고, 각 패널에 아래 3요소를 빠짐없이 적는다.**
 
 1. **(a) 시각 형태** — 무엇으로 그릴지. 아래 어휘집에서 고른다.
-2. **(b) 그 안의 라벨과 실제 수치** — 축 이름, 계열 이름, 값, 모델명, 데이터셋 크기.
+2. **(b) 그 안의 라벨과 실제 수치** — 축 이름, 계열 이름, 값, 대상·조건 이름(예: AI/CS — 모델명·데이터셋 크기; 실험과학 — 시료·측정 조건), 단위는 `config.json#domain.metric_conventions`.
 3. **(c) 한 줄 캡션** — 이 패널이 말하는 명제. 영어.
 
 **시각 형태 어휘집** (imagegen이 안정적으로 그려내는 것들):
@@ -774,12 +772,10 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 
 #### 11.8.9 밀도 정본 (열어서 보고 따라 쓸 것)
 
-- `papers/20. sparse_vlm/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/24. geollava8k/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/25. visiondrop/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG)
-- `papers/27. lupi/assets/generated/prompt_dissection_overview.txt` — 이론 논문(자산 figure 1장) 적용례
+- 밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG). 개념도 정본: 같은 폴더의 `prompt_cares_pipeline.txt`·`prompt_query_resolution.txt`.
+- (모체의 papers/20·24·25·27 프롬프트 — 실험 논문 3편 + 이론 논문(자산 figure 1장) 1편 — 는 배포본 미포함.)
 
-> 정본 학습 사례 (실패→복구): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤(`[좌/상 패널] <설명>`)을
+> 정본 학습 사례 (실패→복구, 모체 사례 — 배포본 미포함): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤(`[좌/상 패널] <설명>`)을
 > 그대로 따라 단마다 요소를 1~2개만 적었고, 여백이 크고 정보량이 적은 그림이 나왔다.
 > 사용자가 20·24번과 비교 지적 → 프롬프트를 2.9 KB → 4.4 KB로 재작성해 재생성.
 > 같은 세션에서 병렬 호출 `--cd` 공유로 `knowledge_convergence.png`가 다른 그림으로 저장되는 사고도 발생.
@@ -866,7 +862,7 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 
 ### 12.5 CSS 정본 — 오른쪽 사이드 드로어 (2026-05-19 갱신)
 
-> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(24. geollava8k 학습 중, 2026-05-19). 이전 세대(SGL) 풀스크린 모달은 폐기 — 아래 우측 드로어 정본을 사용(SGL 견본 HTML은 배포본 미포함). cross-ref: `[[feedback_study_modal_drawer]]`.
+> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(24. geollava8k 학습 중, 2026-05-19 — 모체 사례, 배포본 미포함). 이전 세대(SGL) 풀스크린 모달은 폐기 — 아래 우측 드로어 정본을 사용(SGL 견본 HTML은 배포본 미포함). cross-ref: `[[feedback_study_modal_drawer]]`.
 
 핵심 동작:
 - 폭 `min(440px, 100vw)` 오른쪽 고정 드로어. 백드롭 dim 없음 — 왼쪽의 figure/문장이 항상 보임

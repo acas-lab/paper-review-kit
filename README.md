@@ -2,6 +2,7 @@
 
 논문 PDF 한 편을 **v4 대시보드 8탭 학습용 HTML 한 장**으로 바꾸는 작업 키트입니다.
 빌드 스크립트로 한 방에 돌리는 도구가 아니라, **Claude Code와 대화하며 한 단계씩** 콘텐츠를 만들고 마지막에 단일 HTML로 조립하는 *방법론 + 정본 템플릿 + 보조 도구* 묶음입니다.
+이 킷은 특정 분야(AI/ML)에 묶이지 않습니다 — 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만듭니다(분야별 차이는 `config.json#domain`, 정본 `rules/domain_profile.md`).
 
 > 이 방식이 괜찮다고 판단해 주신 지도교수님의 권유로, 같은 방법을 다른 학생들도 자기 컴퓨터에서 쓸 수 있게 정리한 배포본입니다.
 
@@ -44,24 +45,22 @@ paper-review-kit/
 ├── SETUP.md               ← ★ 설치 + 첫 논문 따라하기 (여기부터 읽으세요)
 ├── NOTICE.md              ← 저작권·이용 범위 고지 (꼭 확인)
 ├── CLAUDE.md              ← 작업 규칙 정본 (Claude Code가 자동으로 읽음)
-├── workflow.md            ← 작업 흐름 (Stage 0~11)
-├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study)
+├── workflow.md            ← 작업 흐름 (Stage 0~12 — 빌드는 0~11, 12는 빌드 밖 연구 멘토 세션)
+├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study, 12_research_mentor)
 ├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 + design_v4_dashboard 규약
 ├── tools/                 ← 재사용 도구 (구조화·자동 크롭·v4 변환·Paper Study 소급·검증)
 ├── webapp/                ← 브라우저 대시보드 (비개발자용 — win_start.bat / linux_start.sh)
-├── samples/               ← 정본 견본 + 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
-│   ├── SAFE.html         (1세대 — 인터랙션 정본)
-│   ├── FrameFusion.html  (2세대 — 인터랙션 정본)
-│   ├── SGL.html          (3세대 — 인터랙션 historical)
+├── samples/               ← 정본 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
+│   ├── README.md         (정본 안내 + 1~3세대 인터랙션 개념 히스토리)
 │   ├── design/           (v4 로고 등 공용 자산)
 │   └── cares/            ★ v4 8탭 정본 (실제 논문 전체: 데이터+빌더+산출물, Paper Study 포함)
 └── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
 ```
 > **`samples/cares/`가 유일한 v4 워크드 정본**입니다 — CARES 논문(ACL 2026)의 실제 데이터(config·structured·translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + 완성 산출물 `CARES_output.html`. 신규 논문의 셸·8탭·Paper Study·디자인은 이걸 복사 출발점으로 합니다.
 
-`SAFE.html`·`FrameFusion.html`·`SGL.html` 3편은 **학습 인터랙션의 세대별 원형**입니다(study-drawer·lightbox·hotspot 등 — 신규 논문은 3세대 SGL 인터랙션을 유지). **셸·헤더·탭·디자인 토큰은 `cares/`의 v4 대시보드**(`rules/design_v4_dashboard.md`)를 따르며, 빌드는 `_build.py`로 v3 조립 후 `tools/restyle_dash_v4.py`로 v4 변환하는 2단입니다.
+1~3세대 견본 HTML(SAFE·FrameFusion·SGL)은 배포본에 포함하지 않습니다 — 그 학습 인터랙션(study-drawer·lightbox·hotspot·ref-link 등)은 `cares/`가 모두 흡수했고, 세대별 개념 히스토리는 `samples/README.md`에 있습니다. **셸·헤더·탭·디자인 토큰은 `cares/`의 v4 대시보드**(`rules/design_v4_dashboard.md`)를 따르며, 빌드는 `_build.py`로 v3 조립 후 `tools/restyle_dash_v4.py`로 v4 변환하는 2단입니다.
 
-> 참고: `CLAUDE.md`/`rules/`는 다른 사례 논문(예: `papers/4. perceptron`, `20. sparse_vlm`, `24. geollava8k`)도 언급하는데, 이 배포본에는 위 견본·예시만 포함됩니다. 나머지는 방법을 이해하는 데 필수가 아닙니다.
+> 참고: `CLAUDE.md`/`rules/`는 다른 사례 논문(예: `papers/4. perceptron`, `20. sparse_vlm`, `24. geollava8k`, `27. lupi`, `30` 등)도 언급하는데, 이 배포본에는 위 견본·예시만 포함됩니다. 나머지는 방법을 이해하는 데 필수가 아닙니다.
 
 ---
 
