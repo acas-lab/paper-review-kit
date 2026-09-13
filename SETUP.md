@@ -6,6 +6,25 @@
 
 ---
 
+## 0. 가장 쉬운 방법 — `setup/` 폴더의 bat 파일을 0→1→2→3→4 순서로 더블클릭 (Windows)
+
+터미널 명령을 쳐 본 적이 없다면 이 방법을 쓰세요. `setup/` 폴더의 파일을 **번호 순서대로, 한 번에 하나씩** 더블클릭하면 아래 1절의 설치가 모두 끝납니다. 각 창은 끝날 때 `[OK]` / `[FAIL]` 한 줄과 "다음에 누를 파일"을 알려 주고, 이미 설치된 것은 건너뜁니다. 한 단계가 끝나면 **창을 닫고** 다음 번호를 누르세요. 그림이 있는 자세한 안내는 `GUIDE.html`, 파일별 설명은 `setup/README.md`.
+
+| 파일 | 하는 일 | 언제 |
+|---|---|---|
+| `setup/0_check.bat` | 설치 없이 python / node / npm / claude / codex / git / winget 유무·버전 점검 + 남은 단계 번호 표시 | 처음 + 막힐 때 |
+| `setup/1_install_python.bat` | Python 3.12 설치 (winget, PATH 자동) — 3.10+ 있으면 건너뜀 | 처음 한 번 |
+| `setup/2_install_node_and_claude.bat` | Node.js LTS 설치 → `npm install -g @anthropic-ai/claude-code` (Node 를 방금 깔았으면 창 닫고 한 번 더) | 처음 한 번 |
+| `setup/3_login_claude.bat` | `claude` 실행 → 브라우저에서 구독 계정 로그인 → `/exit` | 처음 한 번 |
+| `setup/4_install_kit_packages.bat` | CLI 도구용 `pymupdf` · `playwright` + Chromium (웹 모드는 자기 venv 를 따로 만듦) | 처음 한 번 |
+| `setup/5_start_web.bat` | 웹 대시보드 매일 실행기 (= `webapp/win_start.bat`) | 매일 |
+| `setup/6_start_cli.bat` | CLI 매일 실행기 (킷 루트에서 `claude`) | 매일 |
+| `setup/7_install_codex_optional.bat` | (선택) `npm install -g @openai/codex` — 이미지 모드 A 전용, 없으면 SVG 모드 B 로 대체 | 필요할 때만 |
+
+mac / Linux 는 `setup/README.md` 끝의 명령 목록을 터미널에서 순서대로 실행하세요. 아래 1절은 같은 내용을 손으로 할 때의 설명입니다.
+
+---
+
 ## 1. 필요한 것 설치
 
 ### (필수) Claude Code
