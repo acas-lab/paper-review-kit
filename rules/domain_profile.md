@@ -183,7 +183,7 @@ topbar: `J. Econ. Hist. 86(2) · DOI 10.1017/S0022050726xxxxxx · 2026-06`.
 | Stage 5 `prompts/05_coaching.md` · `rules/coaching_rules.md` | `alt_explanations`, `metric_conventions` | ④ 비판적 질문의 축 · 숫자 표기 |
 | Stage 6 `prompts/06_figure_interpretation.md` | `evidence_types`, `background_units` | 자산 해석의 "이 그림이 어떤 종류의 증거인가" · study_modals `s-num` 의 단위 |
 | Stage 7 `prompts/07_background_knowledge.md` · `rules/knowledge_rules.md` | `background_units`, `term_style` | ③ Background 개념 카드 단위 · `English Term (한글 설명)` 표기의 분야 기준 |
-| Stage 9/10 `prompts/10_qa.md` | `field`, `subfield`, `evidence_types` | ⑥ Q&A "분야 기초" 카테고리의 범위 · 답변이 인용할 데이터 종류 |
+| Stage 9 `prompts/10_qa.md` (메모 Q&A 브릿지 포함) | `field`, `subfield`, `evidence_types` | ⑥ Q&A "분야 기초" 카테고리의 범위 · 답변이 인용할 데이터 종류 |
 | Stage 11 `prompts/11_paper_study.md` | `evidence_types`, `alt_explanations` | Step 5 데이터-only 결론의 "데이터" 실체 · Step 7 대안 설명 4축 |
 | Stage 12 `prompts/12_research_mentor.md` | `research_profile.json` 전체 + 논문별 `field`/`subfield` | 멘토 페르소나 · 가설 좌표 배치 · 코퍼스 차별성 매트릭스 |
 | `rules/design_v4_dashboard.md` · `tools/restyle_dash_v4.py` | `venue_type` (→ `meta` 채우는 법, §2.2) | topbar 우측 메타 형식 |

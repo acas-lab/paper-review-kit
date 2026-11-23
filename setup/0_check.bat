@@ -126,7 +126,9 @@ if exist ".claude\skills\motion-broll\SKILL.md" (
 ) else (
   echo [ -- ] video skill : not installed  ^(auto on first video, or 8_install_video.bat^)
 )
+rem same lookup order as tools\video\common.py tts_python(): TTS_PY, kit tts_env, short %LOCALAPPDATA% tts_env
 set "TTSPY=tools\video\tts_env\Scripts\python.exe"
+if not exist "!TTSPY!" if exist "%LOCALAPPDATA%\paper-review-kit\tts_env\Scripts\python.exe" set "TTSPY=%LOCALAPPDATA%\paper-review-kit\tts_env\Scripts\python.exe"
 if defined TTS_PY set "TTSPY=!TTS_PY!"
 if exist "!TTSPY!" (
   echo [ OK ] video TTS   : !TTSPY! present

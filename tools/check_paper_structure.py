@@ -226,10 +226,11 @@ def papers():
 
 
 def main():
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
+    for _s in (sys.stdout, sys.stderr):   # 사용법(sys.exit(__doc__))은 stderr로 나간다
+        try:
+            _s.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     if len(sys.argv) != 2:
         sys.exit(__doc__)
     targets = papers() if sys.argv[1] == "--all" else [Path(sys.argv[1]).resolve()]

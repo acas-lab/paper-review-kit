@@ -31,7 +31,38 @@ FF = str(TOOLS / "bin" / f"ffmpeg{EXE}") if (TOOLS / "bin" / f"ffmpeg{EXE}").exi
 # 없으면 install_skill()이 복사해 설치한다(make_video.py doctor·setup·클립 단계). 환경변수 MOTION_BROLL로 위치를 바꾸면 설치하지 않는다
 SKILL_SRC = ROOT / "skills" / "motion-broll"
 SKILL = Path(os.environ.get("MOTION_BROLL", ROOT / ".claude" / "skills" / "motion-broll"))
-TTS_PY = os.environ.get("TTS_PY", str(TOOLS / "tts_env" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")))
+def _venv_py(env):
+    return Path(env) / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def _long_paths_enabled():
+    """Windows 레지스트리 LongPathsEnabled=1 이면 260자 제한이 풀려 있다."""
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\FileSystem") as k:
+            return winreg.QueryValueEx(k, "LongPathsEnabled")[0] == 1
+    except Exception:
+        return False
+
+
+TTS_ENV_KIT = TOOLS / "tts_env"                 # 기본 위치(킷 안)
+TTS_ENV_SHORT = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "paper-review-kit" / "tts_env"   # Windows 긴 경로 회피용
+TTS_PATH_MAX = 60                               # tts_env 폴더 경로가 이보다 길면 torch 설치 중 260자 제한에 걸릴 수 있다
+
+
+def tts_python():
+    """TTS 파이썬 위치. 순서: 환경변수 TTS_PY → 이미 설치된 킷 안 tools/video/tts_env → 이미 설치된 짧은 위치
+    → (Windows, 킷 경로가 길고 LongPathsEnabled가 꺼져 있으면) %LOCALAPPDATA%/paper-review-kit/tts_env → 킷 안 기본 위치.
+    make_video.py(setup-tts·doctor·tts)와 setup/0_check.bat이 같은 순서로 찾는다."""
+    if os.environ.get("TTS_PY"): return os.environ["TTS_PY"]
+    for env in (TTS_ENV_KIT, TTS_ENV_SHORT):
+        if _venv_py(env).exists(): return str(_venv_py(env))
+    if os.name == "nt" and len(str(TTS_ENV_KIT)) > TTS_PATH_MAX and not _long_paths_enabled():
+        return str(_venv_py(TTS_ENV_SHORT))
+    return str(_venv_py(TTS_ENV_KIT))
+
+
+TTS_PY = tts_python()
 FONTS = TOOLS / "fonts"                        # 한글 글꼴 Noto Sans KR(OFL, 라이선스 OFL-NotoSansKR.txt; libass가 폴더의 모든 파일을 읽으므로 ttf만 둔다). 자막(ASS)과 클립이 시스템 설치 여부와 무관하게 쓴다
 FPS = 30
 LEN_MIN, LEN_MAX = 600, 900                    # 영상 길이 기준(초): 10~15분

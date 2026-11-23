@@ -102,4 +102,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # 훅 입력(JSON)은 UTF-8로 온다. 출력은 emit()이 바이트로 직접 쓰므로 stdout 설정과 무관하다.
+    for _s, _kw in ((sys.stdin, {"errors": "replace"}), (sys.stdout, {}), (sys.stderr, {})):
+        try:
+            _s.reconfigure(encoding="utf-8", **_kw)
+        except Exception:
+            pass
     main()

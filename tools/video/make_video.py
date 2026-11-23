@@ -7,7 +7,7 @@ python tools/video/make_video.py "papers/N. name" <단계> [인자…]
   status              단계별 완료 여부와 다음 할 일
   check-script        원고 QC (G1~G7)
   check-assets        예시 이미지 QC (G11 사진 프롬프트 · G12 sources.json · "예시 사진" 표기 · 도형 대체 의심). codex 호출 전과 클립 작성 뒤
-  tts                 내레이션 (tools/video/tts_env 파이썬으로 실행, 목소리는 tools/video/voices/ — rules/video_rules.md 6절)
+  tts                 내레이션 (TTS venv 파이썬으로 실행 — 기본 tools/video/tts_env, 목소리는 tools/video/voices/ — rules/video_rules.md 6절)
   animatic            애니매틱 HTML + 자막 데이터
   words | briefs      motion 클립용 단어 시각 / 명세서
   clips-build [NN…]   클립 조각 → dist HTML
@@ -21,19 +21,22 @@ python tools/video/make_video.py "papers/N. name" <단계> [인자…]
 
 python tools/video/make_video.py - doctor      새 컴퓨터 점검: 빠진 것과 채울 명령 (motion-broll 스킬이 없으면 이때 설치)
 python tools/video/make_video.py - setup       파이썬 패키지·ffmpeg·node_modules·Chromium·motion-broll 스킬 설치(최초 1회)
-python tools/video/make_video.py - setup-tts   TTS 환경 tools/video/tts_env (Python 3.12 venv, torch, qwen-tts) 설치(최초 1회)
+python tools/video/make_video.py - setup-tts   TTS 환경(Python 3.12 venv, torch, qwen-tts) 설치(최초 1회). 기본 tools/video/tts_env,
+                                              Windows에서 킷 경로가 길면 %LOCALAPPDATA%/paper-review-kit/tts_env (260자 경로 제한 회피)
 
 자동 준비: 단계 명령을 실행하면 그 단계에 필요한 것이 없을 때 먼저 스스로 설치한다(ensure). Node.js·Python 3.12가 없으면
-Windows는 winget, macOS는 brew로 설치한다. TTS 모델(Qwen3-TTS 0.6B)은 첫 tts 때 tools/video/tts_env/hf로 내려받는다.
+Windows는 winget, macOS는 brew로 설치하고, Linux는 설치 명령을 안내한다. TTS 모델(Qwen3-TTS 0.6B)은 첫 tts 때 TTS venv의 hf/로 내려받는다.
+TTS는 NVIDIA GPU 권장: CPU로는 4문장에 약 5분(실측), 10~15분 원고는 수 시간 걸린다.
 motion-broll 스킬(클립 엔진)은 킷의 skills/motion-broll/을 프로젝트 스킬 폴더 .claude/skills/motion-broll/로 복사해 설치한다.
 끄려면 환경변수 VIDEO_NO_AUTOSETUP=1.
 """
 import json, os, shutil, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import Paper, ROOT, TOOLS, TTS_PY, FF, EXE, probe_dur, install_skill, skill_state
+from common import Paper, ROOT, TOOLS, TTS_PY, TTS_ENV_KIT, FF, EXE, probe_dur, install_skill, skill_state
 
 TPL = ROOT / "templates" / "paper_base" / "video"
+NPM_PKGS = "puppeteer-core@25.18.1 playwright@1.65.1"   # 동작 확인한 버전으로 고정(최신판 API 변경 방지)
 
 
 def setup():
@@ -47,16 +50,30 @@ def setup():
     (TOOLS / "bin" / "python3").write_text('#!/usr/bin/env bash\nexec python "$@"\n')
     if not _node(): _pkg("OpenJS.NodeJS.LTS", "node"); _node()
     if not (TOOLS / "node_modules" / "puppeteer-core").exists() or not (TOOLS / "node_modules" / "playwright").exists():
-        subprocess.run("npm install --no-save --prefix . puppeteer-core playwright", cwd=TOOLS, shell=True, check=True)
+        subprocess.run(f"npm install --no-save --prefix . {NPM_PKGS}", cwd=TOOLS, shell=True, check=True)
     subprocess.run("npx playwright install chromium", cwd=TOOLS, shell=True, check=True)
     print("setup ok:", TOOLS / "bin", TOOLS / "node_modules")
 
 
+_LINUX_PKG = {   # Linux는 sudo가 필요하므로 자동 설치하지 않고 배포판 명령을 안내한다
+    "node": {"apt-get": "sudo apt-get install -y nodejs npm", "dnf": "sudo dnf install -y nodejs npm",
+             "pacman": "sudo pacman -S --needed nodejs npm", "zypper": "sudo zypper install -y nodejs npm"},
+    "python@3.12": {"apt-get": "sudo apt-get install -y python3.12 python3.12-venv  (없으면 deadsnakes PPA 또는 pyenv)",
+                    "dnf": "sudo dnf install -y python3.12", "pacman": "pyenv install 3.12  (Arch 기본 python이 3.12가 아니면)",
+                    "zypper": "sudo zypper install -y python312"},
+}
+
+
 def _pkg(win_id, brew):
-    """시스템 프로그램 설치: Windows winget / macOS brew. 실패하면 직접 설치할 주소를 알려 준다."""
+    """시스템 프로그램 설치: Windows winget / macOS brew. Linux는 배포판 패키지 명령을 출력하고 멈춘다(sudo 자동 실행 안 함)."""
     if os.name == "nt" and shutil.which("winget"):
         cmd = ["winget", "install", "-e", "--id", win_id, "--silent", "--accept-package-agreements", "--accept-source-agreements"]
-    elif shutil.which("brew"): cmd = ["brew", "install", brew]
+    elif sys.platform == "darwin" and shutil.which("brew"): cmd = ["brew", "install", brew]
+    elif sys.platform.startswith("linux"):
+        mgr = next((m for m in ("apt-get", "dnf", "pacman", "zypper") if shutil.which(m)), None)
+        hint = _LINUX_PKG.get(brew, {}).get(mgr) if mgr else None
+        raise SystemExit(f"{brew} 가 필요하다. 터미널에서 직접 설치한 뒤 다시 실행한다:\n  "
+                         + (hint or f"배포판 패키지 관리자로 {brew} 설치 (Node.js는 https://nodejs.org, Python 3.12는 pyenv도 가능)"))
     else: raise SystemExit(f"{win_id} 를 자동 설치할 수 없다(winget/brew 없음). 직접 설치한 뒤 다시 실행한다.")
     print("설치:", " ".join(cmd), flush=True); subprocess.run(cmd)
 
@@ -103,9 +120,12 @@ def ensure(cmd):
 
 
 def setup_tts():
-    """TTS 환경 tools/video/tts_env: Python 3.12 venv + torch + qwen-tts. torch 휠은 환경변수 TORCH_INDEX로 바꾼다
+    """TTS 환경: Python 3.12 venv + torch + qwen-tts. 위치는 common.tts_python()이 정한다(TTS_PY → 기존 설치 →
+    Windows 긴 경로면 %LOCALAPPDATA%/paper-review-kit/tts_env → tools/video/tts_env). torch 휠은 환경변수 TORCH_INDEX로 바꾼다
     (기본 cu126: GTX 10xx~RTX 40xx. RTX 50xx는 https://download.pytorch.org/whl/cu128, GPU 없으면 .../whl/cpu)."""
-    py = Path(TTS_PY); env = py.parents[1]          # 기본 tools/video/tts_env. 환경변수 TTS_PY로 다른 위치(예: 다른 드라이브)에 만들 수 있다
+    py = Path(TTS_PY); env = py.parents[1]
+    if env != TTS_ENV_KIT and not os.environ.get("TTS_PY"):
+        print(f"킷 경로가 길어(Windows 260자 경로 제한, LongPathsEnabled 꺼짐) TTS 환경을 짧은 위치에 만든다: {env}", flush=True)
     if not py.exists() and not _py312(): _pkg("Python.Python.3.12", "python@3.12")
     if not py.exists():
         mk = ["py", "-3.12", "-m", "venv"] if shutil.which("py") else [shutil.which("python3.12") or "python3.12", "-m", "venv"]
@@ -134,7 +154,7 @@ def doctor():
             ("한글 글꼴 (tools/video/fonts: VF + 자막용 Sub700)", (FONTS / "NotoSansKR-VF.ttf").exists() and (FONTS / "NotoSansKR-Sub700.ttf").exists(), "git pull (저장소에 포함)"),
             (f"목소리 원본 (tools/video/voices: 내레이터 {vn} · 인용 {vq})", all((TOOLS / "voices" / f"{v}.mp3").exists() for v in (vn, vq)),
              "git pull (저장소에 포함) 또는 VOICE_N·VOICE_Q를 voices/에 있는 이름으로"),
-            ("TTS 환경 (tools/video/tts_env)", Path(TTS_PY).exists(), "- setup-tts")]
+            (f"TTS 환경 ({Path(TTS_PY).parents[1]})", Path(TTS_PY).exists(), "- setup-tts")]
     for name, ok, fix in rows: print(f"  {'ok ' if ok else '없음'}  {name}" + ("" if ok else f"  →  {fix if not fix.startswith('-') else 'python tools/video/make_video.py ' + fix}"), flush=True)
     if Path(TTS_PY).exists():
         subprocess.run([TTS_PY, "-c", "import torch; print('  TTS torch', torch.__version__, '| GPU', torch.cuda.get_device_name(0) if torch.cuda.is_available() else '없음(CPU, 느림)')"])

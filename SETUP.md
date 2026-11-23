@@ -45,8 +45,15 @@ python --version        # 3.10+ 권장
 > 스스로 `pip install` 합니다(웹앱은 런처 `win_start.bat`/`linux_start.sh`가 venv에 자동 설치). 즉 **Python 본체만**
 > 있으면 됩니다. (수동으로 미리 깔고 싶다면 `pip install pymupdf` — import 이름은 `fitz`.)
 
+> **메모 레이어 검사(`tools/check_memo_layer.py`)는 playwright + Chromium이 있어야 실제로 돕니다.** 없으면 SKIP으로 넘어갑니다.
+> Windows는 `setup/4_install_kit_packages.bat`이 설치하고, 직접 설치하려면:
+> ```bash
+> python -m pip install playwright
+> python -m playwright install chromium
+> ```
+
 ### (영상용) 소개 영상 도구 — 자동 설치
-기본 빌드는 HTML 뒤에 10~15분 소개 영상(Stage 13)도 만듭니다. 필요한 것(motion-broll 스킬 · ffmpeg · Node 패키지 · Chromium · Python 3.12 TTS 환경과 모델 수 GB)은 `tools/video/make_video.py`가 처음 실행 때 스스로 설치합니다. NVIDIA GPU가 있으면 음성 합성이 빠르고, 없으면 CPU로 느리게 돕니다. 미리 점검·설치하려면:
+기본 빌드는 HTML 뒤에 10~15분 소개 영상(Stage 13)도 만듭니다. 필요한 것(motion-broll 스킬 · ffmpeg · Node 패키지 · Chromium · Python 3.12 TTS 환경과 모델 수 GB)은 `tools/video/make_video.py`가 처음 실행 때 스스로 설치합니다. 음성 합성(TTS)은 **NVIDIA GPU를 권장**합니다. CPU로도 돌지만 실측 4문장에 약 5분(모델 내려받기 제외)이라 10~15분 원고는 수 시간 걸립니다. Windows에서 킷 경로가 길고 긴 경로 지원(`LongPathsEnabled`)이 꺼져 있으면 TTS 환경은 260자 경로 제한을 피해 `%LOCALAPPDATA%\paper-review-kit	ts_env`에 만들어집니다(`rules/video_rules.md` 13절). 미리 점검·설치하려면:
 
 ```bash
 python tools/video/make_video.py - doctor     # 빠진 것 표시 + motion-broll 스킬(.claude/skills/motion-broll) 설치
@@ -87,7 +94,7 @@ cd paper-review-kit
 ## 4. 첫 논문 빌드 (대화형 흐름)
 
 ### 4-1. 논문 PDF 준비
-`rawpaper/` 폴더를 만들고(없으면) 자기 PDF를 넣습니다. 그리고 작업 폴더를 하나 만듭니다.
+킷에 들어 있는 `rawpaper/` 폴더에 자기 PDF를 넣습니다. 그리고 작업 폴더를 하나 만듭니다.
 
 논문 폴더 명명 규약: **`N. shortname`** (숫자 + 마침표 + 공백 + 소문자_언더스코어 이름).
 예: `papers/1. my_paper/` (첫 논문은 1번, 다음은 2번 …). (경로에 공백·마침표가 있으니, 명령에서 **항상 큰따옴표**로 감싸세요.)
@@ -129,7 +136,7 @@ Claude에게 이렇게 시작하세요:
 - **그림이 잘리거나 헤더가 섞임** → `tools/autocrop_assets.py`로 자동 크롭 후 `--verify`로 잘림 점검(`rules/parsing_rules.md` §4-A). 어긋나는 자산만 PNG를 직접 열어 수동 보정.
 - **번역이 어색한 한자 조어로 나옴** → `CLAUDE.md`의 "무리한 한국어 변환 금지" 정책을 Claude에게 다시 상기시키세요.
 - **codex 이미지가 안 만들어짐(Windows)** → `rules/component_rules.md` §11 의 "6계명"(Bash 사용, UTF-8 prompt.txt, `< /dev/null`, 마지막 줄 `NO paper title …` 등) 확인. codex가 없으면 이미지는 모드 B(Claude가 직접 그리는 SVG)로 대신합니다.
-- **영상 단계에서 설치가 막힘** → `python tools/video/make_video.py - doctor`로 빠진 항목과 채울 명령을 확인. TTS 환경은 수 GB라 디스크·인터넷이 필요합니다.
+- **영상 단계에서 설치가 막힘** → `python tools/video/make_video.py - doctor`로 빠진 항목과 채울 명령을 확인. TTS 환경은 수 GB라 디스크·인터넷이 필요합니다. torch 설치 중 `OSError`(경로가 너무 김)가 나면 긴 킷 경로가 원인입니다. 최신 `make_video.py`는 이 경우 짧은 위치를 쓰고, 직접 위치를 정하려면 환경변수 `TTS_PY`(예: `D:	ts_env\Scripts\python.exe`)를 줍니다.
 - **이미지가 HTML에 안 박힘** → 최종 산출물은 반드시 base64 인라인. `CLAUDE.md`의 "자산 임베딩 정책" 참고.
 
 ---

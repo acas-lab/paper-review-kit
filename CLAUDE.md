@@ -104,7 +104,7 @@ v4 토큰 정본은 `rules/design_v4_dashboard.md`다(`--bg:#fafbfc`, `--accent:
 
 ### Study Modal
 
-자산마다 `.study-fab` 버튼이 오른쪽 사이드 드로어(폭 약 440px, 풀스크린 모달 아님)를 연다. `analysis.json#study_modals[aid]` = `{title, look, nums(3개 이상), author, check(2개 이상)}`의 4섹션(s-look·s-num·s-author·s-check)이고, 카드 하단의 해석·초보자 해설을 복제하지 않는다. study-fab 클릭은 `stopPropagation + preventDefault`로 라이트박스와 분리한다. 정본: `rules/component_rules.md` §12.
+자산마다 `.study-fab` 버튼이 오른쪽 사이드 드로어(폭 약 440px, 풀스크린 모달 아님)를 연다. `analysis.json#study_modals[aid]` = `{title, look, nums(3개 이상), author, check(2개 이상)}`의 4섹션(s-look·s-num·s-author·s-check)이고, `nums` 항목은 `{label, value, note?}` 객체 또는 `[label, value]` 쌍이다(문자열은 `"label: value"`로만 받는다). 카드 하단의 해석·초보자 해설을 복제하지 않는다. study-fab 클릭은 `stopPropagation + preventDefault`로 라이트박스와 분리한다. 정본: `rules/component_rules.md` §12.
 
 ### Vector PDF 자산 크롭
 
@@ -167,9 +167,11 @@ paper-review-kit/
 ├── skills/        motion-broll/ 스킬 배포본 (영상 클립 엔진, MIT) → 설치 위치 .claude/skills/motion-broll/ (git 제외)
 ├── webapp/        웹 대시보드 (backend/runner.py가 CLI와 같은 빌드 규칙을 프롬프트로 강제)
 ├── setup/         Windows 더블클릭 설치·실행 스크립트 (0_check ~ 8_install_video)
-├── rawpaper/      원본 PDF (저작권상 저장소 제외) · research_profile.example.json (Stage 12 템플릿 → research_profile.json, git 제외)
+├── rawpaper/      원본 PDF (저작권상 저장소 제외, 빈 폴더만 포함)
+├── docs/          demo/ 예시 영상 발췌(README용)
 ├── workflow.md    단계별 작업 흐름 (Stage 0~13)
-└── README.md · SETUP.md · GUIDE.html · NOTICE.md · ANNOUNCEMENT.md
+├── research_profile.example.json   Stage 12 템플릿 → 킷 루트 research_profile.json (git 제외)
+└── README.md · SETUP.md · GUIDE.html · NOTICE.md · ANNOUNCEMENT.md · requirements.txt
 ```
 
 ### `papers/[name]/` 표준 레이아웃

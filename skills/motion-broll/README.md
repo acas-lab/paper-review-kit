@@ -2,10 +2,9 @@
 
 **Motion-graphic B-roll for your videos, made by Claude Code.** Give it a video and a transcript and it plans, animates and renders clips timed to your words. Each clip is one continuous shape that keeps morphing (pill → card → terminal → chart) and never cuts, with a cursor driving every change.
 
-<p>
-  <img src="../../docs/demo-panel.gif" width="49%" alt="A transparent panel animating beside a picture-in-picture shot of the speaker">
-  <img src="../../docs/demo-cutaway.gif" width="49%" alt="A full-frame cutaway: build notes turning into a master prompt that is dragged into a session">
-</p>
+<!-- paper-review-kit: the two demo GIFs (docs/demo-panel.gif, docs/demo-cutaway.gif) are in the upstream
+     repository Barty-Bart/motion-graphics and are not bundled with this kit, so the image block is omitted here. -->
+*(Demo GIFs — a transparent side panel and a full-frame cutaway — are in the upstream repository `Barty-Bart/motion-graphics`; they are not bundled with this kit.)*
 
 ## What you get
 

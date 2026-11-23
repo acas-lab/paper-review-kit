@@ -36,10 +36,17 @@ import re
 import sys
 from pathlib import Path
 
+if __name__ == "__main__":
+    for _s in (sys.stdout, sys.stderr):   # cp949 콘솔·Git Bash에서 한글 출력이 깨지지 않게 (스크립트 실행 때만)
+        try:
+            _s.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
-    print("[SKIP] playwright 미설치 - pip install playwright && playwright install chromium")
+    print("[SKIP] playwright 미설치 - python -m pip install playwright && python -m playwright install chromium")
     raise SystemExit(0)
 
 W, H = 1600, 1000
@@ -434,7 +441,11 @@ def main():
 
     total = 0
     with sync_playwright() as p:
-        br = p.chromium.launch()
+        try:
+            br = p.chromium.launch()
+        except Exception as e:   # 새 PC: playwright 패키지만 있고 브라우저를 아직 안 받았을 때
+            print("[SKIP] playwright Chromium 없음 - python -m playwright install chromium  (" + str(e).splitlines()[0][:120] + ")")
+            raise SystemExit(0)
         for d in folders:
             hs = list(d.glob("*_output.html"))
             if not hs:

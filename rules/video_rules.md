@@ -125,7 +125,7 @@ papers/N. name/
 
 | 항목 | 값 |
 |---|---|
-| 엔진 | 로컬 Qwen3-TTS 0.6B Base (`tools/video/tts_env` venv, 모델 캐시 `tts_env/hf`, git 제외), x-vector만(`x_vector_only_mode`), GPU fp32 |
+| 엔진 | 로컬 Qwen3-TTS 0.6B Base (TTS venv, 모델 캐시 `<venv>/hf`, git 제외 — 위치는 13절), x-vector만(`x_vector_only_mode`), GPU fp32. CPU로도 돌지만 4문장에 약 5분(실측, 모델 내려받기 제외)이라 10~15분 원고는 수 시간 걸린다 |
 | 내레이터 N | `tools/video/voices/f_narrator_high_calm.mp3`(여성 · 높은 음역 · 느린 속도) 원본 1개 (혼합 없음, "인용 말고는 모두 한 명의 목소리") |
 | 저자 인용 Q | `tools/video/voices/m_quote_mid_calm.mp3`(남성 · 중간 음역 · 느린 속도) 원본 1개. 다른 후보는 아래 목소리 표. 바꿀 때는 환경변수 `VOICE_N`/`VOICE_Q`에 파일 이름(`.mp3`는 붙여도 된다). 논문 전체에 적용되며 `spec.py`·`clipspec.py`에는 목소리 설정이 없다. `voices/`에 없는 이름이면 `tts`가 쓸 수 있는 이름을 보여 주고 멈춘다(`- doctor`도 같은 이름을 검사) |
 | 끝음 잘림 방지 | 문장 뒤에 " 아."(`tts.TAIL`)를 붙여 생성하고, "아" 앞 무음(≥0.1초)의 한가운데(최대 0.12초 뒤)에서 자른다. 페이드아웃은 0.03초로 무음 안에서만 건다(예전 " 그렇습니다." + 0.12초 페이드는 "~습니다"의 "다"를 먹었다, 2026-11-19). 꼬리를 못 찾은 시도는 다시 만든다. 이미 렌더한 영상의 음성만 고칠 때는 `make_video.py "papers/N" tts --keep-timing`(문장 시작 시각 유지) → `final` |
@@ -249,19 +249,20 @@ papers/N. name/
 
 ## 13. 환경 (새 컴퓨터)
 
-**자동 준비(기본):** 단계 명령(`animatic`, `tts`, `clips-build`, `base-render`, `final` 등)을 실행하면 `make_video.ensure`가 그 단계에 필요한 것을 확인하고 없으면 먼저 설치한다. Node.js·Python 3.12가 없으면 Windows는 winget, macOS는 brew로 설치하고, torch 휠은 GPU를 보고 고른다(RTX 50xx → cu128, 그 밖의 NVIDIA → cu126, 없음 → cpu). TTS 모델은 첫 `tts` 때 Hugging Face에서 내려받는다(인터넷 필요). 끄려면 `VIDEO_NO_AUTOSETUP=1`(motion-broll 스킬 복사는 로컬 복사라 이 값과 무관하게 한다). 수동으로 할 때는 git clone 다음 저장소 루트에서(Windows는 `setup/8_install_video.bat` 더블클릭):
+**자동 준비(기본):** 단계 명령(`animatic`, `tts`, `clips-build`, `base-render`, `final` 등)을 실행하면 `make_video.ensure`가 그 단계에 필요한 것을 확인하고 없으면 먼저 설치한다. Node.js·Python 3.12가 없으면 Windows는 winget, macOS는 brew로 설치하고(Linux는 sudo가 필요해 자동 설치하지 않고 apt/dnf/pacman/zypper 명령을 출력하고 멈춘다), torch 휠은 GPU를 보고 고른다(RTX 50xx → cu128, 그 밖의 NVIDIA → cu126, 없음 → cpu). TTS 모델은 첫 `tts` 때 Hugging Face에서 내려받는다(인터넷 필요). 끄려면 `VIDEO_NO_AUTOSETUP=1`(motion-broll 스킬 복사는 로컬 복사라 이 값과 무관하게 한다). 수동으로 할 때는 git clone 다음 저장소 루트에서(Windows는 `setup/8_install_video.bat` 더블클릭):
 
 ```
 python tools/video/make_video.py - doctor      # 빠진 것과 채울 명령을 보여 준다 (motion-broll 스킬이 없으면 설치)
 python tools/video/make_video.py - setup       # motion-broll 스킬 · 파이썬 패키지(requirements.txt) · ffmpeg · node_modules · playwright Chromium
-python tools/video/make_video.py - setup-tts   # TTS venv tools/video/tts_env (Python 3.12, torch, qwen-tts — 수 GB). 모델은 첫 tts 때 내려받는다
+python tools/video/make_video.py - setup-tts   # TTS venv (Python 3.12, torch, qwen-tts — 수 GB). 위치는 아래 'TTS 위치'. 모델은 첫 tts 때 내려받는다
 ```
 
-- **사전 설치:** Python 3(호스트), Python 3.12(TTS venv, Windows는 `py -3.12`), Node.js LTS, NVIDIA GPU 권장. GPU가 없으면 TTS가 CPU로 돈다(수 배 느림).
+- **사전 설치:** Python 3(호스트), Python 3.12(TTS venv, Windows는 `py -3.12`), Node.js LTS, NVIDIA GPU 권장. GPU가 없으면 TTS가 CPU로 돈다: 실측 4문장에 약 5분(모델 내려받기 제외), 10~15분 원고(문장 150~250개)는 수 시간이다.
+- **TTS 위치:** `common.tts_python()`이 정하고 `setup-tts`·`tts`·`doctor`·`setup/0_check.bat`이 같은 순서로 찾는다: 환경변수 `TTS_PY` → 이미 설치된 `tools/video/tts_env` → 이미 설치된 `%LOCALAPPDATA%\paper-review-kit	ts_env` → 새로 만들 때 Windows에서 `tools/video/tts_env` 경로가 60자를 넘고 레지스트리 `LongPathsEnabled`가 꺼져 있으면 `%LOCALAPPDATA%\paper-review-kit	ts_env`, 그 밖에는 `tools/video/tts_env`. torch 설치 중 깊은 경로(`site-packages\...	ests\data\...`)가 260자를 넘어 OSError가 나는 것을 막는다. 짧은 위치는 같은 PC의 킷 사본들이 함께 쓴다. 킷 안에 이미 설치한 환경은 그대로 쓴다.
 - **torch 휠:** 기본 cu126(GTX 10xx~RTX 40xx). RTX 50xx는 `TORCH_INDEX=https://download.pytorch.org/whl/cu128`, `nvidia-smi`가 없으면 자동으로 CPU 휠.
 - **저장소에 들어 있는 것(git 추적):** motion-broll 스킬 배포본 `skills/motion-broll/`(MIT, 설치하면 `.claude/skills/motion-broll/`. 클립 조각 작성 기준은 그 안의 `reference/engine-api.md`), 한글 글꼴 `tools/video/fonts/NotoSansKR-VF.ttf`·`NotoSansKR-Sub700.ttf`(OFL, 라이선스 `tools/video/OFL-NotoSansKR.txt`), 목소리 원본 `tools/video/voices/`(내레이터 `f_narrator_high_calm.mp3`, 인용 `m_quote_mid_calm.mp3`, 후보 5개).
-- **git에 넣지 않는 것(재설치로 복구):** `.claude/skills/`(스킬 설치본), `tools/video/node_modules`, `tools/video/bin/ffmpeg(.exe)`, `tools/video/tts_env`(venv + 모델 캐시 `hf/` + 목소리 변환본 `ref24/`), 논문별 `video/work/`, `*_video.mp4`. 영상 mp4는 git으로 옮겨지지 않으므로 다른 컴퓨터에서는 다시 만든다(원고·장면·클립 조각이 저장소에 있어 `tts` → … → `final`만 돌리면 같은 영상이 나온다).
+- **git에 넣지 않는 것(재설치로 복구):** `.claude/skills/`(스킬 설치본), `tools/video/node_modules`, `tools/video/bin/ffmpeg(.exe)`, TTS venv(`tools/video/tts_env` 또는 `%LOCALAPPDATA%\paper-review-kit	ts_env` — venv + 모델 캐시 `hf/` + 목소리 변환본 `ref24/`), 논문별 `video/work/`, `*_video.mp4`. 영상 mp4는 git으로 옮겨지지 않으므로 다른 컴퓨터에서는 다시 만든다(원고·장면·클립 조각이 저장소에 있어 `tts` → … → `final`만 돌리면 같은 영상이 나온다).
 - **Chrome:** 기본 화면 렌더(`render.mjs`, `stills.mjs`)는 환경변수 `CHROME` → 흔한 설치 위치 → playwright Chromium 순서로 찾는다(`common.find_chrome`).
 - **글꼴:** 자막은 `tools/video/fonts`를 `fontsdir`로 쓴다. 클립은 시스템에 Noto Sans KR이 없으면 `clips-build`가 저장소 글꼴을 HTML에 넣는다. 캔버스 장면은 Google Fonts(IBM Plex Sans KR)를 쓰므로 렌더 중 인터넷이 필요하다.
 - 엔진 위치는 환경변수 `MOTION_BROLL`, TTS 파이썬은 `TTS_PY`로 바꿀 수 있다. `TTS_PY`를 주면 `- setup-tts`가 그 venv를 만들고(예: `TTS_PY=D:\tts_env\Scripts\python.exe` — 시스템 드라이브 공간이 부족할 때), 모델 캐시 `hf/`·목소리 변환본 `ref24/`도 그 venv 안에 둔다(`HF_HOME`을 주면 그 값). pip 내려받기 캐시는 `PIP_CACHE_DIR`로 옮긴다. 이후 모든 명령에 같은 `TTS_PY`를 준다.
-- TTS 환경·목소리·스킬·글꼴은 모두 저장소 기준 상대 경로로 찾는다(사용자 홈·시스템 글꼴·Chrome 고정 경로 의존 없음).
+- 목소리·스킬·글꼴은 모두 저장소 기준 상대 경로로 찾는다(사용자 홈·시스템 글꼴·Chrome 고정 경로 의존 없음). TTS 환경만 Windows 긴 경로일 때 `%LOCALAPPDATA%`를 쓴다(위 'TTS 위치').

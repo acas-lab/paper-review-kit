@@ -86,7 +86,7 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 - **5단 구성**: **PROBLEM → KEY OBSERVATIONS → METHOD → WHAT'S NEW → RESULTS** (좌→우)
 - **컴포넌트**: `<figure class="diss-overview-figure">` (정본 마크업·CSS = `rules/component_rules.md` §13/§14)
 - **임베드**: HTML 빌드 시 base64 인라인. `_build.py`의 `render_diss_card()`에서 `cls == "diss-summary"` 분기로 헤더 아래·rows 위에 삽입
-- **codex 미사용(모드 B) 폴백**: summary 카드에 `"overview": [["PROBLEM", "..."], ["OBSERVATION", "..."], ["METHOD", "..."], ["NOVELTY", "..."], ["RESULTS", "..."]]`(단마다 한두 문장, 실제 수치 포함)를 넣으면 PNG가 없을 때 기준 빌더(`templates/paper_base/_build.py#_overview_svg`)가 결정적 SVG로 그린다. PNG가 있으면 PNG가 우선한다
+- **codex 미사용(모드 B) 폴백**: summary 카드에 `"overview": [["PROBLEM", "..."], ["OBSERVATION", "..."], ["METHOD", "..."], ["NOVELTY", "..."], ["RESULTS", "..."]]`(단마다 한두 문장, 실제 수치 포함)를 넣으면 PNG가 없을 때 기준 빌더(`templates/paper_base/_build.py#_overview_svg`)가 결정적 SVG로 그린다. PNG가 있으면 PNG가 우선한다. 카드 전체의 최소 JSON 예시는 `templates/paper_base/README.md` § summary 카드 `overview`(CARES 견본은 PNG를 써서 이 필드가 없다)
 
 생성 방법은 다음 \"## 이미지 생성\" 절 참조 (codex CLI, 6계명).
 

@@ -236,7 +236,7 @@ structured.json 작성 후 **반드시 fulltext.txt와 섹션 수·subsection �
 - `s-author` (저자가 말하는 것) — 이 그림으로 못 박는 명제 1~3개
 - `s-check` (학습 체크포인트) — `<ul>` 2~4개. 다시 볼 때 가장 먼저 확인할 부분 / 이 그림이 논문 전체의 무엇을 압축하는지
 
-데이터는 `analysis.json#study_modals[aid] = {title, look, nums≥3, author, check≥2}`. 마크업·CSS·JS 정본: `rules/component_rules.md` §12. 작성 가이드: `prompts/06_figure_interpretation.md` § Layer 3.
+데이터는 `analysis.json#study_modals[aid] = {title, look, nums≥3, author, check≥2}`. `nums` 항목 형태는 `{"label", "value", "note"(선택)}` 객체 또는 `["label", "value"]` 쌍이다. 문자열 항목은 기준 빌더가 첫 `": "`에서 label/value로 나눠 받지만(없으면 값만 한 줄) 권장하지 않는다. 그 밖의 형태(길이 1 배열 등)는 빌더가 `study_modals[aid].nums[i] 형식 오류`로 멈춘다(예전 빌더는 문자열 항목에서 `IndexError: string index out of range`로 죽었다). 마크업·CSS·JS 정본: `rules/component_rules.md` §12. 작성 가이드: `prompts/06_figure_interpretation.md` § Layer 3.
 
 **UX — 오른쪽 사이드 드로어 (정책, 2026-05-19 갱신)**: 학습 가이드는 풀스크린 모달(어두운 백드롭 + 중앙 카드)이 **아니라** 오른쪽에서 슬라이드-인되는 폭 ~440px 드로어로 연다. 학습자가 가이드 4섹션을 읽는 동안 정작 봐야 할 figure가 가려지면 안 되기 때문 (24. geollava8k 학습 중 사용자 직접 지적). 드로어 열린 상태에서 figure·문장·lightbox 모두 사용 가능. 닫기는 ① ×버튼 ② ESC ③ 드로어 바깥 클릭 (단 다른 `.study-fab` 클릭은 예외 — 내용 전환 시 깜빡임 방지). CSS·JS 정본 = `rules/component_rules.md` §12.5 / §12.6. 이전 세대(SGL)의 풀스크린 모달 CSS는 폐기됐다 — 현재 정본은 아래 우측 드로어다 (SGL 견본 HTML은 배포본 미포함).
 

@@ -466,3 +466,14 @@ RUNTIME_JS = r"""
 })();
 </script>
 """
+
+
+if __name__ == "__main__":
+    # 데이터 모듈이다(study_inject.py가 import). 직접 실행하면 담긴 자산 크기만 보인다. import 때는 아무것도 바꾸지 않는다.
+    import sys
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+    print(f"study_runtime: VIEWER_MARKUP {len(VIEWER_MARKUP)}자, RUNTIME_JS {len(RUNTIME_JS)}자 (study_inject.py가 사용)")

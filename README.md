@@ -64,7 +64,9 @@ HTML 빌드에 이어 Stage 13에서 기본으로 함께 만듭니다. 내레이
 paper-review-kit/
 ├── README.md              ← 지금 이 문서
 ├── SETUP.md               ← ★ 설치 + 첫 논문 따라하기 (여기부터 읽으세요)
+├── GUIDE.html             ← 초보자용 설치·사용 안내 (브라우저로 열기)
 ├── NOTICE.md              ← 저작권·이용 범위 고지 (꼭 확인)
+├── ANNOUNCEMENT.md        ← 배포 공지문
 ├── CLAUDE.md              ← 작업 규칙 정본 (Claude Code가 자동으로 읽음)
 ├── workflow.md            ← 작업 흐름 (Stage 0~13 — 기본 빌드는 Stage 0~7 → 11 → 10 → 13(영상), 8·9는 요청 시, 12는 빌드 밖 연구 멘토 세션)
 ├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study, 12_research_mentor, 13_video)
@@ -78,7 +80,11 @@ paper-review-kit/
 │   ├── README.md         (정본 안내 + 1~3세대 인터랙션 개념 히스토리)
 │   ├── design/           (v4 로고 등 공용 자산)
 │   └── cares/            ★ v4 8탭 정본 (실제 논문 전체: 데이터+빌더+산출물, Paper Study 포함)
-└── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
+├── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
+├── rawpaper/              ← 원본 PDF를 넣는 곳 (빈 폴더로 포함, PDF는 저장소 제외)
+├── docs/demo/             ← README용 예시 영상 발췌 (GIF·mp4)
+├── research_profile.example.json  ← Stage 12 연구 멘토 템플릿 → research_profile.json으로 복사 (git 제외)
+└── requirements.txt       ← CLI 도구용 파이썬 패키지 목록
 ```
 > **`samples/cares/`가 유일한 v4 워크드 정본**입니다 — CARES 논문(ACL 2026)의 실제 데이터(config·structured·translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + 완성 산출물 `CARES_output.html`. 신규 논문의 빌더는 `templates/paper_base/_build.py`(CARES 빌더에서 논문별 문구만 `TODO_PAPER`로 비운 판)를 복사해 시작하고, 셸·8탭·Paper Study·디자인·데이터 형식은 `cares/`를 보고 맞춥니다.
 

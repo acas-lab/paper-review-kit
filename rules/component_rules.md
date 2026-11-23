@@ -875,16 +875,18 @@ modal.addEventListener('click', e => {
   "fig_1": {
     "title": "학습 가이드 — Figure 1",
     "look":   "...",
-    "nums":   [["label", "value"], ...],   // ≥3
+    "nums":   [["label", "value"], ...],   // ≥3. 항목 = ["label","value"] 쌍 또는 {"label","value","note"} 객체
     "author": "...",
     "check":  ["...", "..."]               // ≥2
   }
 }
 ```
 
+`nums` 항목 형태: `["label", "value"]` 쌍 또는 `{"label": "...", "value": "...", "note": "..."}` 객체(`note` 선택). 모두 평문(esc 적용)이다. 문자열 항목 `"label: value"`는 기준 빌더(`templates/paper_base/_build.py#_render_study_html`)가 첫 `": "`에서 나눠 받고, 그 밖의 형태는 자산 id·위치를 밝힌 오류로 멈춘다.
+
 ### 12.8 빌더 헬퍼
 
-`_build.py`에서 study modal 마크업을 한 번에 만드는 헬퍼 정형:
+`_build.py`에서 study modal 마크업을 한 번에 만드는 헬퍼 정형(아래는 쌍 형태만 보인 축약형이다. 객체·문자열 처리는 `templates/paper_base/_build.py#_render_study_html`):
 
 ```python
 def render_study_modal(aid: str, sm: dict) -> str:

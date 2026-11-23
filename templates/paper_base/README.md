@@ -28,6 +28,35 @@
 | 수식 패널 제목과 부제, 개념 패널 부제 | 수식 수, 수식의 연결 순서, 개념 요약 |
 | footer | 제목, 학회·저널, 소속, 한 문장 |
 
+## summary 카드 `overview` (codex PNG가 없을 때)
+
+`assets/generated/dissection_overview.png`(모드 A)나 `.svg`(모드 B)가 없으면, 빌더(`_overview_svg`)가 `tabs_data/dissection.json`의 summary 카드(`"cls": "diss-summary"`)에 있는 `overview`로 5단 SVG를 그린다. `samples/cares/`는 PNG를 쓰므로 이 필드가 없다. 최소 예:
+
+```json
+{
+  "id": 8,
+  "cls": "diss-summary",
+  "title": "논문 총정리 - 한 장 요약",
+  "lead": "이 카드 하나로 논문 전체를 정리한다",
+  "rows": [
+    {"tag": "한 줄 요약", "body": "..."},
+    {"tag": "이게 왜 문제인가 (Problem)", "body": "..."}
+  ],
+  "overview": [
+    ["PROBLEM",     "고해상도 입력은 시각 토큰 수를 4배로 늘려 prefill 연산이 커진다"],
+    ["OBSERVATION", "질의의 62%는 336px 입력으로도 같은 답을 낸다"],
+    ["METHOD",      "350M 예측기가 질의마다 최소 해상도를 고른다"],
+    ["NOVELTY",     "대상 모델을 바꾸지 않는 plug-in 방식"],
+    ["RESULTS",     "정확도 유지, prefill 연산 최대 78% 감소"]
+  ]
+}
+```
+
+- 항목은 `[label, text]` 쌍 또는 `{"label": "...", "text": "..."}` 객체, 보통 5개(PROBLEM → OBSERVATION → METHOD → NOVELTY → RESULTS). 위 문장·수치는 형식 예시일 뿐이며 논문의 실제 수치로 쓴다.
+- `text`는 단마다 한두 문장(약 120자 이하 — SVG는 한 줄 20자, 6줄까지 그리고 나머지는 잘린다). 태그는 벗겨서 그린다.
+- `rows`는 9행(태그는 `prompts/04_research_analysis.md` 표 그대로)을 모두 채운다. 위 예에서는 2행만 보였다.
+- PNG나 SVG 파일이 있으면 그것이 우선한다. 정본 설명: `prompts/04_research_analysis.md` "8번 카드".
+
 ## `video/` (Stage 13 소개 영상 뼈대)
 
 `기획안.md`(원고 = 컷 표) · `spec.py`(자막 표기·TTS 읽기·인용 위치·장면 이미지) · `scenes.js`(캔버스 장면) · `clipspec.py`(motion 클립 명세) · `CREDITS.md`. 손으로 복사하지 않는다 — `python tools/video/make_video.py "papers/N. shortname" new`가 `papers/N. shortname/video/`로 복사하며 `{{PAPER}}`·`{{SHORT}}`·`{{TITLE}}`·`{{VENUE}}`를 채우고, `assets/sources.json`을 만든다. 그 뒤 `TODO_PAPER`를 모두 채운다(남아 있으면 `check_video.py` G0와 `check_paper_structure.py`가 FAIL). 규칙: `rules/video_rules.md`.

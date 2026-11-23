@@ -41,6 +41,7 @@
 - `callouts`, `hotspots`는 키가 있어도 비어 있을 수 있다. `len()`으로 확인한다.
 - `config.json#meta.code`는 그대로 topbar 링크 `href`가 된다. URL이 없으면 "공개 예정" 같은 서술 대신 키를 뺀다.
 - `study.json`의 `phase2.method.claude_html`, `phase2.conclusion.claude_html`은 필수다(빠지면 빌더가 KeyError).
+- `analysis.json#study_modals[*].nums` 항목은 `{label, value, note?}` 객체나 `[label, value]` 쌍으로 쓴다. 문자열만 넣으면 예전 빌더가 `IndexError`로 멈췄다(2026-11-23 신규 사용자 검증, 템플릿 빌더는 `"label: value"` 문자열도 받게 고침). summary 카드의 `overview` 예시는 `templates/paper_base/README.md`에 있다(CARES는 PNG라 예시가 없다).
 - 문단 첫머리 run-in 제목은 데이터를 쪼개지 말고 `_build.py#LABEL_PARAS`나 `labels.json`(`_mk_corpus.py`의 `RUNIN`)으로 소제목에 올린다.
 
 ### 이스케이프
@@ -72,6 +73,7 @@
 - 주입기를 여러 논문에 동시에 돌리면 `OSError 22`가 간헐적으로 날 수 있다. 재시도하고, 헤더 주석 개수로 중복 주입이 없는지 확인한다.
 - `check_memo_layer.py`는 playwright가 기대하는 chromium 빌드가 없으면 `executable_path`를 덮어쓰는 래퍼로 실행한다.
 - `CLAUDE.md`와 큰 문서는 스크립트로 덮어쓰지 않는다. Edit 툴을 쓴다(모체에서 Python `write_text`가 surrogate 이스케이프로 UnicodeEncodeError를 내며 파일을 0바이트로 자른 적이 있다). 이모지는 리터럴이나 `\U0001F534` 형식으로 쓴다.
+- Windows에서 킷 경로가 길면 TTS venv 설치가 260자 경로 제한에 걸린다(torch의 `pkg_resources/tests/...`, 2026-11-23 약 150자 경로에서 재현). `common.tts_python()`이 이때 `%LOCALAPPDATA%/paper-review-kit/tts_env`를 쓴다. 다른 위치를 쓰려면 `TTS_PY`.
 - `restyle_dash_v4.py`는 `<section class="eq-panel">`만 Mathematics 탭으로 옮긴다. 패널 마크업을 바꾸지 않는다(수식 카드가 있는데 패널을 못 찾으면 FAIL로 멈춘다).
 
 ### 이어받은 산출물 결함

@@ -456,6 +456,12 @@ def crop_one(pdf, asset_id: str, page_num: int, pattern: str, orient: str,
 def crop_figures(pdf_path: Path, out_dir: Path, specs: Iterable[tuple]) -> None:
     """Each spec is (asset_id, page, caption_pattern, orientation) - or
     (..., wide:bool) if the figure spans across columns."""
+    import sys as _sys
+    for _s in (_sys.stdout, _sys.stderr):   # 한글 경고가 cp949 콘솔·Git Bash에서 깨지지 않게 (import 때가 아니라 실행 때만)
+        try:
+            _s.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     pdf = fitz.open(pdf_path)
     print(f"=== crop_assets: {pdf_path.name} -> {out_dir} ===")
     for spec in specs:

@@ -114,7 +114,7 @@ You are a research assistant.
 ```
 
 - `study_modals[aid]`의 모든 필드는 선택이 아니라 **의무**. 비어 있으면 그 섹션은 자산을 충분히 분해하지 못한 것.
-- `nums`는 `[[label, value], ...]` 페어 ≥3개.
+- `nums`는 ≥3개. 항목은 `[label, value]` 페어 또는 `{"label": ..., "value": ..., "note": ...}` 객체(`note` 선택). 문자열 하나(`"85.3%"`)만 넣지 않는다 — 기준 빌더는 `"label: value"` 문자열만 나눠 받고, 형태가 틀리면 오류로 멈춘다.
 - `check`는 문자열 배열 ≥2개.
 - 모든 키는 `config.json#asset_layout`의 자산 ID와 매핑.
 

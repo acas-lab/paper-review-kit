@@ -1,11 +1,13 @@
 // usage: node stills.mjs <index.html> <out_dir> <frac> c01 c02 …   — 컷마다 (t0 + frac × dur) 시각의 기본 화면 정지 화면(1920×1080 PNG)
-// 렌더 전에 캔버스 장면(scenes.js)을 눈으로 점검할 때 쓴다. make_video.py stills 가 부른다.
+// 렌더 전에 캔버스 장면(scenes.js)을 눈으로 점검할 때 손으로 실행한다(make_video.py에 이 단계 명령은 없다). animatic 뒤 킷 루트에서:
+//   node tools/video/stills.mjs "papers/N. name/video/work/build/index.html" "papers/N. name/video/work/stills" 0.5 c01 c02
+// CHROME 환경변수가 없으면 playwright Chromium을 쓴다.
 import puppeteer from 'puppeteer-core';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 const [htmlArg, outDir, fracArg, ...ids] = process.argv.slice(2);
-// Chrome 위치: make_video.py가 환경변수 CHROME에 찾아 넣는다(common.find_chrome). 없으면 playwright Chromium
+// Chrome 위치: 환경변수 CHROME(make_video.py 단계는 common.node_env()가 find_chrome 값을 넣는다. 손으로 실행할 때는 직접 지정). 없으면 playwright Chromium
 import { createRequire } from 'node:module';
 const CHROME = process.env.CHROME || createRequire(import.meta.url)('playwright').chromium.executablePath();
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--allow-file-access-from-files', '--hide-scrollbars'] });

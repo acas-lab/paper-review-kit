@@ -383,6 +383,10 @@ python tools/structure_paper.py "rawpaper/<논문>.pdf" "papers/N. name/structur
 
 체인 밖의 저장소 전체 교정 패스(빌더 `_build.py` 와 산출물을 **함께** 고치므로 새 논문에는 이미 반영돼 있다 - 회귀 의심 시 `--dry-run`/`--check` 로만 확인): `tools/strip_left_bars.py`(좌측 색 띠 제거) → `tools/normalize_left_radius.py`(그 잔재인 좌측만 0 인 border-radius 정규화) · `tools/audit_fix_pass1.py`(감사 결함 8종 - 형광펜 특이도·`.col` 테두리·HTML 필드 esc 제거·`.eq-card{min-width:0}`·라이트박스 z 2000·죽은 `closeModal` 분기·hotspot 호버·`.fund-*`/`.knw-*` 미정의 보완) · `tools/fix_hl_and_dash.py`(핫스팟 막대 제거·형광펜 우선·콘텐츠 em-dash → 하이픈, `prompts/03_translation.md` 문장부호 규칙). 이 도구들의 `--all`은 `papers/*`와 `samples/*`를 함께 돈다.
 
+정본 체인에 들지 않는 레거시·선택 도구(신규 논문은 쓰지 않는다):
+- `tools/gen_tab_reading.py "N. name"` — structured·번역·analysis·hotspots로 ① Translation 탭 본문만 `papers/N. name/_tab_reading.html`(또는 `--stdout`)로 따로 만든다. 빌더 없이 산출물의 `tab-reading` 섹션만 손으로 갈아 끼울 때 쓴다. 기준 빌더는 이 탭을 스스로 그린다.
+- `tools/reparse_pdf.py "N. name"` — 2단 학술 PDF를 글꼴 크기 규칙으로 다시 파싱해 `structured.json`을 쓴다(`--dry`면 `.new`). 논문별 `_parse_config.py`(섹션 패턴·쪽 범위)가 있어야 돌고, 그 예시는 배포본에 없다. Stage 2 정본은 `tools/structure_paper.py`다.
+
 **참조 규칙:** `rules/parsing_rules.md`, `rules/knowledge_rules.md`, `rules/math_rules.md`, `rules/component_rules.md`, `rules/implementation_rules.md`
 
 ---

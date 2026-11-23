@@ -19,7 +19,14 @@ import base64
 import html
 import json
 import re
+import sys
 from pathlib import Path
+
+for _s in (sys.stdout, sys.stderr):   # cp949 콘솔·Git Bash에서 한글 출력이 깨지지 않게
+    try:
+        _s.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 ROOT = Path(__file__).parent
 ASSETS = ROOT / "assets"
@@ -65,6 +72,7 @@ if GEN_DIR.exists():
         GEN_SVG[n.stem] = re.sub(r"<svg\b", '<svg class="cf-svg"', s, count=1) if "cf-svg" not in s else s
 
 def esc(s):
+    s = "" if s is None else str(s)   # 숫자 값(nums.value 등)도 받는다
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 def gen_media(stem, alt=""):
@@ -2186,18 +2194,30 @@ JS = r'''
 
 STUDY_MODALS = analysis.get("study_modals", {})
 
-def _render_study_html(sm: dict) -> str:
+def _render_study_html(sm: dict, aid: str = "?") -> str:
+    # nums 항목 형태: {"label","value","note"(선택)} 객체 또는 ["label","value"] 쌍 (평문, esc 적용).
+    # 문자열 "label: value"도 받는다(첫 ": "에서 나눔, 없으면 값만 한 줄).
     rows = []
-    for item in sm.get("nums", []):
+    for i, item in enumerate(sm.get("nums", [])):
         if isinstance(item, dict):
             lbl = item.get("label", "")
             val = item.get("value", "")
             note = item.get("note", "")
             note_html = f' <em>{esc(note)}</em>' if note else ""
             rows.append(f'<div class="study-num-row"><b>{esc(lbl)}</b><span>{esc(val)}{note_html}</span></div>')
-        else:
+        elif isinstance(item, str):
+            lbl, sep, val = item.partition(": ")
+            if sep:
+                rows.append(f'<div class="study-num-row"><b>{esc(lbl)}</b><span>{esc(val)}</span></div>')
+            else:
+                rows.append(f'<div class="study-num-row"><span>{esc(item)}</span></div>')
+        elif isinstance(item, (list, tuple)) and len(item) >= 2:
             lbl, val = item[0], item[1]
             rows.append(f'<div class="study-num-row"><b>{esc(lbl)}</b><span>{esc(val)}</span></div>')
+        else:
+            raise SystemExit(
+                f"analysis.json#study_modals[{aid}].nums[{i}] 형식 오류: {item!r}\n"
+                '  허용 형태: {"label": "...", "value": "...", "note": "..."} 객체, ["label", "value"] 쌍, "label: value" 문자열')
     nums_html = "".join(rows)
     check_html = "".join(f"<li>{c}</li>" for c in sm.get("check", []))
     return (
@@ -2225,7 +2245,7 @@ for aid in ASSET_DATAURI:
     sm = STUDY_MODALS.get(aid)
     if sm:
         study[aid] = {"title": sm.get("title", f"학습 가이드 - {label}"),
-                       "html": _render_study_html(sm)}
+                       "html": _render_study_html(sm, aid)}
     else:
         study[aid] = {"title": f"학습 가이드 - {label}",
                        "html": '<div class="study-section s-look"><span class="study-label">▸ 준비 중</span><p>이 자산의 학습 가이드는 곧 추가됩니다.</p></div>'}

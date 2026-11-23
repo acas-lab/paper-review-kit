@@ -427,4 +427,9 @@ def main():
 
 
 if __name__ == "__main__":
+    for _s in (sys.stdout, sys.stderr):   # cp949 콘솔·Git Bash에서 한글 출력이 깨지지 않게 (스크립트 실행 때만)
+        try:
+            _s.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
     sys.exit(main())

@@ -53,7 +53,7 @@
 | "Claude 로그인 필요" | 터미널에 `claude` 입력 후 로그인하고 다시 실행 |
 | "API 키가 설정됨" 경고 | 구독으로 쓰려면 `ANTHROPIC_API_KEY` 환경변수 삭제 |
 | 이미지가 안 생김 | codex CLI 미설치 — 선택사항이라 나머지는 정상 진행 |
-| 글루만 따로 점검 | `webapp/.venv/Scripts/python webapp/verify_glue.py` |
+| 글루만 따로 점검 | Windows `webapp/.venv/Scripts/python webapp/verify_glue.py` · mac/Linux `webapp/.venv/bin/python webapp/verify_glue.py` |
 | 죽었는지 살았는지 모름 | 중지 버튼 왼쪽 **진행 표시(초록 점 + 경과 시간)** 확인 — 시간이 흐르면 작동 중 |
 
 ### 비용 표시 / 과금?

@@ -47,6 +47,10 @@ claude
 # 4. CLI 도구용 패키지 (웹 모드만 쓸 거면 생략 가능)
 python3 -m pip install --upgrade pip pymupdf playwright
 python3 -m playwright install chromium
+#    "externally-managed-environment"(PEP 668, Debian/Ubuntu·Homebrew Python) 오류가 나면
+#    시스템 Python 대신 킷 전용 venv를 만들어 쓴다(이후 python3 대신 .venv/bin/python):
+#      python3 -m venv .venv && . .venv/bin/activate
+#      python -m pip install --upgrade pip pymupdf playwright && python -m playwright install chromium
 
 # 5. 웹 모드 매일 실행 (처음 한 번 chmod +x webapp/linux_start.sh)
 ./webapp/linux_start.sh
@@ -57,7 +61,9 @@ claude
 # 7. (선택) codex
 npm install -g @openai/codex && codex login
 
-# 8. 소개 영상 도구 (스킬 복사 + ffmpeg·node 패키지·Chromium, TTS는 수 GB)
+# 8. 소개 영상 도구 (스킬 복사 + ffmpeg·node 패키지·Chromium, TTS는 수 GB, NVIDIA GPU 권장 — CPU는 10~15분 원고에 수 시간)
+#    Node.js·Python 3.12가 없으면 Linux에서는 make_video.py가 배포판 설치 명령(apt 등)을 출력하고 멈춘다
+#    PEP 668 환경이면 위 4번의 .venv 파이썬으로 실행한다
 python3 tools/video/make_video.py - setup
 python3 tools/video/make_video.py - setup-tts   # 선택: 첫 영상 때 자동 설치
 python3 tools/video/make_video.py - doctor

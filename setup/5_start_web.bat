@@ -42,6 +42,8 @@ echo First start creates webapp\.venv and installs packages ^(a few minutes^).
 echo The browser opens at http://127.0.0.1:8765 when ready.
 echo To stop the server: press Ctrl+C in this window, or just close it.
 echo.
+rem PRK_NO_PAUSE: win_start.bat skips its own pause (this file pauses below)
+set "PRK_NO_PAUSE=1"
 call "%~dp0..\webapp\win_start.bat"
 echo.
 echo [OK] Web dashboard stopped. Double-click 5_start_web.bat to start it again.

@@ -10,7 +10,9 @@ rem        .claude\skills\motion-broll  (project skill folder, local copy)
 rem     b) make_video.py - setup : python packages (tools\video\requirements.txt),
 rem        ffmpeg, node_modules (puppeteer-core, playwright) + Chromium
 rem     c) OPTIONAL make_video.py - setup-tts : Python 3.12 venv + torch +
-rem        qwen-tts in tools\video\tts_env  (SEVERAL GB, GPU recommended)
+rem        qwen-tts in tools\video\tts_env  (SEVERAL GB, GPU recommended).
+rem        If the kit path is long and Windows long paths are off, the venv goes
+rem        to %LOCALAPPDATA%\paper-review-kit\tts_env instead (260-char limit).
 rem  make_video.py also installs all of this by itself on first use, so this
 rem  file only does it ahead of time. Needs steps 1 and 2 (python, node).
 rem  ASCII-only on purpose (cmd.exe parses .bat in the OEM code page).
@@ -67,7 +69,8 @@ if not "!RC!"=="0" (
 rem ---- c : TTS (optional, large) ------------------------------------------
 echo.
 echo The narration voice engine ^(TTS^) needs SEVERAL GB ^(Python 3.12 + torch^).
-echo An NVIDIA GPU is recommended; without one it runs on the CPU ^(slow^).
+echo An NVIDIA GPU is recommended. On the CPU it is slow: about 5 minutes per
+echo 4 sentences, so a 10-15 minute script takes several hours.
 echo If you skip it now, it installs itself the first time a video is made.
 choice /c YN /n /m "Install the TTS environment now? [Y/N] "
 if errorlevel 2 (
