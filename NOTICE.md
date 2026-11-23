@@ -46,6 +46,7 @@
 | Geist · Geist Mono 글꼴 | `skills/motion-broll/engine/fonts/` | Vercel · basement.studio, **SIL Open Font License 1.1** (`OFL-Geist.txt`) |
 | Noto Sans KR 글꼴 (가변 판 + 자막용 700 고정 판 `NotoSansKR-Sub700.ttf`) | `tools/video/fonts/` | Adobe (Google Noto CJK 계열), **SIL Open Font License 1.1** (`tools/video/OFL-NotoSansKR.txt`). Sub700은 700 굵기로 고정한 파생 판이며 이름을 "Noto Sans KR Sub"로 바꿨다(OFL 예약 이름 규정) |
 | 목소리 원본 7개 | `tools/video/voices/*.mp3` | 실존 인물의 목소리가 아닌 합성 화자 샘플이며, 키트 저작자가 사용 권한을 확보했다. TTS(Qwen3-TTS)의 화자 기준 음원으로만 쓴다. 파일 이름은 측정한 음성 특징(성별·음역·빠르기·밝기)이다(`rules/video_rules.md` 6절). 음원을 떼어내 다른 목적으로 재배포하지 않는다 |
+| 예시 영상 발췌 (33초 하이라이트·15초 GIF) | `docs/demo/sdrpn_highlight.mp4`, `docs/demo/sdrpn_preview.gif` | 이 키트로 만든 소개 영상의 발췌. 다룬 논문: "Catching the Details: Self-Distilled RoI Predictors for Fine-Grained MLLM Perception" (arXiv [2509.16944](https://arxiv.org/abs/2509.16944), 저작권은 원저자), **CC BY 4.0** — 논문 그림·문장을 발췌·번역·재구성함. 프롤로그 냉장고 사진: Andrew Michael Nathan, "Vaccine Fridge Closed", Flickr, **CC BY 2.0** |
 
 TTS 모델(Qwen3-TTS 0.6B)·faster-whisper 모델·torch·Chromium·ffmpeg는 저장소에 들어 있지 않고, 처음 실행할 때 각 배포처에서 내려받는다(각 라이선스를 따른다).
 

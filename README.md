@@ -1,6 +1,6 @@
 # Paper Review HTML Kit
 
-논문 PDF 한 편을 **v4 대시보드 8탭 학습용 HTML 한 장**으로 바꾸는 작업 키트입니다.
+논문 PDF 한 편을 **v4 대시보드 8탭 학습용 HTML 한 장**과 **10~15분짜리 논문 요약 영상 한 편**으로 바꾸는 작업 키트입니다.
 빌드 스크립트로 한 방에 돌리는 도구가 아니라, **Claude Code와 대화하며 한 단계씩** 콘텐츠를 만들고 마지막에 단일 HTML로 조립하는 *방법론 + 정본 템플릿 + 보조 도구* 묶음입니다.
 이 킷은 특정 분야(AI/ML)에 묶이지 않습니다 — 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만듭니다(분야별 차이는 `config.json#domain`, 정본 `rules/domain_profile.md`).
 
@@ -10,7 +10,16 @@
 
 ## 무엇이 만들어지나
 
-논문 한 편당 아래 8개 탭을 가진 **self-contained HTML 한 장**(모든 그림이 base64로 박혀 USB·메일로 옮겨도 그대로 열림). 셸은 **v4 대시보드 디자인**(저채도 grey-lavender · topbar 헤더 · 숫자 없는 탭 · 해시 라우팅 — 정본 `rules/design_v4_dashboard.md`):
+논문 한 편당 두 가지가 나옵니다.
+
+| 산출물 | 파일 | 내용 |
+|---|---|---|
+| **self-contained HTML 한 장** | `{ShortName}_output.html` | 아래 8탭 학습 페이지. 모든 그림이 base64로 박혀 USB·메일로 옮겨도 그대로 열림 |
+| **10~15분짜리 논문 요약 영상** | `{ShortName}_video.mp4` | HTML을 열기 전에 보는 연구 다큐멘터리형 소개 영상 (내레이션 + 저자 문장 인용 + 모션 그래픽 + 자막) |
+
+### ① HTML — 8탭 학습 페이지
+
+셸은 **v4 대시보드 디자인**(저채도 grey-lavender · topbar 헤더 · 숫자 없는 탭 · 해시 라우팅 — 정본 `rules/design_v4_dashboard.md`):
 
 | 탭 | 라벨 | 내용 |
 |---|---|---|
@@ -26,7 +35,17 @@
 ①′ Paper Study는 기본 빌드에 **필수**입니다 — Stage 11에서 `tabs_data/study.json`을 작성해 채웁니다(없을 때 보이는 셸은 작성 전 임시 상태일 뿐 완성본이 아닙니다).
 ⑤·⑥도 기본 빌드에서 셸만 만들고, 더 깊이 파고들고 싶을 때만 따로 채웁니다.
 
-그리고 HTML을 열기 전에 보는 **10~15분 소개 영상 한 편**(`{ShortName}_video.mp4`, Stage 13 — 연구 다큐멘터리형 내레이션 + 저자 문장 인용 + 모션 그래픽 클립 + 자막)을 함께 만듭니다. 필요 없으면 "영상은 빼줘"라고 말하면 됩니다. 규칙: `rules/video_rules.md`, 도구: `tools/video/make_video.py`.
+### ② 영상 — 10~15분 논문 요약
+
+HTML 빌드에 이어 Stage 13에서 기본으로 함께 만듭니다. 내레이터 한 명이 3인칭으로 설명하고 저자 목소리는 번역 문장 인용에만 나오며, 학부 3~4학년 눈높이(프롤로그 → 본 장 6~9개 → 에필로그)로 구성합니다. 영상 도구(ffmpeg·Node·Chromium·TTS)는 처음 실행할 때 자동 설치되고, 필요 없으면 "영상은 빼줘"라고 말하면 됩니다. 규칙: `rules/video_rules.md`, 도구: `tools/video/make_video.py`.
+
+**예시** — 이 키트로 만든 SD-RPN 논문 소개 영상(약 12분)의 발췌입니다.
+
+![SD-RPN 소개 영상 미리보기 (15초, 무음)](docs/demo/sdrpn_preview.gif)
+
+▶ [소리 있는 33초 하이라이트 보기 (`docs/demo/sdrpn_highlight.mp4`, 4.6MB)](docs/demo/sdrpn_highlight.mp4) — 프롤로그(예시 사진 속 실패) → 방법 모션 그래픽 → 논문 결과 인용(저자 목소리) → 에필로그(HTML 길잡이)
+
+<sub>다룬 논문: "Catching the Details: Self-Distilled RoI Predictors for Fine-Grained MLLM Perception", arXiv [2509.16944](https://arxiv.org/abs/2509.16944), CC BY 4.0. 프롤로그 사진: Andrew Michael Nathan, "Vaccine Fridge Closed", Flickr, CC BY 2.0. 자세한 내용은 `NOTICE.md` 3절.</sub>
 
 ---
 
