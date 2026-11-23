@@ -11,7 +11,7 @@
 
 사용법:
     python tools/check_html_escape.py "papers/N. shortname"     # 한 논문
-    python tools/check_html_escape.py --all                      # papers/ 전체
+    python tools/check_html_escape.py --all                      # papers/ + samples/ 전체
 
 수정 규약: tex 안은 `\\lt`/`\\gt`, 일반 텍스트는 `&lt;`/`&gt;` (rules/math_rules.md § 부등호).
 """
@@ -94,7 +94,10 @@ def main():
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
     if sys.argv[1] == "--all":
-        papers = sorted(p for p in (REPO / "papers").iterdir() if p.is_dir())
+        # papers/* + samples/* (산출물이 있는 폴더) - 빈 배포본에서도 정본 samples/cares 를 검사한다
+        papers = [p for base in ("papers", "samples") if (REPO / base).is_dir()
+                  for p in sorted((REPO / base).iterdir())
+                  if p.is_dir() and list(p.glob("*_output.html"))]
     else:
         papers = [Path(sys.argv[1])]
     total_fail = 0

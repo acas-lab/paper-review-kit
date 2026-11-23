@@ -74,7 +74,7 @@ papers/[name]/
 11. paper study            → tabs_data/study.json (①′ — 기본 빌드 포함)
 8.  simulator design ⏸     → tabs_data/simulator_spec.md (on-demand)
 9.  qa design ⏸            → tabs_data/qa.json (on-demand)
-10. html generation        → _build.py 조립 → tools/restyle_dash_v4.py 변환 (v4 8탭)
+10. html generation        → templates/paper_base/_build.py 복사 조립 → tools/restyle_dash_v4.py 변환 (v4 8탭)
 ```
 
 ---
@@ -96,20 +96,20 @@ papers/[name]/
 | ⑤ | `tab-simulator` | Code | tabs_data/simulator_spec.md (셸만) |
 | ⑥ | `tab-qa` | Q & A | tabs_data/qa.json (셸만) |
 
-Mathematics는 knowledge.json의 eq-panel을 `tools/restyle_dash_v4.py`가 분리해 만든다 (별도 준비물 없음). Paper Study는 study.json이 없으면 자동 셸.
+Mathematics는 knowledge.json의 eq-panel을 `tools/restyle_dash_v4.py`가 분리해 만든다 (별도 준비물 없음). Paper Study의 study.json은 필수다(없을 때의 자동 셸은 "작성 전" 임시 상태일 뿐 산출물이 아니다).
 
 ### 작성 원칙
 
 - **정본 모방:**
   - 셸·헤더·탭·디자인 토큰은 **v4 대시보드**(`rules/design_v4_dashboard.md`) — `_build.py` 조립 후 `tools/restyle_dash_v4.py`로 변환
-  - 학습 인터랙션(자산 모달·study-drawer, ⑤ Simulator 3-Part, eq-link / fig-hotspot, Paper Study 등)은 `samples/cares/CARES_output.html`을 인터랙션 정본으로 한다 (3세대 베이스 — v4 셸 위에 얹음)
+  - 학습 인터랙션(자산 모달·study-drawer, ⑤ Simulator 3-Part, eq-link / fig-hotspot, Paper Study 등)은 `samples/cares/CARES_output.html`을 인터랙션 정본으로 한다 (4세대 CARES 정본 — 1~3세대 기능을 흡수, v4 셸과 한 몸)
 - **단일 파일:** 모든 CSS는 `<style>`, 모든 JS는 `<script>` 인라인 (외부 분리 금지)
 - **외부 의존성 최소:** MathJax 3 (CDN)만 사용. 외부 JS/CSS 라이브러리 추가 금지
 - **자산:** **base64 인라인이 기본** (`<img src="data:image/png;base64,...">`). 그림/표/생성 이미지를 모두 인라인. 외부 참조는 개발 미리보기 한정 — 최종 산출물에는 반드시 인라인. 동기는 휴대성 (CLAUDE.md 자산 임베딩 정책 참조).
 
 ### CSS / JS
 
-- 디자인 토큰: **`rules/design_v4_dashboard.md` §1 (v4 저채도 grey-lavender)** 이 최종 정본. 빌더 템플릿은 `CLAUDE.md`의 v3 토큰으로 조립한 뒤 `tools/restyle_dash_v4.py`가 v4로 스왑한다(2단). 빌더 템플릿의 v3 `:root`는 중간 산물이므로 최종 색 정본으로 쓰지 말 것 — 변환 뒤 v4 색이 정본.
+- 디자인 토큰: **`rules/design_v4_dashboard.md` §1 (v4 저채도 grey-lavender)** 이 최종 정본. 빌더 템플릿은 v3 토큰(`rules/project_policies.md` § 디자인 토큰 — v3 폐기 메모)으로 조립한 뒤 `tools/restyle_dash_v4.py`가 v4로 스왑한다(2단). 빌더 템플릿의 v3 `:root`는 중간 산물이므로 최종 색 정본으로 쓰지 말 것 — 변환 뒤 v4 색이 정본.
 - 탭 셸: `<nav class="tabs">` + `<section id="tab-XXX" class="tab-pane">` 패턴
 - 탭 전환 JS는 `<body>` 끝에 인라인
 - ⑤ 시뮬레이터 위젯은 vanilla JS (canvas API)

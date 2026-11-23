@@ -10,7 +10,8 @@ ALGORITHM (per caption "Figure N." / "Table N."):
   1. Caption bbox + COLUMN BAND from its x-span: full / left / right.
   2. Collect graphic elements (page.get_drawings() rects + get_image_rects()),
      clipped to the page, dropping: full-page backgrounds, header (y<HEADER) /
-     footer (y>FOOTER) artifacts, and near-zero-area slivers. Keep those whose
+     footer (y>FOOTER) artifacts, near-zero-area slivers, and invisible white-only
+     paths that run under a caption (they break stacked-figure ownership). Keep those whose
      horizontal span overlaps the caption's band.
   3. Decide the figure SIDE (above/below the caption) = whichever side has graphic
      content adjacent to the caption (figures: caption usually below; tables: vary).
@@ -118,8 +119,34 @@ def _overlaps_band(x0, x1, band):
     return ov > 0.4 * w            # real-width element: >40% inside the band
 
 
-def _graphic_elements(page, W, H):
-    """Drawing-path rects + image rects, clipped & filtered to real content."""
+def _invisible(g):
+    """True when a drawing paints ONLY near-white (white fill without a stroke, or a
+    white stroke) — i.e. it is invisible on the white page."""
+    paints = []
+    t = g.get("type") or ""
+    if "f" in t and g.get("fill") is not None:
+        paints.append(g["fill"])
+    if "s" in t and g.get("color") is not None:
+        paints.append(g["color"])
+    return bool(paints) and all(len(c) >= 3 and min(c[:3]) >= 0.96 for c in paints)
+
+
+def _hits_caption(r, caps):
+    return any(min(r[2], c["x1"]) - max(r[0], c["x0"]) > 1 and min(r[3], c["y1"]) - max(r[1], c["y0"]) > 1
+               for c in caps)
+
+
+def _graphic_elements(page, W, H, caps=()):
+    """Drawing-path rects + image rects, clipped & filtered to real content.
+
+    An INVISIBLE (white-only) path that runs under a caption's text is dropped: such
+    backdrops (e.g. a white rect exported behind each sub-figure, bleeding past the
+    column) are not figure content, and because they straddle captions they break the
+    caption-ownership logic. Rethinking p3: white rects y=193..333 / y=354..498 covered
+    the stacked Fig.3 / Fig.4 captions, so the chain "Fig.4 owns the images between
+    Fig.3's and Fig.4's captions" failed and Fig.2 took Fig.3's images. Invisible paths
+    that stay clear of every caption are kept — they can be the only bound of a
+    text-only figure body (Voila Fig.9 / Fig.11: white frames holding prompt text)."""
     elems = []
     for g in page.get_drawings():
         r = g["rect"]
@@ -137,6 +164,8 @@ def _graphic_elements(page, W, H):
             continue  # full-page background
         if y1 < HEADER_Y or y0 > FOOTER_Y:
             continue
+        if _invisible(g) and _hits_caption((x0, y0, x1, y1), caps):
+            continue  # white backdrop running under a caption -> not figure content
         elems.append((x0, y0, x1, y1))
     for info in page.get_images(full=True):
         try:
@@ -250,6 +279,39 @@ def _grow_run(side_elems, anchor_edge, ascending, W):
     return run
 
 
+def _inside_caption(e, cap):
+    """Strokes drawn INSIDE the caption box (underlined words such as "second-best
+    are underlined") are text decoration, not the figure — counting them made the
+    caption look adjacent to graphics on the wrong side (Rethinking Table 1)."""
+    return (e[1] >= cap["y0"] - 1 and e[3] <= cap["y1"] + 1
+            and e[0] >= cap["x0"] - 1 and e[2] <= cap["x1"] + 1)
+
+
+def _neighbour_owns(cap, run, downward, elems, other_caps, band, W, depth=0):
+    """True when `run` (graphics on one side of `cap`) is sandwiched against a
+    NEIGHBOUR caption that has nothing of its own on its far side — or whose far
+    side is in turn owned by the next caption (a chain of stacked figures, e.g.
+    Rethinking p3: Fig.2 caption / Fig.3 images / Fig.3 caption / Fig.4 images /
+    Fig.4 caption). Then the run is the neighbour's figure, not this caption's."""
+    if not run or depth > 4:
+        return False
+    edge = max(e[3] for e in run) if downward else min(e[1] for e in run)
+    for oc in other_caps:
+        if oc is cap or min(oc["x1"], cap["x1"]) - max(oc["x0"], cap["x0"]) <= 0:
+            continue
+        near = (0 <= oc["y0"] - edge + 4 <= ADJ) if downward else (0 <= edge - oc["y1"] + 4 <= ADJ)
+        if not near:
+            continue
+        side = [e for e in elems if _overlaps_band(e[0], e[2], band) and not _inside_caption(e, oc)
+                and ((e[1] >= oc["y1"] - 4) if downward else (e[3] <= oc["y0"] + 4))]
+        far = [e for e in side if ((e[1] - oc["y1"]) if downward else (oc["y0"] - e[3])) <= ADJ]
+        if not far:
+            return True
+        nxt = _grow_run(side, oc["y1"] if downward else oc["y0"], downward, W)
+        return _neighbour_owns(oc, nxt, downward, elems, other_caps, band, W, depth + 1)
+    return False
+
+
 def _bbox_for_caption(cap, elems, other_caps, bands, W, H):
     cy0, cy1 = cap["y0"], cap["y1"]
 
@@ -278,7 +340,8 @@ def _bbox_for_caption(cap, elems, other_caps, bands, W, H):
     #    so a neighbour's diagram can't drag this crop into the prose between them.
     in_band = [e for e in elems
                if _overlaps_band(e[0], e[2], band)
-               and bounds_lo - 2 <= (e[1] + e[3]) / 2.0 <= bounds_hi + 2]
+               and bounds_lo - 2 <= (e[1] + e[3]) / 2.0 <= bounds_hi + 2
+               and not _inside_caption(e, cap)]
     above = [e for e in in_band if e[3] <= cy0 + 4]
     below = [e for e in in_band if e[1] >= cy1 - 4]
 
@@ -288,6 +351,18 @@ def _bbox_for_caption(cap, elems, other_caps, bands, W, H):
         return min((e[1] - cy1) if asc else (cy0 - e[3]) for e in side)
 
     d_above, d_below = nearest_dist(above, False), nearest_dist(below, True)
+
+    # 2b) Both sides adjacent: a graphic block sandwiched between this caption and a
+    #     NEIGHBOUR caption belongs to the neighbour when that neighbour has nothing on
+    #     its own far side (FastVLM p5: Fig.5 caption sits between its bar chart above
+    #     and Fig.6's plot below; Fig.6's caption has only prose under it, so the plot
+    #     is Fig.6's and Fig.5 must take the side above).
+    if d_above <= ADJ and d_below <= ADJ:
+        if _neighbour_owns(cap, _grow_run(below, cy1, True, W), True, elems, other_caps, band, W):
+            d_below = 1e9
+        elif _neighbour_owns(cap, _grow_run(above, cy0, False, W), False, elems, other_caps, band, W):
+            d_above = 1e9
+
     # choose the side whose graphics are adjacent to the caption
     if d_above <= d_below and d_above <= ADJ:
         run = _grow_run(above, cy0, False, W)
@@ -322,7 +397,11 @@ def _bbox_for_caption(cap, elems, other_caps, bands, W, H):
         return held >= 2 and 0.28 * W < (e[2] - e[0]) < 0.7 * W
     core = [e for e in sub if not is_bg(e)] or sub
 
-    if not core:
+    if (cap["x1"] - cap["x0"]) > 0.5 * W:
+        eff = bands["full"]                # a full-width caption only ever sits under a
+                                           # full-width figure (FastVLM Fig.2: its visible
+                                           # content leaves the midline region empty)
+    elif not core:
         eff = band
     else:
         # Full-width only if CORE content covers points just left AND right of the page
@@ -521,7 +600,7 @@ def autocrop(pdf_path, out_dir, dpi=200, pages=None, name_map=None):
         caps = _captions(page)
         if not caps:
             continue
-        elems = _graphic_elements(page, W, H)
+        elems = _graphic_elements(page, W, H, caps)
         for cap in caps:
             rect, safe = _bbox_for_caption(cap, elems, caps, bands, W, H)
             rect = _refine_rect(page, rect, safe, scale)   # pixel-true edge margins
@@ -580,3 +659,14 @@ if __name__ == "__main__":
     for r in res:
         print(f"  {r['stem']:10} p{r['page']} {r['px']:>10}  rect={r['rect']}  | {r['cap']}")
     print(f"\n{len(res)} assets -> {sys.argv[2]}")
+    # Two crops on one page that share area almost always mean one caption took its
+    # neighbour's graphic (--verify only checks margins and cannot see this).
+    for i, a in enumerate(res):
+        for b in res[i + 1:]:
+            if a["page"] != b["page"]:
+                continue
+            (ax0, ay0, ax1, ay1), (bx0, by0, bx1, by1) = a["rect"], b["rect"]
+            ov = max(0, min(ax1, bx1) - max(ax0, bx0)) * max(0, min(ay1, by1) - max(ay0, by0))
+            small = min((ax1 - ax0) * (ay1 - ay0), (bx1 - bx0) * (by1 - by0))
+            if small and ov > 0.10 * small:
+                print(f"  WARN {a['stem']} / {b['stem']} (p{a['page']}) overlap {ov / small:.0%} - open both PNGs")

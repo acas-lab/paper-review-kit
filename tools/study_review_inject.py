@@ -15,9 +15,11 @@
 - 비동기 job 폴링(v2, 2026-09-10): 요청에 `async:1` → 202 + job_id → `GET /job?id=` 를
   2.5초 간격 폴링(개별 fetch 10초, 상한 40분). job_id 는 `prstudy:{SHORT}:study_review_job`
   에 저장돼 새로고침·재오픈 후에도 진행 중인 검토에 다시 붙는다(중복 실행 방지).
+- v3 (2026-11): 브릿지 1.3 하드닝 대응 - POST 에 `Content-Type: application/json` + `X-QA-Bridge: 1`.
+  공용 helper 에 `.v = 2` 를 붙여 구버전 helper 를 덮어쓴다.
 
 additive · idempotent. #tab-study + .study-write 가 있는 논문 대상.
-사용법:  python tools/study_review_inject.py "samples/cares"   |   --all
+사용법:  python tools/study_review_inject.py "samples/cares"   |   --all  (papers/* + samples/*)
 정본: samples/cares (모체는 papers/26. cares, 2026-07-09) · v2 비동기 job (2026-09-10).
 """
 import sys
@@ -61,13 +63,14 @@ SR_CSS = """
 
 SR_JS = r"""
 <script>
-/* ==== Paper Study 검토 피드백 (study_review_inject.py) v2 - 브릿지 /review-study 비동기 job 폴링 ==== */
+/* ==== Paper Study 검토 피드백 (study_review_inject.py) v3 - JSON+X-QA-Bridge 헤더 · 브릿지 /review-study 비동기 job 폴링 ==== */
 (function(){
   var SHORT = "__SHORT__";
   function bridgeUrl(){ try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; } catch(e){ return "http://127.0.0.1:8787"; } }
   function fetchT(url, opts, ms){ var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, ms); opts = opts||{}; opts.signal = c.signal; return fetch(url, opts).finally(function(){ clearTimeout(t); }); }
   /* 공용: 브릿지 확인 + 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 (qa_button_inject 와 공유) */
-  if(!window.__qaBridgeEnsure){
+  /* v2 = 하드닝된 브릿지(1.3+) 대응. 구버전 helper 가 먼저 정의돼 있어도 덮어쓴다. */
+  if(!window.__qaBridgeEnsure || (window.__qaBridgeEnsure.v|0) < 2){
     window.__qaBridgeEnsure = function(onReady, onStatus){
       var url = bridgeUrl();
       function ping(){ return fetchT(url + '/ping', {method:'GET'}, 2000).then(function(r){ return !!(r && r.ok); }).catch(function(){ return false; }); }
@@ -91,13 +94,14 @@ SR_JS = r"""
         })();
       });
     };
+    window.__qaBridgeEnsure.v = 2;
   }
 
   /* ---- 공용: 비동기 job 접수 + 폴링 (qa_button_inject / study_review_inject 공유, v2) ----
      헤드리스 claude 는 10분을 넘기는 일이 흔하다. 한 번의 fetch 로 끝까지 기다리면
      브라우저 타임아웃·탭 이동에 결과를 잃으므로, 202 로 job_id 만 받고 /job 을 폴링한다.
      job_id 는 localStorage 에 남겨 새로고침·재오픈 후에도 같은 작업에 다시 붙는다. */
-  if(!window.__qaBridgeJob2){
+  if(!window.__qaBridgeJob2 || (window.__qaBridgeJob2.v|0) < 2){
     window.__qaBridgeJob2 = function(o){
       /* o = {path, body, jobKey, running(text)->html, onStatus(html,cls), onResult(res),
               onGiveUp(), onLost(), onError(err), resumeOnly} */
@@ -138,7 +142,7 @@ SR_JS = r"""
       }
       var body = o.body || {};
       body.async = 1;              /* 새 클라이언트 표식 - 없으면 브릿지가 동기 응답(구버전 호환) */
-      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body)}, 20000)
+      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'application/json', 'X-QA-Bridge':'1'}, body: JSON.stringify(body)}, 20000)
         .then(function(r){ return r.json(); })
         .then(function(res){
           if(res && res.status === 'accepted' && res.job_id){
@@ -150,6 +154,7 @@ SR_JS = r"""
         .catch(function(err){ stopped = true; if(o.onError) o.onError(err); });
       return true;
     };
+    window.__qaBridgeJob2.v = 2;
   }
 
   var RKEY = "prstudy:" + SHORT + ":study_review";
@@ -342,6 +347,16 @@ _STRIP_CSS = re.compile(r"<style>\s*/\* ==== Paper Study 검토 피드백 \(stud
 _STRIP_JS = re.compile(r"<script>\s*/\* ==== Paper Study 검토 피드백 \(study_review_inject\.py\).*?</script>\s*", re.S)
 
 
+def all_output_htmls():
+    """--all 대상: papers/*/ 와 samples/*/ 의 *_output.html (배포 킷은 papers 가 비어 있고 견본은 samples/cares)."""
+    out = []
+    for b in ("papers", "samples"):
+        base = ROOT / b
+        if base.is_dir():
+            out.extend(sorted(base.glob("*/*_output.html")))
+    return out
+
+
 def inject_one(html_path):
     short = html_path.name.replace("_output.html", "")
     text = html_path.read_text(encoding="utf-8")
@@ -379,10 +394,22 @@ def main():
     except Exception:
         pass
     args = sys.argv[1:]
+    # --check: 주입 여부만 보고하고 파일은 고치지 않는다 (workflow.md Stage 10 체인 3번)
+    check_only = "--check" in args
+    args = [a for a in args if a != "--check"]
+    if check_only:
+        htmls = all_output_htmls() if (not args or args[0] == "--all") else \
+            list((Path(args[0]) if Path(args[0]).is_absolute() else ROOT / args[0]).glob("*_output.html"))
+        miss = 0
+        for h in htmls:
+            ok = "study-review-btn" in h.read_text(encoding="utf-8")
+            miss += not ok
+            print(f"[{'ok ' if ok else 'MISS'}] {h.parent.name}/{h.name}: 검토 버튼 {'주입됨' if ok else '없음'}")
+        raise SystemExit(1 if miss else 0)
     if not args:
         raise SystemExit('usage: python tools/study_review_inject.py "papers/N. name" | --all')
     if args[0] == "--all":
-        htmls = sorted((ROOT / "papers").glob("*/*_output.html"))
+        htmls = all_output_htmls()
         done = 0
         for h in htmls:
             if inject_one(h):

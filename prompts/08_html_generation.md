@@ -5,42 +5,42 @@ You are Claude, building a learning HTML directly in conversation with the user.
 > **🔴 v4 디자인 (2026-07-02 제정) — 이 문서의 6탭·hero·pill 탭 서술보다 우선한다.**
 > 신규 논문의 최종 산출물은 **`rules/design_v4_dashboard.md`**(대시보드 topbar · 숫자 없는 8탭(Paper Study 포함) ·
 > Background/Mathematics 분리 · 해시 라우팅 · 저채도 grey-lavender)를 따른다.
-> 정본 = `samples/cares/CARES_output.html` · 빌드 = `_build.py` 조립 → `tools/restyle_dash_v4.py` 변환(범용 — config#meta 기반, 논문별 수정 0곳).
+> 정본 = `samples/cares/CARES_output.html` · 빌드 = `templates/paper_base/_build.py` 복사 조립 → `tools/restyle_dash_v4.py` 변환(범용 — config#meta 기반, 논문별 수정 0곳).
 > 아래 본문의 셸·컴포넌트 서술은 v3 템플릿(중간 산물) 기준으로 유효하며, 최종 모습은 v4 변환 후가 기준.
 
 ## Pipeline Position
 
 - **Stage:** 10 (HTML Generation — 최종)
 - **빌드 범위 (기본):** ① ①′(Paper Study) ② ③ ④ 탭 콘텐츠 풀 빌드. ⑤ ⑥은 셸·`tab-intro`만 두고 본문은 placeholder. 사용자가 ⑤/⑥을 명시 요청한 빌드일 때만 해당 탭의 콘텐츠를 추가로 채운다 (CLAUDE.md "기본 빌드 범위" 정책).
-- **Input:** Stage 1~7의 산출물 (대화 중에 사용자가 가리켜 주거나 폴더 안에서 직접 읽는다)
+- **Input:** Stage 1~7 + 11의 산출물 (대화 중에 사용자가 가리켜 주거나 폴더 안에서 직접 읽는다)
   - `papers/[name]/structured.json`, `translated.json` (또는 `translations/`)
   - `papers/[name]/config.json`, `analysis.json`
   - `papers/[name]/tabs_data/{dissection,knowledge,questions}.json` (① ~ ④)
-  - `papers/[name]/tabs_data/study.json` + `config.json#captions_en` (①′ Paper Study — Stage 11, 없으면 자동 셸)
+  - `papers/[name]/tabs_data/study.json` + `config.json#captions_en` (①′ Paper Study — Stage 11, **필수**. 없을 때의 자동 셸은 개발 중 "작성 전" 상태일 뿐 산출물이 아니다)
   - `papers/[name]/tabs_data/{simulator_spec.md, qa.json}` — **선택 입력**, ⑤/⑥ 명시 요청 시에만 사용
   - `papers/[name]/assets/` (원본 PNG), `assets/generated/` (학습 보조 이미지)
-- **정본 레퍼런스 (수정 금지):** **v4 = `samples/cares/CARES_output.html` (최종 디자인 기준)** · historical 3편 — SAFE(1세대 — 셸·토큰·문장 페어링), FrameFusion(2세대 — eq-link·fig-hotspot·glossary), SGL(3세대 — 학습 인터랙션·시뮬레이터 3-Part·자산 모달) (견본 HTML은 배포본 미포함 — `samples/cares/`가 흡수)
-- **Output:** `papers/[name]/[ShortName]_output.html` (단일 HTML, Claude가 직접 작성)
+- **정본 레퍼런스 (수정 금지):** **v4 디자인·인터랙션 = `samples/cares/CARES_output.html` + `samples/cares/_build.py`** · 빌더 복사 기준 = `templates/paper_base/_build.py`. 1~3세대(SAFE·FrameFusion·SGL)의 기능은 CARES가 흡수했다 (견본 HTML은 배포본 미포함 — 개념 히스토리 `samples/README.md`)
+- **Output:** `papers/[name]/[ShortName]_output.html` (단일 HTML, `_build.py` 조립 → `restyle_dash_v4.py` 변환)
 
 ## Referenced Rules
 
 - `rules/parsing_rules.md`
 - `rules/knowledge_rules.md`
 - `rules/math_rules.md`
-- `rules/component_rules.md` — **탭 횡단 공용 컴포넌트의 정식 결정** (hero, tab-intro, ref-link, hotspot, to-top, @media print/mobile, 시뮬레이터/QA 클래스 통일)
+- `rules/component_rules.md` — **탭 횡단 공용 컴포넌트의 정식 결정** (tab-intro, ref-link, hotspot, to-top, @media print/mobile, 시뮬레이터/QA 클래스 통일, z-index 스택 — 헤더는 v4 topbar: `rules/design_v4_dashboard.md` §2)
 - `rules/implementation_rules.md`
 
 ---
 
 ## 작업 방식
 
-자동화 빌드 스크립트는 존재하지 않는다. **Claude가 정본 `samples/cares/CARES_output.html`(+ `_build.py`)의 마크업/CSS/JS를 모방해 한 번에 단일 HTML을 작성**한다.
+"명령어 한 줄로 끝나는" 자동 파이프라인은 없다. 콘텐츠(JSON)는 대화로 만들고, 조립은 **기준 빌더 `templates/paper_base/_build.py`를 논문 폴더로 복사해 `TODO_PAPER` 표시만 채운 뒤 실행**한다. 빌더의 마크업/CSS/JS는 정본 `samples/cares/CARES_output.html`(+ `samples/cares/_build.py`)과 같다.
 
 흐름:
 1. 사용자가 어느 논문을 빌드할지 알려준다 (`papers/[name]/`).
 2. Claude는 `papers/[name]/`의 모든 JSON과 자산, `samples/cares/`의 정본 HTML·빌더, `rules/component_rules.md`를 읽는다.
-3. 정본 한 파일을 골라(보통 가장 가까운 영역의 논문) 그 마크업/CSS/JS를 골격으로 삼는다.
-4. 탭 콘텐츠를 데이터에서 채워 단일 HTML 파일로 출력한다. **v4 권장 경로: `samples/cares/_build.py`를 복사해 조립한 뒤 `tools/restyle_dash_v4.py "papers/N. shortname"` 실행 (헤더는 config#meta에서 자동 생성. 우측 메타는 `config.json#domain.venue_type` 별 형식(`rules/domain_profile.md`)을 따르며 arXiv 표기는 선택이다).**
+3. `templates/paper_base/_build.py`를 `papers/[name]/_build.py`로 복사하고 `TODO_PAPER` 표시(머리 주석 · 판정 카드 절 · overview alt/figcaption · ②③④ tab-intro · 수식/개념 패널 부제 · footer)를 채운다 (`templates/paper_base/README.md`).
+4. `python "papers/N. shortname/_build.py"`로 v3 중간 산물을 조립한 뒤 **`tools/restyle_dash_v4.py "papers/N. shortname"` 실행 → 주입·검사 체인(`workflow.md` Stage 10)** (헤더는 config#meta에서 자동 생성. 우측 메타는 `config.json#domain.venue_type` 별 형식(`rules/domain_profile.md`)을 따르며 arXiv 표기는 선택이다).**
 
 ---
 
@@ -60,33 +60,28 @@ You are Claude, building a learning HTML directly in conversation with the user.
 
 ---
 
-## 디자인 토큰 (정본 — `CLAUDE.md`와 동일)
+## 디자인 토큰 — 최종 정본은 v4 (`rules/design_v4_dashboard.md` §1)
+
+최종 산출물의 토큰은 v4 저채도 grey-lavender다. 빌더(`_build.py`)는 v3 토큰으로 조립한 중간 산물을 만들고 `tools/restyle_dash_v4.py`가 v4로 바꾼다 (v3 토큰 전문은 `rules/project_policies.md` § 디자인 토큰 — v3 폐기 메모 — 빌더 중간 산물 전용, 최종 산출물에 남으면 안 된다).
 
 ```css
 :root {
-  --bg: #f5f1e8;          /* warm beige */
-  --paper: #fffdf7;
-  --ink: #1f1b16;
-  --muted: #6c6358;
-  --line: #ddd2bf;
-  --accent: #8b3d2c;      /* maroon */
-  --accent-soft: #f5e3da;
-  --sage: #2f5948;
-  --sage-soft: #dfeae0;
-  --gold: #9c6b18;
-  --gold-soft: #fbe8c8;
-  --indigo: #2c4f7c;
-  --indigo-soft: #dde8f5;
-  --plum: #5e3a8b;
-  --plum-soft: #e6dcf5;
+  --bg:#fafbfc; --paper:#ffffff; --ink:#32363f; --ink-soft:#5e6470; --muted:#9aa0ac; --line:#ecedf2;
+  --accent:#5e6488; --accent-mid:#9398b9; --accent-soft:#f1f2f8; --accent-pale:#d9dce9;
+  --azure:#7191ab; --azure-soft:#eaf1f7; --azure-pale:#d5e2ec;
+  --rose:#ab8290; --rose-soft:#f6edf0;  --mint:#74ad97; --mint-soft:#edf4f1;
+  --amber:#ab8a55; --amber-soft:#f6f1e6;
+  --radius:14px; --shadow:0 1px 2px rgba(48,53,66,.03),0 1px 6px rgba(48,53,66,.03);
 }
 ```
 
-**폰트:** `Pretendard Variable`, `Noto Sans KR`, `Segoe UI`, sans-serif
+**폰트:** 시스템 sans 스택(`-apple-system, BlinkMacSystemFont, "Segoe UI", …, "Malgun Gothic", sans-serif`) — **serif(Georgia) 제목 금지**
+**수식 블록:** 다크가 아닌 밝은 회색(`#f1f2f7`)
+**헤더:** hero 카드가 아니라 sticky topbar(로고 + 3줄 + 우측 메타 + 탭, `rules/design_v4_dashboard.md` §2)
 **본문 라인 높이:** 1.72
 **최대 너비:** `.app { max-width: 1280px; margin: 0 auto; }`
 
-디자인 토큰의 정본은 **`CLAUDE.md`의 "디자인 토큰 (정본 — v3)" 블록**이다. 신규 논문은 v3 팔레트(흰색 + 라벤더/하늘색/로즈 파스텔)로 빌드한다. 최종 색 정본은 v4(`rules/design_v4_dashboard.md` §1) — 빌더는 v3로 조립 후 `tools/restyle_dash_v4.py`가 v4로 스왑한다. 셸·문장 페어링·컴포넌트 구조 정본은 `samples/cares/`.
+deep tone(`--accent`·`--azure`·`--rose`)은 글자·보더·강조선 전용이고, box/카드 배경에는 `*-soft` 또는 `--paper`를 쓴다. 셸·문장 페어링·컴포넌트 구조 정본은 `samples/cares/`.
 
 ---
 
@@ -104,8 +99,8 @@ You are Claude, building a learning HTML directly in conversation with the user.
 ### ①′ `tab-study`
 
 `_build.py`가 study.json에서 자동 조립 — 수동 마크업 작성 없음. 컴포넌트 정본·불변 규칙 =
-`rules/component_rules.md` §17, 데이터 규칙 = `prompts/11_paper_study.md`. study.json이 없으면
-자동 셸(`.section-empty`) 렌더.
+`rules/component_rules.md` §17, 데이터 규칙 = `prompts/11_paper_study.md`. study.json은 필수이며,
+없을 때 그려지는 자동 셸(`.section-empty`)은 개발 중 "작성 전" 임시 상태일 뿐 산출물이 아니다(`check_paper_structure.py` FAIL).
 
 ### ② `tab-dissection`
 - `<article class="diss-card diss-{cls}">` **8개** — 7-카드(`motivation/observe/compare/logic/verify/risk/extend`) + 마지막 1-카드(`summary`, "논문 총정리")
@@ -118,13 +113,13 @@ You are Claude, building a learning HTML directly in conversation with the user.
 ### ③ `tab-knowledge`
 - `primer`: 다이어그램 SVG 또는 `assets/generated/knowledge_*.png` + `.knw-grid > .fund-card`
 - `equations`: `.eq-card` (display math `$$...$$` + 4행 설명)
-- `concept_cards`: `.knw-grid > .knw-card` (4행: definition / intuition / structure / paper_role)
+- `concept_cards`: `.knw-grid > .knw-card` (`{label, title, body}` — 정본 `samples/cares/tabs_data/knowledge.json`. 구세대 키 `definition/intuition/structure/paper_role`은 기준 빌더가 이어 붙여 본문으로 렌더한다)
 - MathJax는 탭 전환 시 `MathJax.typesetPromise()` 재호출 필수
 
 ### ④ `tab-questions`
-- 상단: 직관 SVG 2~3개 또는 `assets/generated/questions_*.png` (`.diagram-card`)
-- 하단: 4종 카드 `<article class="coach-card q-{cls}">` — `q-hidden | q-myth | q-critic | q-extend`
-- 각 카드: `<h3>` + `<ul class="bullet-list">`
+- 상단: `questions.json#diagrams` → `<figure class="concept-figure">` (codex PNG 또는 인라인 SVG)
+- 하단: `.coach-grid` 안 4종 카드 `<article class="coach-card {cls}">` — `coach-assume | coach-design | coach-critique | coach-extend` (`rules/coaching_rules.md`)
+- 각 카드: `<span class="coach-tag">{title}</span>` + `<h3>{lead}</h3>` + `.q-rows` 안 `<details class="recall-item"><summary>{q}</summary><div class="recall-answer"><p>{a}</p></div></details>`
 
 ### ⑤ `tab-simulator` — **기본 빌드: 셸만**
 
@@ -235,7 +230,7 @@ HTML을 작성하기 전에:
 - [ ] **8 탭 버튼** + 해시 라우팅 전환 (`tab-reading`·`tab-study`·`tab-dissection`·`tab-knowledge`·`tab-math`·`tab-questions`·`tab-simulator`·`tab-qa`) — 최종 산출물은 `tools/restyle_dash_v4.py` 변환 후 v4 8탭
 - [ ] ① `data-pair` 짝이 좌·우 동일 개수
 - [ ] 번역 누락 0건
-- [ ] ②~⑥ + ①′ 모든 탭 콘텐츠가 비어 있지 않음 (`section-empty-note` 미발견 — ⑤⑥ 셸만 빌드는 예외; ①′ Paper Study는 study.json 없으면 셸)
+- [ ] ②~⑥ + ①′ 모든 탭 콘텐츠가 비어 있지 않음 (`section-empty-note` 미발견 — ⑤⑥ 셸만 빌드는 예외; ①′ Paper Study는 예외 없음 — study.json 필수, 셸이면 불합격)
 - [ ] MathJax 설정 + 탭 전환 시 재렌더 코드 포함
 - [ ] 시뮬레이터 슬라이더가 canvas/SVG 갱신 (⑤ on-demand 빌드 시)
 - [ ] `@media print` + `@media (max-width: 640px)` 두 미디어쿼리 포함

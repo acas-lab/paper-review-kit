@@ -16,7 +16,7 @@ Claude 가 직접 쓴 한국어 서술 prose 에서 감성·감탄·응원·과�
 --fix 는 **문법적으로 안전한 치환/삭제**만 한다(아래 SAFE_FIX). 미묘한 재작성은
 사람/Claude 가 직접 Edit 하도록 리포트만 남긴다(오탐/문법 파괴 방지).
 
-정본: papers 1~26 (2026-07-09).
+정본: samples/cares (tone_lint 0건). 모체에서는 papers 1~26 일괄 정리(2026-07-09, 모체 사례 — 배포본 미포함).
 """
 import argparse
 import json
@@ -137,15 +137,17 @@ def main():
         pass
     ap = argparse.ArgumentParser(description="감성 온도 0 정책 린터")
     ap.add_argument("folder", nargs="?", help='"papers/N. name"')
-    ap.add_argument("--all", action="store_true", help="papers 전체 요약")
+    ap.add_argument("--all", action="store_true", help="papers/ + samples/ 전체 요약")
     ap.add_argument("--fix", action="store_true", help="안전 치환 자동 적용(JSON)")
     args = ap.parse_args()
 
     if args.all:
-        base = ROOT / "papers"
         grand = 0
         rows = []
-        for d in sorted(base.iterdir()):
+        # papers/* + samples/* - 빈 배포본에서도 정본 samples/cares 를 검사한다
+        dirs = [d for b in ("papers", "samples") if (ROOT / b).is_dir()
+                for d in sorted((ROOT / b).iterdir())]
+        for d in dirs:
             if d.is_dir() and list(d.glob("*_output.html")):
                 n = report_folder(d, verbose=False)
                 rows.append((d.name, n))

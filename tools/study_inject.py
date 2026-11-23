@@ -2,14 +2,14 @@
 """Paper Study 탭 + 도표 뷰어 + 근거 점프 + 노트/하이라이트를 빌더 없는 v4 논문에 직접 주입.
 
 대상: 이미 v4 대시보드지만 _build.py가 없어 paper_study_retrofit.py(빌더 필요)를 못 쓰는
-논문 - papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
+논문 - 모체 papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
 
 정본 CARES(_build.py Region A + 런타임 블록)의 로직을 이식해 **기존 output HTML에 직접** 조립한다:
   1. REGION_A 렌더링(ev_chips/read_panel/study_thumbs/study_write/study_reveal/study_step 등)을
      그대로 이식해 study.json → Paper Study 패널 HTML 생성
   2. Paper Study 관련 CSS는 정본 CARES output에서 슬라이스해 재사용(디자인 100% 일치)
   3. 런타임 JS는 자립형(self-contained)으로 신규 작성 - CARES 모놀리식 IIFE에 의존하지 않고
-     papers 1~3의 DOM 규약(data-pair="pN_sM" · section id="sN" · .paragraph-block id="pN" ·
+     모체 papers 1~3의 DOM 규약(data-pair="pN_sM" · section id="sN" · .paragraph-block id="pN" ·
      .asset-image-wrap[data-asset-id]) 에 배선. 탭 점프는 각 논문의 nav 버튼 .click()으로 위임.
   4. 자산 요소에 id 소급(data-asset-id="fig_1" → id="fig_1") - 썸네일 src 복사·자산 점프용
   5. 메모는 memo_inject.py가 이미 넣은 자립형을 그대로 두고, 노트 내보내기가 같은
@@ -20,7 +20,7 @@
   - config.json#captions_en / captions, analysis.json#interpretations 재사용
 검증: tools/check_study_refs.py · tools/check_html_escape.py
 
-정본 사례: papers 2 (FrameFusion, 2026-07-09 파일럿).
+정본 사례: 모체 papers 2 (FrameFusion, 2026-07-09 파일럿).
 """
 import json
 import re
@@ -39,7 +39,7 @@ def _cares_output():
             return cand
     raise SystemExit(
         "[FAIL] CARES 정본 output HTML을 찾지 못함 - "
-        "samples/cares/CARES_output.html 또는 papers/26. cares/CARES_output.html 필요.")
+        "samples/cares/CARES_output.html (모체: papers/26. cares/CARES_output.html) 필요.")
 
 
 CARES = _cares_output()
@@ -57,7 +57,7 @@ def load_json(path, default=None):
 
 # ------------------------------------------------------------------
 # REGION_A 이식 - study.json → Paper Study 패널 HTML
-# (정본: papers/26. cares/_build.py 189~374. 숫자식 id 논문에서도 그대로 동작)
+# (정본: samples/cares/_build.py 의 Paper Study 렌더 구간 — 모체 papers/26. cares 와 동일. 숫자식 id 논문에서도 그대로 동작)
 # ------------------------------------------------------------------
 def render_study_panel(studyd, struct, asset_ids):
     SEC_BY_ID = {s["section_id"]: s for s in struct["sections"]}

@@ -12,6 +12,25 @@
 > grey-lavender, serif 제목 → sans. 이 문서의 학습 인터랙션 규약(§11 concept-figure, §12 study-drawer,
 > §13 lightbox, §14 diss-summary, §15~16 diss 레이아웃, §17 Paper Study)은 v4에서도 그대로 유효하다
 > (색·라운드만 v4 토큰). 빌드 경로 = `_build.py`(v3 조립) → `tools/restyle_dash_v4.py`(v4 변환) 2단.
+> 아래 CSS 예시에 남은 `font-family:Georgia,serif`·v3 색 값은 빌더 중간 산물 표기이며 restyle이 sans·v4로 바꾼다 —
+> 새로 작성하는 CSS에는 serif를 쓰지 않는다.
+
+### z-index 스택 (정본 = `samples/cares/CARES_output.html` 실측)
+
+| 레이어 | z-index |
+|---|---|
+| `.memo-fab` · `.memo-drawer` (학습 메모 — 항상 최상위) | **2400** |
+| `.img-lightbox` (닫기 버튼은 lightbox 안) | 2000 |
+| `.notes-picker` (노트 선택) | 1700 |
+| `.study-drawer` (자산 학습 가이드) / `.study-drawer-backdrop` | 1600 / 1590 |
+| `.asset-viewer` (도표 뷰어) | 1500 |
+| `.para-reader` (플로팅 리더) | 1450 |
+| `.study-return` (돌아가기) | 210 |
+| `.to-top` | 200 |
+| `.topbar` (sticky) | 60 |
+| `.study-fab` (자산 카드 안) | 5 |
+
+이 표가 §5·§12.5·§13.3·§17 예시 CSS의 숫자보다 우선한다. 메모 레이어 규약: `CLAUDE.md` § 메모 상시 접근 레이어.
 
 ---
 
@@ -34,9 +53,11 @@
 
 ---
 
-## 1. Hero Header (`<header class="hero">`)
+## 1. Hero Header (`<header class="hero">`) — ⚠ v3 중간 산물 전용
 
-문서 최상단에 노출되는 논문 메타데이터 박스.
+> **최종 산출물에는 hero가 없다.** `tools/restyle_dash_v4.py`가 hero 카드를 로고 + 3줄 텍스트 + 우측 메타 + 탭이 한 덩어리인 sticky **topbar**로 교체한다(`rules/design_v4_dashboard.md` §2, 메타는 `config.json#meta`). 이 절은 `_build.py`가 조립하는 v3 중간 산물의 마크업 기록이다.
+
+문서 최상단에 노출되는 논문 메타데이터 박스(v3).
 
 ### 마크업
 
@@ -164,9 +185,9 @@
 ```
 
 ### 스타일
-- `position: fixed; right: 24px; bottom: 24px;`
-- 원형 (50% radius), `var(--paper)` 배경, `var(--line)` 보더
-- z-index 50
+- `position: fixed; right: 26px; bottom: 26px;`
+- 원형 (50% radius), `var(--accent)` 배경 + 흰 글자 (v4 정본 `samples/cares`)
+- z-index 200 (위 z-index 스택 표)
 
 ---
 
@@ -273,12 +294,12 @@
 
 Stage 10에서 작성하는 단일 HTML의 `<style>` 블록에 **반드시** 포함되어야 하는 영역:
 
-1. `:root` 디자인 토큰 (CLAUDE.md 정본 토큰과 동일)
+1. `:root` 디자인 토큰 (`rules/design_v4_dashboard.md`의 정본 토큰과 동일 — 빌더 중간 산물은 v3, restyle 후 v4)
 2. 탭 셸 — `.tabs`, `.tab-btn`, `.tab-pane`, `.tab-intro`
 3. 탭 ① 본문 — `.section`, `.paragraph-block`, `.bilingual`, `.sent`, `.callout`, `.asset-stack`, `.interpretation`, `.beginner-note`, `.recall-card`, `.sent.hotspot`
 4. 탭 ② Dissection — `.diss-card`, `.diss-step`, `.diss-head`, `.diss-rows`, `.diss-tag`, `.diss-body`, `.diss-{motivation|observe|compare|logic|verify|risk|extend}`
 5. 탭 ③ Knowledge — `.fund-card`, `.knw-card`, `.knw-grid`, `.knw-row`, `.knw-label`, `.eq-card`, `.eq-section`
-6. 탭 ④ Questions — `.coach-card`, `.coach-grid`, `.coach-tag`, `.diagram-card`, `.q-{hidden|myth|critic|extend}`
+6. 탭 ④ Questions — `.coach-grid`, `.coach-card.coach-{assume|design|critique|extend}`, `.coach-tag`, `.q-rows` > `details.recall-item`, 상단 `.concept-figure` 다이어그램 (정본 `samples/cares/_build.py#render_q_card`)
 7. 탭 ⑤ Simulator — `.sim-controls`, `.sim-canvas-wrap`, `.sim-stat`, `.sim-bar`, `.cmp-grid`, `.cmp-card`
 8. 탭 ⑥ QA — `.qa-category`, `.qa-card`, `.qa-block`, `.qa-callout-block`, `.qa-block-{html|table|math|callout}`
 9. 헤더 — `.hero`, `.brand-tag`, `.meta`, `.meta-item`
@@ -410,7 +431,7 @@ CSS (정본 — `<style>` 블록에 추가):
 .concept-figure img{display:block;max-width:760px;width:100%;height:auto;margin:0 auto;border-radius:12px;border:1px solid var(--line);background:#fbfaff}
 .concept-figure figcaption{margin-top:12px;text-align:center}
 .concept-figure figcaption .cf-label{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:999px;margin-bottom:6px}
-.concept-figure figcaption h4{margin:4px 0 6px;font-family:Georgia,serif;font-size:17px;color:var(--ink)}
+.concept-figure figcaption h4{margin:4px 0 6px;font-family:inherit;font-size:17px;color:var(--ink)}
 .concept-figure figcaption p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.65;max-width:640px;margin-left:auto;margin-right:auto}
 ```
 
@@ -619,10 +640,10 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 Claude는 래스터 이미지를 직접 렌더할 수 없으므로, "자체 생성"은 **손으로 작성하는 인라인 SVG 도식**을 뜻한다. 학습 보조 이미지의 본질이 *개념 도식·아키텍처 다이어그램·단계 일러스트*이므로 벡터 SVG가 오히려 더 또렷하고 휴대성이 좋다.
 
 - **6계명 대응** — codex 6계명 중 모드 B에 살아있는 원칙: ④ 풀 블리드(배경 `<rect>`로 캔버스 가득, 투명 컷아웃 금지) / ⑥ 이미지 안에 논문 제목·저자명 금지(콘텐츠 라벨만). 인코딩·stdin·해상도 계명은 외부 호출이 없으므로 불필요.
-- **v3 토큰 사용** — `<svg>` 안의 색은 CSS 변수 직접 참조 가능: `fill="var(--accent-soft)"`, `stroke="var(--accent)"`, 텍스트 `fill="var(--ink)"`. 다크/라이트 무관하게 테마와 일관.
+- **v4 토큰 사용** (`rules/design_v4_dashboard.md` §1) — `<svg>` 안의 색은 CSS 변수 직접 참조 가능: `fill="var(--accent-soft)"`, `stroke="var(--accent)"`, 텍스트 `fill="var(--ink)"`. 다크/라이트 무관하게 테마와 일관.
 - **viewBox 고정** — `viewBox="0 0 1024 576"` 같은 고정 비율. `width:100%; height:auto`로 반응형.
 - **라벨은 영문 1~4개** — codex 모드와 동일하게 한글 신조어 금지(§ CLAUDE.md 무리한 한국어 변환 금지). 본문 라벨은 영문 용어 그대로.
-- **저장** — SVG는 외부 파일로 빼지 않고 **HTML에 바로 인라인**한다. 단, 재생성·디버깅용으로 소스를 `assets/generated/<purpose>.svg`에 같이 저장해 두는 것을 권장(codex의 prompt.txt 보존과 대칭).
+- **저장** — SVG 소스는 `assets/generated/<purpose>.svg`에 둔다(codex의 PNG·prompt.txt 자리와 대칭). 기준 빌더(`templates/paper_base/_build.py`)는 `tabs_data`의 `image_path`(knowledge `primer`·`fund_cards`·`concept_cards`, questions `diagrams`, dissection 카드 `image`)가 이 `.svg`를 가리키면 PNG와 똑같이 `concept-figure` 안에 **인라인 `<svg class="cf-svg">`로 넣는다**(같은 stem의 PNG가 있으면 PNG 우선). `dissection_overview.svg`도 같은 규칙으로 summary 카드에 들어간다. 결과 HTML은 외부 참조 없이 self-contained다.
 
 #### 공통 임베드 — `<figure class="concept-figure">`
 
@@ -647,142 +668,6 @@ Claude는 래스터 이미지를 직접 렌더할 수 없으므로, "자체 생�
 
 ---
 
-### 11.8 🔴 프롬프트 본문 작성 정본 — 밀도·구조·검수 (정책, 2026-08-01)
-
-§11.2가 **어떻게 호출하는가**(인코딩·hang·컷아웃 방지)라면, 이 절은 **prompt.txt 안에 무엇을 쓰는가**이다.
-호출은 6계명으로 이미 안정화됐고, 남은 반복 실패는 전부 본문 쪽에서 났다. 이미지 생성 전 이 절을 통독한다.
-
-#### 11.8.1 대전제 — 프롬프트의 정보량이 곧 이미지의 정보량
-
-imagegen은 **쓰지 않은 것을 채워 넣지 않는다.** 안 적은 패널은 여백이 되고, 안 적은 숫자는 나오지 않으며,
-"핵심을 잘 보여 주는 도식" 같은 위임형 문장은 장식적인 아이콘 한두 개로 돌아온다.
-
-따라서 프롬프트는 *그려 달라는 요청*이 아니라 **이미 완성된 그림을 글로 옮겨 적는 기술(記述)** 로 쓴다.
-초안을 쓴 뒤 자가 점검: **"이 글만 보고 내가 손으로 그 그림을 그릴 수 있는가?"** 없으면 아직 덜 쓴 것이다.
-
-#### 11.8.2 필수 5블록 구조
-
-모든 prompt.txt는 아래 5블록을 이 순서로 갖는다. 하나라도 빠지면 실패 모드가 하나씩 열린다(§11.8.7).
-
-| # | 블록 | 내용 | 빠뜨리면 |
-|---|---|---|---|
-| ① | **캔버스 선언** | 한 줄. `교육용 학술 인포그래픽. 가로 직사각형 1536x864.` | 임의 비율·저해상도 |
-| ② | **전체 레이아웃** | 블록/단의 개수·배치 방향·연결선·헤더 처리 + `정보 밀도를 높게, 빈 공간을 남기지 말 것` | 요소가 흩어지고 여백 과다 |
-| ③ | **패널 명세 (본체)** | §11.8.3. 분량의 80~90%를 여기에 쓴다 | 헐거운 그림 — 최다 실패 원인 |
-| ④ | **색상 팔레트** | v4 저채도 hex 나열 + `쨍한 원색 금지` | 형광색·톤 불일치 |
-| ⑤ | **스타일 지시 + 6번째 계명** | 풀 블리드 / NOT a transparent cutout / 학술 도해 스타일 / 영어·ASCII 라벨 / 해상도 재확인 + 마지막 줄 `NO paper title at top, NO standalone header, NO author names.` | 컷아웃·논문 제목 박힘 |
-
-#### 11.8.3 패널 명세 작성 규칙 (본체 — 여기가 전부)
-
-**패널마다 번호를 붙이고, 각 패널에 아래 3요소를 빠짐없이 적는다.**
-
-1. **(a) 시각 형태** — 무엇으로 그릴지. 아래 어휘집에서 고른다.
-2. **(b) 그 안의 라벨과 실제 수치** — 축 이름, 계열 이름, 값, 대상·조건 이름(예: AI/CS — 모델명·데이터셋 크기; 실험과학 — 시료·측정 조건), 단위는 `config.json#domain.metric_conventions`.
-3. **(c) 한 줄 캡션** — 이 패널이 말하는 명제. 영어.
-
-**시각 형태 어휘집** (imagegen이 안정적으로 그려내는 것들):
-좌표축 곡선 · 그룹 막대그래프 · 가로 막대 비교 · 파이/도넛 · 저울(balance) · 정사각 히트맵 행렬 ·
-산점도+회귀선 · 등고선 타일 · 토큰/패치 그리드 · 파이프라인 박스열(→ 화살표) · 말풍선 ·
-큰 숫자 통계 타일 · 체크(✓)·엑스(✗) 비교 박스 · 수식 박스 · 단면도(방·문) · 아이콘+라벨 카드
-
-**숫자 의무** — 논문의 표·그림에서 **직접 읽은 값**을 그대로 박는다.
-`성능이 향상된다` ✗ → `12.5% -> 5.1% at L = 192` ✓ / `토큰이 줄어든다` ✗ → `33,000 -> 14,000 -> 3,600` ✓
-(원본 figure의 막대값을 쓰려면 그 PNG를 Read로 열어 눈으로 읽고 적는다.)
-
-**텍스트 규칙**
-- 이미지에 들어갈 **라벨·수식은 영어 ASCII로만** 적는다. 한글 라벨은 이미지에서 깨지고, 프롬프트 본문에 섞인
-  비ASCII 이물(중국어·이모지 등)도 그대로 그려지는 사고가 있다 — 작성 후 라벨 부분을 한 번 훑는다.
-- LaTeX 대신 ASCII 근사: `sum` `sqrt` `<=` `>=` `->` `alpha` `Delta` `x*` `phi_k` `O*(1/L)`.
-- **패널당 라벨 1~6개**. 그 이상 넣으면 글자가 뭉개지고 철자가 깨진다.
-
-#### 11.8.4 이미지 종류별 밀도 등급 — 조밀함이 항상 정답은 아니다
-
-| 파일 | 캔버스 | 블록/단 | 패널 총수 | prompt 분량 | 성격 |
-|---|---|---|---|---|---|
-| `dissection_overview.png` | 1536×864 | 5단 고정 | **15~20** | 3.5~4.5 KB | 논문 전체를 한 장에 — **최대 밀도** |
-| `questions_*.png` / `knowledge_*.png` | 1024×1024 | 2~3 블록 | 5~9 | 1.5~2.5 KB | 개념도 — **한 가지 논점만** |
-| `simulator_*.png` | 1024×1024 | 단계 수만큼 | 4~8 | 1.5~2.5 KB | 알고리즘 단계 시각화 |
-| `qa_<qid>_*.png` | 1024×1024 | 1~2 블록 | 3~5 | 1~1.5 KB | 질문 하나의 보조 — **최소 밀도** |
-
-- overview는 **조밀할수록 좋다**. 정본 3편(§11.8.9)이 기준선이고, 그보다 성기면 미달이다.
-- 반대로 **개념도에 overview 밀도를 넣으면 실패한다** — 1024×1024에 15개 패널을 넣으면 글자가 읽히지 않는다.
-  개념도는 "한 문장으로 말할 수 있는 논점 하나"를 2~3블록으로 나눠 크게 그린다.
-
-#### 11.8.5 병렬 생성 시 작업 디렉토리 격리 (필수)
-
-여러 이미지를 `run_in_background`로 동시에 만들 때 **모든 호출이 같은 `--cd`를 공유하면 안 된다.**
-codex는 작업 디렉토리 전체를 읽을 수 있어, 동시 실행 중인 형제 프로세스가 방금 만든 PNG를
-"이미 있는 결과"로 오인·복제하는 사고가 실제로 발생했다.
-
-- 호출마다 `scratchpad/img_<purpose>/` 같은 **격리 디렉토리**를 만들고 해당 prompt 파일 **하나만** 복사해 넣는다.
-- 경로에 한글이 있어도 codex는 동작하지만, ASCII scratchpad에서 생성한 뒤
-  `papers/N. name/assets/generated/`로 복사하는 편이 인코딩 사고를 원천 차단한다.
-- **파일 해시 비교로는 이 사고가 안 잡힌다** (재인코딩되어 md5가 달라짐). 반드시 눈으로 확인(§11.8.6).
-
-#### 11.8.6 검수 체크리스트 — 기계 검사 → PNG 육안 확인
-
-**0단계 (codex 호출 전, 자동)** — 이 저장소에는 **PreToolUse(Bash) 훅**이 걸려 있어
-`codex` 가 포함된 Bash 호출을 가로채 `--cd` 로 지정된 prompt.txt를 자동 검사하고,
-FAIL이 있으면 **호출 자체를 차단**한다 (`.claude/settings.json` → `tools/hook_precheck_codex.py`).
-훅이 없는 환경(다른 PC·CI)에서는 아래를 손으로 돌린다.
-
-```bash
-python tools/check_image_prompts.py "papers/N. shortname"      # 논문 전체
-python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하나
-```
-
-이 스크립트가 검사하는 것: 캔버스 선언 · 5단 헤더(overview) · 패널 수 · **본문 수치 개수** ·
-팔레트 hex · `NOT a transparent cutout` · 6번째 계명 · 한자 이물 · **분량 하한** · 짝 PNG 존재.
-하드 실패는 서식에 강건한 항목만(수치·분량·헤더·금칙어), 패널 수 등은 참고용 warn이다.
-
-> 훅의 안전 설계 — 게이트가 작업을 잘못 막는 쪽이 더 나쁘므로, stdin 파싱 실패·프롬프트 파일 미발견·
-> 검사기 예외는 **전부 통과**시킨다. 같은 파일명이 여러 논문에 있으므로 `--cd` 로 실제 파일을 특정하고,
-> 특정에 실패하면 후보가 정확히 1개일 때만 검사한다.
-
-**1단계 (생성 후, 의무)** — PNG를 Read로 연다. "검수는 사후"란 **사용자에게 넘기기 전에 Claude가 확인한다**는 뜻이지, 확인을 생략한다는 뜻이 아니다.
-
-- [ ] 프롬프트에 적은 **패널이 전부 있는가** (누락·병합 없음)
-- [ ] **여백이 과도하지 않은가** (§11.8.4 밀도 등급 대비)
-- [ ] **수치가 논문 값과 일치하는가** (막대 높이·라벨 오기)
-- [ ] 라벨이 **영어이고 철자가 깨지지 않았는가**
-- [ ] 상단에 **논문 제목·저자명이 박히지 않았는가** (6번째 계명)
-- [ ] 배경이 **불투명한 풀 블리드**인가 (컷아웃 아님)
-- [ ] **요청한 프롬프트의 내용이 맞는가** (§11.8.5 혼선 여부)
-
-#### 11.8.7 실패 모드 → 처방
-
-| 증상 | 원인 | 처방 |
-|---|---|---|
-| 여백 크고 요소가 적음 | ③ 패널 명세가 성김 | 단마다 패널 3~4개로 늘리고 각 패널에 (a)(b)(c) 3요소 명시 |
-| 다른 프롬프트의 그림이 저장됨 | 병렬 호출이 `--cd` 공유 | §11.8.5 격리 디렉토리로 재생성 |
-| 글자 뭉개짐·철자 깨짐 | 패널당 라벨 과다 / 캔버스 대비 밀도 초과 | 라벨을 패널당 6개 이하로, 또는 밀도 등급을 한 단계 낮춤 |
-| 상단에 논문 제목·저자명 | ⑤ 6번째 계명 누락 | 마지막 줄 `NO paper title at top…` 추가 |
-| 투명 배경 컷아웃 | ⑤ 스타일 지시 누락 | `풀 블리드` + `NOT a transparent cutout` 명시 |
-| 수치가 논문과 다름 | 프롬프트에 값을 안 적음 | 표·그림에서 읽은 실제 값을 (b)에 박아 재생성 |
-| 이미지에 한글/이물 문자 | 프롬프트 라벨이 비ASCII | 라벨을 영어 ASCII로 고쳐 재생성 |
-| CP949 깨짐·hang | PowerShell 사용 / stdin 미차단 | §11.2 — Bash + `< /dev/null` |
-
-위 증상 중 ①③④⑥⑦⑧은 `tools/check_image_prompts.py`가 **생성 전에** 잡아낸다 — 먼저 돌린다.
-
-#### 11.8.8 재생성 루프
-
-1차 결과가 기준 미달이면 **프롬프트를 고쳐서** 재생성한다.
-**같은 프롬프트로 재시도하지 않는다** — 밀도가 같으면 결과 밀도도 같다.
-무엇을 더 써야 할지 모르겠으면 밀도 정본을 열어 자기 프롬프트와 나란히 비교한다.
-
-#### 11.8.9 밀도 정본 (열어서 보고 따라 쓸 것)
-
-- 밀도 정본: `samples/cares/assets/generated/prompt_dissection_overview.txt` (+ 결과 PNG). 개념도 정본: 같은 폴더의 `prompt_cares_pipeline.txt`·`prompt_query_resolution.txt`.
-- (모체의 papers/20·24·25·27 프롬프트 — 실험 논문 3편 + 이론 논문(자산 figure 1장) 1편 — 는 배포본 미포함.)
-
-> 정본 학습 사례 (실패→복구, 모체 사례 — 배포본 미포함): `papers/27. lupi` 1차 생성 시 §11.3의 얇은 스켈레톤(`[좌/상 패널] <설명>`)을
-> 그대로 따라 단마다 요소를 1~2개만 적었고, 여백이 크고 정보량이 적은 그림이 나왔다.
-> 사용자가 20·24번과 비교 지적 → 프롬프트를 2.9 KB → 4.4 KB로 재작성해 재생성.
-> 같은 세션에서 병렬 호출 `--cd` 공유로 `knowledge_convergence.png`가 다른 그림으로 저장되는 사고도 발생.
-> 이 절(11.8)과 §14.5, `prompts/04_research_analysis.md`의 템플릿 교체가 그 직접 결과물이다.
-
----
-
 ## 12. Study Modal — 자산별 학습 가이드 모달 (3세대 정본)
 
 각 figure/table 카드 우상단에 떠 있는 `<button class="study-fab">` 버튼을 누르면, 그 자산 전용 깊이 분해 모달이 열린다. 정본 = `samples/cares/CARES_output.html`의 study-fab → 우측 study-drawer (§12.5/§12.6).
@@ -800,7 +685,7 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 
 ### 12.2 ❌ 안티패턴 (정본이 아닌 잘못된 패턴)
 
-다음은 papers 4~19에서 누적된 **잘못된 관성** — 새 빌드에서 따르지 않는다:
+다음은 모체 papers 4~19에서 누적된 **잘못된 관성** — 새 빌드에서 따르지 않는다:
 
 ```html
 <!-- ❌ BAD — modal이 figure 하단의 interpretation/beginner-note의 단순 복제 -->
@@ -862,7 +747,9 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 
 ### 12.5 CSS 정본 — 오른쪽 사이드 드로어 (2026-05-19 갱신)
 
-> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(24. geollava8k 학습 중, 2026-05-19 — 모체 사례, 배포본 미포함). 이전 세대(SGL) 풀스크린 모달은 폐기 — 아래 우측 드로어 정본을 사용(SGL 견본 HTML은 배포본 미포함). cross-ref: `[[feedback_study_modal_drawer]]`.
+> **변경 이력**: 원래 풀스크린 dim + 중앙 정렬 모달이었으나, 학습자가 가이드를 읽는 동안 정작 봐야 할 figure를 가리는 문제가 있어 **오른쪽 슬라이드-인 드로어**로 전환. 사용자 직접 지적(2026-05-19 — 모체 사례, 배포본 미포함). 이전 세대(SGL) 풀스크린 모달은 폐기 — 아래 우측 드로어 정본을 사용(SGL 견본 HTML은 배포본 미포함).
+>
+> **클래스명·z-index 주의**: 아래 예시는 드로어 전환 당시의 `.study-modal*` 이름을 쓴다. v4 정본 `samples/cares`는 같은 구조를 `.study-drawer`·`.study-drawer-head`·`.study-drawer-title`·`.study-drawer-close`·`.study-drawer-body` + `.study-drawer-backdrop`(투명, 바깥 클릭 감지)으로 렌더하고 z-index는 **1600**(백드롭 1590)이다. 신규 논문은 `templates/paper_base/_build.py`가 내는 `.study-drawer*` 마크업을 그대로 쓴다.
 
 핵심 동작:
 - 폭 `min(440px, 100vw)` 오른쪽 고정 드로어. 백드롭 dim 없음 — 왼쪽의 figure/문장이 항상 보임
@@ -874,13 +761,13 @@ python tools/check_image_prompts.py <prompt 파일 경로>          # 파일 하
 .study-fab:hover{transform:translateY(-1px);background:var(--accent);box-shadow:0 10px 22px rgba(80,60,140,0.42)}
 .study-fab .study-fab-glyph{display:inline-block;width:18px;height:18px;line-height:18px;border-radius:50%;background:#ffffff;color:var(--accent);font-size:12px;text-align:center;font-weight:800}
 
-.study-modal{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:300;display:none;background:transparent;pointer-events:none}
+.study-modal{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:1600;display:none;background:transparent;pointer-events:none}
 .study-modal.open{display:block;pointer-events:auto}
 .study-modal-card{position:relative;width:100%;height:100%;max-width:none;background:var(--paper);border:1px solid var(--line);border-right:none;border-radius:18px 0 0 18px;padding:22px 24px 24px;box-shadow:-14px 0 36px rgba(20,10,30,0.18);animation:study-slide-in 220ms ease-out;overflow-y:auto;box-sizing:border-box}
 @keyframes study-slide-in{0%{transform:translateX(100%)}100%{transform:translateX(0)}}
 
 .study-modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--line)}
-.study-modal-title{margin:0;font-family:Georgia,serif;font-size:19px;color:var(--accent)}
+.study-modal-title{margin:0;font-family:inherit;font-size:19px;color:var(--accent)}
 .study-modal-close{border:1px solid var(--line);background:#ffffff;border-radius:50%;width:34px;height:34px;font-size:18px;line-height:1;color:var(--muted);cursor:pointer;flex-shrink:0}
 .study-modal-close:hover{color:var(--accent);border-color:var(--accent)}
 .study-modal-body{font-size:14px;line-height:1.7;color:var(--ink)}
@@ -1058,7 +945,7 @@ def render_study_modal(aid: str, sm: dict) -> str:
 .concept-figure img:hover,
 .diss-overview-figure img:hover { opacity: 0.92; }
 
-.img-lightbox { position:fixed; inset:0; z-index:400; display:none; align-items:center; justify-content:center; background:rgba(20,18,30,0.92); padding:32px; cursor:zoom-out; }
+.img-lightbox { position:fixed; inset:0; z-index:2000; display:none; align-items:center; justify-content:center; background:rgba(20,18,30,0.92); padding:32px; cursor:zoom-out; }
 .img-lightbox.open { display:flex; animation:lightbox-fade 180ms ease-out; }
 @keyframes lightbox-fade { 0%{opacity:0} 100%{opacity:1} }
 .img-lightbox-stage { position:relative; max-width:100%; max-height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
@@ -1066,7 +953,7 @@ def render_study_modal(aid: str, sm: dict) -> str:
 .img-lightbox.zoomed { cursor:grab; }
 .img-lightbox.zoomed img { cursor:grab; transition:transform 80ms ease-out; }
 .img-lightbox.grabbing, .img-lightbox.grabbing img { cursor:grabbing; }
-.img-lightbox-close { position:fixed; top:18px; right:22px; background:rgba(255,255,255,0.92); color:#1f1d24; border:none; border-radius:50%; width:42px; height:42px; font-size:22px; font-weight:700; line-height:1; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.35); z-index:401; }
+.img-lightbox-close { position:fixed; top:18px; right:22px; background:rgba(255,255,255,0.92); color:#1f1d24; border:none; border-radius:50%; width:42px; height:42px; font-size:22px; font-weight:700; line-height:1; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.35); z-index:2001; }
 .img-lightbox-close:hover { background:#fff; }
 .img-lightbox-hint { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.78); font-size:12.5px; letter-spacing:0.04em; background:rgba(31,29,36,0.62); padding:6px 14px; border-radius:999px; pointer-events:none; }
 
@@ -1207,7 +1094,7 @@ btn.addEventListener('click', e => {
 .diss-overview-figure img:hover { opacity:0.92; }
 .diss-overview-figure figcaption { margin-top:12px; text-align:center; }
 .diss-overview-figure figcaption .cf-label { display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#3d2a5e; background:#ece2f8; padding:3px 10px; border-radius:999px; margin-bottom:6px; }
-.diss-overview-figure figcaption h4 { margin:4px 0 6px; font-family:Georgia,serif; font-size:16px; color:var(--ink); }
+.diss-overview-figure figcaption h4 { margin:4px 0 6px; font-family:inherit; font-size:16px; color:var(--ink); }
 .diss-overview-figure figcaption p { margin:0; font-size:13px; color:var(--muted); line-height:1.65; max-width:800px; margin-left:auto; margin-right:auto; }
 ```
 
@@ -1262,7 +1149,7 @@ return (
 
 작성 템플릿 전문은 `prompts/04_research_analysis.md` § overview prompt 작성 가이드, 밀도 정본은 §11.8.9.
 
-**codex 미사용 시**: 빌더가 `dissection.json` summary 카드의 `overview`(5×[label,text]) 데이터로 결정적 인라인 SVG를 렌더(§ `_overview_svg` · §11.9 mode B). codex PNG가 있으면 PNG 우선, 없으면 SVG 폴백 — 어느 쪽이든 오버뷰가 항상 표시된다(web↔CLI 통일).
+**codex 미사용 시**: 기준 빌더(`templates/paper_base/_build.py#_overview_svg`)가 `dissection.json` summary 카드의 `overview`(5×[label,text]) 데이터로 결정적 인라인 SVG를 렌더(§11.9 mode B, v4 토큰 색·sans). `samples/cares/_build.py`는 PNG가 커밋돼 있어 이 분기가 없다. codex PNG가 있으면 PNG 우선, 없으면 SVG 폴백 — 어느 쪽이든 오버뷰가 항상 표시된다(web↔CLI 통일).
 
 ---
 
@@ -1405,8 +1292,11 @@ Translation과 Paper Dissection 사이의 `tab-study`. **사용자가 직접 쓰
    그래도 안 되면 축소 자체를 포기해 메모가 오버레이 위에 뜬다(`body.mlx-float`). 1080px 에서 가이드+메모를
    함께 열면 뷰어가 260px 로 뭉개지던 회귀를 막는 규칙이다. **v6 (2026-09-02)**: 가이드가 메모에 덮이지 않도록
    좁은 화면에서 두 드로어를 함께 줄이고(가이드 `clamp(300,36vw,440)` · 메모 `clamp(280,32vw,380)`),
-   **학습 가이드를 열면 자산 뷰어는 이미지 전용**(`body.mlx-guided` — `.av-text` 숨김 + `.av-img img{max-height:82vh}`)
-   이 되어 필요한 폭이 260px 로 줄어든다. 닫기는 × · ESC · **바깥 두 번 연속 클릭**(한 번으로는 닫지 않는다).
+   **학습 가이드를 열면 자산 뷰어는 이미지 전용**(`body.mlx-guided`)이 됐으나 **v7 (2026-11-23) 에서 폐기**:
+   가이드에는 캡션·번역·해석이 없어 정보가 사라졌다. v7 은 감추지 않고 **세로로 쌓는다**(`body.mlx-av-stack` —
+   이미지 → 원문 캡션 + 번역 → 해석 보기, `.av-body` 세로 스크롤). 전환 기준은 뷰포트가 아니라 이미지 —
+   가로 배치의 이미지 칸(`패널 폭 − 428`)이 `min(360px, 원본 폭, 0.78·vh × 종횡비)` 보다 좁을 때.
+   가이드 + 메모는 옆에 120px 만 남으면 나란히 선다(뷰포트 700px 까지 — 가이드는 메모에 덮이지 않는다). 닫기는 × · ESC · **바깥 두 번 연속 클릭**(한 번으로는 닫지 않는다).
    구현·검사 = `tools/memo_layer_fix.py` · `tools/check_memo_layer.py`,
    정책 = CLAUDE.md § 메모 상시 접근 레이어)는 **자유 서식 메모장 textarea 하나** — 추가 버튼 없이 쓰는 대로
    자동 저장(400ms 디바운스, 글자 수·저장 시각 표시). 저장은 localStorage `prstudy:{SHORT}:memo`에
@@ -1460,7 +1350,9 @@ Translation과 Paper Dissection 사이의 `tab-study`. **사용자가 직접 쓰
 6. **`.asset-viewer` 도표 뷰어** — Step 1·5 썸네일 클릭 시 열리는 플로팅 창: **이미지 + 원문 캡션(EN) +
    번역(KR) + `해석 보기` 토글**. 데이터는 `config#captions_en` + `config#captions` + `analysis#interpretations`.
    레이아웃은 도표 비율로 자동 결정 — 가로형(비율≥1.45)은 텍스트 하단(`av-wide`), 세로/정방형은 우측
-   400px(`av-tall`), 모바일(≤760px)은 항상 상하. 뷰어 안 이미지 클릭 → 기존 lightbox(휠 줌) 중첩.
+   400px(`av-tall`), 모바일(≤760px)은 항상 상하. 메모·가이드에 밀려 이미지 칸이 그 이미지의 필요 폭
+   (`min(360px, 원본 폭, 0.78·vh × 종횡비)`)보다 좁아지면 비율과 무관하게 세로 적층(`body.mlx-av-stack` —
+   `memo_layer_fix.py` 가 판정, 정책 = `rules/project_policies.md` § 메모 상시 접근 레이어 v7). 뷰어 안 이미지 클릭 → 기존 lightbox(휠 줌) 중첩.
    **헤더에 `학습 가이드` 버튼(`.study-fab.av-guide`)** — 클릭 시 Translation과 동일한 우측 study-drawer가
    4-섹션 가이드로 열리고, 뷰어는 `av-shift`로 왼쪽으로 비켜 도표가 가려지지 않는다(MutationObserver로
    드로어 open 클래스 감시). 이를 위해 drawer z-index는 1600(> 뷰어 1500, < lightbox 2000).
@@ -1480,7 +1372,8 @@ Phase 밴드는 태그+제목 한 줄(구 `.ai-note` 포함 설명 문단 전부
 
 ## 검증 체크리스트 (빌드 후)
 
-- [ ] `<header class="hero">` 존재 + 메타데이터 4종 채움
+- [ ] v4 변환 후 `.topbar` 존재 + `config.json#meta`(title·short_name·authors·affiliation) 채움 (빌더 중간 산물은 `<header class="hero">`)
+- [ ] `python tools/check_paper_structure.py "papers/N. name"` FAIL 0건
 - [ ] 8탭 모두 `.tab-intro` 1개씩 (Paper Study·Mathematics 포함)
 - [ ] 본문에 `Eq. N` / `Fig. N` / `Table N` 텍스트가 있으면 `<a class="ref-link">`로 자동 wrap
 - [ ] 핫스팟이 정의되었으면 해당 `<span class="sent hotspot">` 렌더 + 스타일 적용

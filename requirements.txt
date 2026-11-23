@@ -1,0 +1,11 @@
+# Paper Review Kit - Python packages for the CLI tools (tools/*.py)
+#   python -m pip install -r requirements.txt      (setup/4_install_kit_packages.bat does this)
+# Web mode does not need this file: webapp/start.py installs webapp/backend/requirements.txt
+# into its own webapp/.venv.
+
+# PDF text / figure extraction - tools/structure_paper.py, autocrop_assets.py, detect_assets.py, crop_assets.py
+pymupdf>=1.24
+
+# Optional - headless Chromium for tools/check_memo_layer.py only (that check is [SKIP]ped without it).
+# After installing, also run:  python -m playwright install chromium
+playwright>=1.40

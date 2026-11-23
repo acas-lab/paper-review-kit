@@ -1,0 +1,202 @@
+<title>{{PAGE_TITLE}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 위 = 재생되는 애니매틱(항상 어두운 화면), 아래 = 이야기 곡선과 장별 컷 목록 */
+:root{
+  --bg:#f7f7f9; --paper:#ffffff; --ink:#2b2f38; --ink-soft:#5b6170; --muted:#959bab; --line:#e6e7ee;
+  --accent:#a8781c; --accent-soft:#fbf3e3; --rose:#a76d7d; --rose-soft:#f7ecef; --blue:#5f7898; --blue-soft:#ebf0f6;
+  --stage:#f3f2f7; --stage-ink:#1f2333; --stage-dim:#5d6275; --stage-amber:#b5701a;
+  --font:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121419; --paper:#1a1d24; --ink:#e6e8ee; --ink-soft:#b3b8c4; --muted:#7c8293; --line:#2a2e38;
+  --accent:#e6b450; --accent-soft:#2d2717; --rose:#d29aaa; --rose-soft:#2e2228; --blue:#9db4d3; --blue-soft:#1d2532; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121419; --paper:#1a1d24; --ink:#e6e8ee; --ink-soft:#b3b8c4; --muted:#7c8293; --line:#2a2e38;
+  --accent:#e6b450; --accent-soft:#2d2717; --rose:#d29aaa; --rose-soft:#2e2228; --blue:#9db4d3; --blue-soft:#1d2532; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 72px}
+.eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--accent);font-weight:600}
+h1{font-size:clamp(26px,4vw,36px);line-height:1.2;margin:6px 0 10px;text-wrap:balance;font-weight:600}
+.lead{color:var(--ink-soft);max-width:70ch;margin:0 0 20px}
+h2{font-size:20px;margin:52px 0 6px;font-weight:600}
+.sub{color:var(--ink-soft);margin:0 0 18px;max-width:72ch}
+/* 플레이어 */
+.player{background:var(--stage);border-radius:10px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.stage{position:relative;aspect-ratio:16/9;width:100%;max-width:100%;container-type:inline-size}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ov-ch{position:absolute;left:4%;top:6%;color:var(--stage-ink);opacity:0}
+/* 렌더 모드(?clean=1): 1920×1080 화면만 */
+.clean body{margin:0;padding:0;background:#000}.clean .wrap{max-width:none;margin:0;padding:0}.clean .wrap>*:not(.player){display:none}.clean .player{border-radius:0;box-shadow:none}.clean .ctrl,.clean .chips,.clean .ov-cut{display:none}.clean .stage{width:1920px;height:1080px;aspect-ratio:auto}
+.nosub .ov-sub,.nosub .ov-ch,.nosub .ov-disc,.nosub .ov-grad{display:none}
+.ov-ch .n{font-size:1.25cqw;letter-spacing:.14em;color:var(--stage-amber);font-weight:600}
+.ov-ch .t{font-size:2.6cqw;font-weight:300;margin-top:.2cqw}
+.ov-sub{position:absolute;left:8%;right:8%;bottom:7.5%;text-align:center;color:#1f2333;font-size:2.05cqw;line-height:1.45;
+  font-weight:700;word-break:keep-all}
+.ov-sub:not(:empty){left:50%;right:auto;transform:translateX(-50%);width:max-content;max-width:78%;}  /* 최종 자막은 배경 밝기에 따라 진한 글자 / 흰 글자(얇은 외곽선), 띠·그림자 없음 */
+.ov-sub .who{display:block;font-size:1.2cqw;letter-spacing:.12em;color:var(--stage-amber);margin-bottom:.4cqw;font-weight:600}
+.ov-grad{display:none}
+.ov-disc{position:absolute;right:2.2%;bottom:2.2%;font-size:.95cqw;color:rgba(93,98,117,.75)}
+.ov-cut{position:absolute;right:2.2%;top:3%;font-size:1cqw;color:rgba(93,98,117,.6);font-variant-numeric:tabular-nums}
+.ctrl{display:flex;align-items:center;gap:12px;padding:10px 14px;color:var(--stage-ink);flex-wrap:wrap}
+.ctrl button{background:none;border:1px solid rgba(255,255,255,.25);color:var(--stage-ink);border-radius:999px;padding:5px 14px;
+  font:inherit;font-size:13.5px;cursor:pointer}
+.ctrl button:hover{border-color:var(--stage-amber);color:var(--stage-amber)}
+.ctrl button:focus-visible,.scrub input:focus-visible{outline:2px solid var(--stage-amber);outline-offset:2px}
+.ctrl .tm{font-variant-numeric:tabular-nums;font-size:13px;color:var(--stage-dim);min-width:92px}
+.scrub{position:relative;flex:1 1 300px;min-width:0;height:28px}
+.scrub input{position:absolute;inset:0;width:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
+.scrub .track{position:absolute;left:0;right:0;top:12px;height:4px;background:rgba(255,255,255,.14);border-radius:2px}
+.scrub .fill{position:absolute;left:0;top:12px;height:4px;background:var(--stage-amber);border-radius:2px}
+.scrub .tick{position:absolute;top:7px;width:2px;height:14px;background:rgba(255,255,255,.35)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 14px}
+.chips button{background:rgba(255,255,255,.06);border:0;color:var(--stage-dim);border-radius:6px;padding:4px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.chips button.on{background:rgba(230,180,80,.18);color:var(--stage-amber)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 28px;margin:18px 0 0;font-size:13px;color:var(--ink-soft)}
+.stats b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;font-size:17px;margin-right:4px}
+/* 이야기 곡선 */
+.arcwrap{overflow-x:auto}
+.arc{min-width:820px;display:block}
+.arc text{font-family:var(--font)}
+.arc .node{cursor:pointer}
+.arc .node:hover circle{stroke-width:4}
+/* 장별 */
+.chap{margin-top:40px;scroll-margin-top:20px}
+.chap-h{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
+.chap-h .lb{font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.06em}
+.chap-h h3{margin:0;font-size:21px;font-weight:600}
+.chap-h .tc{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chap .log{color:var(--ink-soft);margin:10px 0 16px;max-width:72ch}
+.cut{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:18px;padding:14px 0;border-bottom:1px solid var(--line)}
+.cut canvas{width:100%;aspect-ratio:16/9;display:block;border-radius:6px;background:var(--stage);cursor:pointer}
+.cut .meta{display:flex;gap:10px;align-items:baseline;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-bottom:4px}
+.cut .meta b{color:var(--ink);font-weight:600}
+.cut .who{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue)}
+.cut .who.q{background:var(--accent-soft);color:var(--accent)}
+.cut .say{margin:0}
+.cut .say.q{font-style:normal;border-left:3px solid var(--accent);padding-left:12px;color:var(--ink)}
+.cut .vis{font-size:13px;color:var(--ink-soft);margin:6px 0 0}
+.src{margin-top:6px}
+.chip{display:inline-block;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;padding:1px 6px;margin:0 4px 4px 0;border-radius:4px;background:var(--line);color:var(--ink-soft)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px;margin-top:8px}
+.notes h4{margin:0 0 6px;font-size:15px}
+.notes ul{margin:0;padding-left:18px;color:var(--ink-soft);font-size:14px}
+@media (max-width:640px){.cut{grid-template-columns:1fr}.chap-h .tc{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">{{EYEBROW}}</div>
+  <h1>{{H1}}</h1>
+  <p class="lead">{{LEAD}}</p>
+
+  <div class="player">
+    <div class="stage" id="stage">
+      <canvas id="cv" width="1600" height="900" aria-label="애니매틱 화면"></canvas>
+      <div class="ov-ch" id="ovCh"><div class="n" id="ovChN"></div><div class="t" id="ovChT"></div></div>
+      <div class="ov-grad"></div><div class="ov-sub" id="ovSub"></div>
+      <div class="ov-cut" id="ovCut"></div>
+      <div class="ov-disc">본 영상은 논문을 바탕으로 재구성한 영상입니다.</div>
+    </div>
+    <div class="ctrl">
+      <button id="btnPlay" type="button">재생</button>
+      <button id="btnPrev" type="button" aria-label="이전 컷">이전</button>
+      <button id="btnNext" type="button" aria-label="다음 컷">다음</button>
+      <div class="scrub"><div class="track"></div><div class="fill" id="fill"></div><div id="ticks"></div>
+        <input id="scrub" type="range" min="0" max="100" step="0.05" value="0" aria-label="재생 위치"></div>
+      <span class="tm" id="tm">0:00 / {{TOTAL}}</span>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="stats"><span><b>{{TOTAL}}</b>추정 길이</span><span><b>{{NCHAR}}자</b>원고</span><span><b>{{NCUTS}}컷</b>{{NCH}}개 장</span><span><b>{{NQUOTE}}개</b>저자 인용(논문 문장)</span></div>
+
+  <h2>이야기 곡선</h2>
+  <p class="sub">장마다 시청자가 붙잡고 있는 질문의 무게를 높이로 그렸습니다(기획 의도). 문제가 쌓였다가, 관찰과 전환점에서 풀리고, 결과 뒤에 남은 문제로 다시 올라갑니다. 점을 누르면 그 장부터 재생합니다.</p>
+  <div class="arcwrap"><svg class="arc" id="arc" viewBox="0 0 1180 260" role="img" aria-label="장별 이야기 곡선"></svg></div>
+
+  <h2>장별 컷</h2>
+  <p class="sub">컷 그림을 누르면 그 컷부터 재생합니다. 인용 컷의 문장은 프로젝트 번역본(<code>translations/manual.json</code>)을 그대로 쓰고, 화면에는 PDF 원문 지면에 형광펜이 지나갑니다.</p>
+  <div id="chapters"></div>
+
+  <h2>제작 메모</h2>
+  <div class="notes">
+{{NOTES}}
+  </div>
+</div>
+
+<script>
+const DATA=/*__DATA__*/null, IM=/*__IMGS__*/null, QT=/*__QUOTES__*/null;
+const W=1600,H=900, C={bg:'#f3f2f7',card:'#ffffff',ink:'#1f2333',line:'#5d6275',dim:'#5d6275',amber:'#b5701a',rose:'#b0506a',blue:'#3f67a8',mint:'#2f8a63'}  /* 밝은 테마(tools/video/theme.py LIGHT) */;
+const F='"IBM Plex Sans KR", "Malgun Gothic", sans-serif';
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v)), lerp=(a,b,k)=>a+(b-a)*k;
+const E=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2, seg=(p,a,b)=>clamp((p-a)/(b-a));
+const img={};
+function loadImages(){return Promise.all(Object.entries(Object.assign({},IM,Object.fromEntries(Object.entries(QT).map(([k,v])=>['q_'+k,v.img]))))
+  .map(([k,src])=>new Promise(r=>{const i=new Image();i.onload=()=>{img[k]=i;r()};i.onerror=r;i.src=src;})));}
+
+/*__SCENES__*/
+// 장면이 정해지지 않은 인용 컷은 PDF 지면 형광펜 장면을 쓴다(출처 칸의 첫 sentence_id)
+for(const ct of DATA.cuts){if(!S[ct.id]&&ct.sp==='Q'){const sid=ct.src.split(/,\s*/).find(s=>QT[s]);if(sid)S[ct.id]=(c,p)=>quoteScene(c,p,sid);}}
+/* ---------- 플레이어 ---------- */
+const CLEAN=/[?&]clean=1/.test(location.search);if(CLEAN)document.documentElement.classList.add('clean');if(/[?&]nosub=1/.test(location.search))document.documentElement.classList.add('nosub');
+const cv=document.getElementById('cv');if(CLEAN){cv.width=1920;cv.height=1080;}
+const cx=cv.getContext('2d'),cuts=DATA.cuts,T=DATA.total;
+let t=0,playing=false,last=0;
+const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+// 시작 시각이 tt 이하인 마지막 컷. 컷 사이 틈(장 경계 무음 등)에서는 앞 컷의 마지막 장면을 유지한다(다음 컷이 미리 비치지 않게)
+function cutAt(tt){let i=0;for(let k=0;k<cuts.length;k++){if(cuts[k].t0<=tt+1e-6)i=k;else break;}return i;}
+function sentences(s){return s.split(/(?<=[.?])\s+/).filter(Boolean);}
+function render(){const i=cutAt(t),ct=cuts[i],p=clamp((t-ct.t0)/ct.dur);cx.save();if(CLEAN)cx.setTransform(1.2,0,0,1.2,0,0);(S[ct.id]||(c=>bg(c)))(cx,p);cx.restore();
+  const sub=document.getElementById('ovSub');
+  if(ct.sp==='—'){sub.innerHTML='';}else{const ss=sentences(ct.say),tot=ss.reduce((a,b)=>a+b.length,0);let acc=0,cur=ss[ss.length-1];
+    if(ct.sents&&ct.sents.length){cur=ct.sents[0].text;for(const s of ct.sents){if(t>=s.t0-.15)cur=s.text;}}
+    else for(const s of ss){acc+=s.length;if(p*1.04<=acc/tot){cur=s;break;}}
+    sub.innerHTML=(ct.sp==='Q'?'<span class="who">저자 · 논문 인용</span>':'')+cur.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+  const ch=DATA.chapters[ct.ch],chOn=ch.label!=='프롤로그'&&DATA.cuts.find(q=>q.ch===ct.ch).sp!=='Q',chA=chOn?clamp((t-ch.t0)/.6)*clamp((ch.t0+4.2-t)/.6):0;
+  document.getElementById('ovChN').textContent=ch.label;document.getElementById('ovChT').textContent=ch.title;document.getElementById('ovCh').style.opacity=chA;
+  document.getElementById('ovCut').textContent=ct.id;document.getElementById('tm').textContent=`${fmt(t)} / ${fmt(T)}`;
+  document.getElementById('fill').style.width=(t/T*100)+'%';document.getElementById('scrub').value=t/T*100;
+  document.querySelectorAll('#chips button').forEach((b,k)=>b.classList.toggle('on',k===ct.ch));}
+function loop(ts){if(!playing)return;const dt=last?(ts-last)/1000:0;last=ts;t+=dt;if(t>=T){t=T-.01;setPlay(false);}render();requestAnimationFrame(loop);}
+function setPlay(v){playing=v;document.getElementById('btnPlay').textContent=v?'일시정지':'재생';if(v){last=0;requestAnimationFrame(loop);}}
+function seek(tt,play){t=clamp(tt,0,T-.01);render();if(play&&!playing)setPlay(true);}
+document.getElementById('btnPlay').onclick=()=>{if(t>=T-.05)t=0;setPlay(!playing);};
+document.getElementById('btnPrev').onclick=()=>{const i=cutAt(t);seek(t-cuts[i].t0>1.5?cuts[i].t0:cuts[Math.max(0,i-1)].t0);};
+document.getElementById('btnNext').onclick=()=>{const i=cutAt(t);seek(cuts[Math.min(cuts.length-1,i+1)].t0);};
+document.getElementById('scrub').oninput=e=>seek(e.target.value/100*T);
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();document.getElementById('btnPlay').click();}});
+const ticks=document.getElementById('ticks'),chips=document.getElementById('chips');
+DATA.chapters.forEach((ch,k)=>{if(k){const d=document.createElement('div');d.className='tick';d.style.left=(ch.t0/T*100)+'%';ticks.appendChild(d);}
+  const b=document.createElement('button');b.type='button';b.textContent=ch.label==='프롤로그'||ch.label==='에필로그'?ch.label:`${ch.label} ${ch.title}`;b.onclick=()=>seek(ch.t0+.01,true);chips.appendChild(b);});
+
+/* ---------- 이야기 곡선 ---------- */
+(function(){const svg=document.getElementById('arc'),n=DATA.chapters.length,H0=DATA.chapters.map(c=>c.h),X=k=>60+k*(1060/(n-1)),Y=v=>220-v*170;
+  const css=getComputedStyle(document.documentElement),col={hook:'--muted',problem:'--rose',clue:'--blue',turn:'--accent',solve:'--accent',result:'--blue'};
+  let d='';DATA.chapters.forEach((c,k)=>{const x=X(k),y=Y(H0[k]);if(!k)d+=`M${x} ${y}`;else{const px=X(k-1),py=Y(H0[k-1]);d+=` C${px+50} ${py},${x-50} ${y},${x} ${y}`;}});
+  let s=`<path d="${d}" fill="none" stroke="var(--line)" stroke-width="3"/>`;
+  DATA.chapters.forEach((c,k)=>{const x=X(k),y=Y(H0[k]);s+=`<g class="node" data-k="${k}" tabindex="0" role="button" aria-label="${c.label} ${c.title} 재생"><circle cx="${x}" cy="${y}" r="9" fill="var(--paper)" stroke="var(${col[c.arc]})" stroke-width="3"/>
+    <text x="${x}" y="${y-20}" text-anchor="middle" font-size="13" fill="var(--accent)" font-weight="600">${c.label}</text>
+    <text x="${x}" y="246" text-anchor="middle" font-size="13" fill="var(--ink-soft)">${c.title}</text></g>`;});
+  svg.innerHTML=s;svg.querySelectorAll('.node').forEach(g=>{const go=()=>{seek(DATA.chapters[+g.dataset.k].t0+.01,true);document.getElementById('stage').scrollIntoView({block:'center'});};g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter')go();};});})();
+
+/* ---------- 장별 컷 목록 ---------- */
+function esc(s){return s.replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+const host=document.getElementById('chapters');const thumbs=[];
+DATA.chapters.forEach((ch,k)=>{const sec=document.createElement('section');sec.className='chap';sec.id='ch'+k;
+  let h=`<div class="chap-h"><span class="lb">${esc(ch.label)}</span><h3>${esc(ch.title)}</h3><span class="tc">${fmt(ch.t0)}–${fmt(ch.t1)}</span></div><p class="log">${esc(ch.log)}</p>`;
+  cuts.filter(c=>c.ch===k).forEach(c=>{const who=c.sp==='Q'?'<span class="who q">저자 인용</span>':c.sp==='N'?'<span class="who">내레이터</span>':'<span class="who">제목</span>';
+    h+=`<div class="cut"><canvas width="640" height="360" data-id="${c.id}" aria-label="${c.id} 장면"></canvas><div><div class="meta"><b>${c.id}</b><span>${fmt(c.t0)}</span><span>${c.dur.toFixed(0)}초</span>${who}</div>
+      <p class="say${c.sp==='Q'?' q':''}">${esc(c.say)}</p><p class="vis">화면 · ${esc(VIS[c.id]||'')}</p><div class="src">${c.src.split(/,\s*/).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`;});
+  sec.innerHTML=h;host.appendChild(sec);});
+function drawThumbs(){document.querySelectorAll('.cut canvas').forEach(el=>{const g=el.getContext('2d');g.save();g.scale(640/W,360/H);(S[el.dataset.id]||(c=>bg(c)))(g,.62);g.restore();
+  el.onclick=()=>{const c=cuts.find(q=>q.id===el.dataset.id);seek(c.t0+.01,true);document.getElementById('stage').scrollIntoView({block:'center'});};});}
+
+window.OPENER={ready:false,DURATION:T,seek:tt=>{t=clamp(tt,0,T-.001);render();}};
+Promise.all([loadImages(),document.fonts.load(`300 40px ${F}`),document.fonts.load(`400 40px ${F}`),document.fonts.load(`500 40px ${F}`),document.fonts.load(`600 40px ${F}`)]).catch(()=>{}).then(()=>{seek(CLEAN?0:1.2);if(!CLEAN)drawThumbs();window.OPENER.ready=true;});
+seek(0);
+</script>

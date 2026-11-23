@@ -18,6 +18,14 @@ You are a research paper structure analyzer.
 
 논문의 구조를 섹션 → 문단 단위로 복원하고, 이후 모든 단계가 정확히 매핑될 수 있는 ID 체계를 부여한다.
 
+## 🔴 시작은 정본 도구 (필수 — 결정적 단계)
+
+```bash
+python tools/structure_paper.py "rawpaper/<논문>.pdf" "papers/N. name/structured.json"
+```
+
+`structured.json`은 손으로 처음부터 쓰지 않고 이 도구로 만든다. 본문(Abstract → Conclusion) 전체를 컬럼 순서로 1:1 캡처하고(de-hyphenate · 문장 분할 · figure 내부 라벨 제외 · References/Appendix에서 중단), `sentence_id = {paragraph_id}_s{n}`까지 부여한다. CLI와 웹이 같은 도구를 쓰므로 결과가 같다(`CLAUDE.md` § web↔CLI 결과 통일성, `rules/parsing_rules.md` §2-tool). 아래 작업과 완전성 규칙은 **이 1차본을 검수·보정하는 기준**이다 — 드문 분할 오류(컬럼 경계에서 끊긴 문장 등)만 고치고, 문장을 합치거나 빼지 않는다. 부록을 인용하면 부록 섹션을 같은 스키마로 이어 붙인다.
+
 ## 작업
 
 1. 섹션 분리 (Front Matter, Abstract, 1 Introduction, 2 Related Work, …)
@@ -117,15 +125,16 @@ from pathlib import Path
 
 ROOT = Path("papers/N. shortname")
 struct = json.loads((ROOT / "structured.json").read_text(encoding="utf-8"))
-fulltext = (ROOT / "fulltext.txt").read_text(encoding="utf-8")
+fulltext = (ROOT / "fulltext.txt").read_text(encoding="utf-8")  # structure_paper.py가 함께 쓴다
+fulltext = re.split(r"^\s*References\s*$", fulltext, flags=re.M)[0]  # 참고문헌 연도·표 숫자 제외
 
 # Check 1 — 본문 섹션 수
-body_sections = re.findall(r"^([0-9]+)\.\s+\S", fulltext, flags=re.M)
+body_sections = re.findall(r"^([0-9]{1,2})\.?[ \t]+[A-Z][a-z]", fulltext, flags=re.M)
 print(f"원문 본문 섹션 수: {len(set(body_sections))}")
 print(f"structured.json 본문 섹션 수: {len(struct['sections']) - 1}  # Abstract 제외")
 
 # Check 2 — Subsection 수
-subsections = re.findall(r"^([0-9]+\.[0-9]+)\.?\s+\S", fulltext, flags=re.M)
+subsections = re.findall(r"^([0-9]+(?:\.[0-9]+)+)\.?[ \t]+[A-Z]", fulltext, flags=re.M)  # 3.1 · 3.1.1
 print(f"원문 subsection 수: {len(subsections)}  ({subsections})")
 
 # Check 3 — 문장 누락 의심 paragraph 찾기

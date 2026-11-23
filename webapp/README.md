@@ -13,8 +13,8 @@
 2. **Python 3.10 이상** — https://www.python.org (설치 시 "Add Python to PATH" 체크)
 3. (선택) **codex CLI** — 학습 보조 이미지 생성용. 없으면 이미지 단계만 자동 스킵.
 
-> API 키는 필요 없습니다. 오히려 `ANTHROPIC_API_KEY` 환경변수가 설정돼 있으면
-> 구독 대신 그 키로 과금되니, 구독으로 쓰려면 지워 두세요 (런처가 경고해 줍니다).
+> API 키는 필요 없습니다. `ANTHROPIC_API_KEY` 환경변수가 설정돼 있어도 대시보드는
+> 그 키를 세션 환경에서 제거하고 구독 로그인(OAuth)으로 실행합니다 (런처가 안내해 줍니다).
 
 ---
 
@@ -37,10 +37,10 @@
    - **Claude 자체 (SVG)** — 외부 도구 없이 Claude가 인라인 SVG 도식을 직접 작성 (codex 불필요)
    - codex CLI가 없으면 자동으로 SVG로 고정됩니다. 규약 정본: `rules/component_rules.md` §11.9
 3. 채팅 입력칸에 자동으로 요청 문장이 채워짐 → 다듬어서 전송
-   (예: *"이 논문으로 papers 폴더 만들고 v4 8탭 HTML 만들어줘. 디자인 rules/design_v4_dashboard.md 정본(빌더 samples/cares → restyle_dash_v4 변환), Paper Study는 준비되면, ⑤⑥은 셸만."*)
-3. 진행이 채팅에 실시간으로 흐름 (🔧 도구 사용 배지 포함). 중간에 *"그림 다시"*,
+   (예: *"이 논문으로 papers 폴더 만들고 v4 8탭 HTML 만들어줘. 디자인 rules/design_v4_dashboard.md 정본(빌더 templates/paper_base/_build.py 복사 → restyle_dash_v4 변환, 데이터 형식은 samples/cares), Paper Study는 준비되면, ⑤⑥은 셸만."*)
+4. 진행이 채팅에 실시간으로 흐름 (🔧 도구 사용 배지 포함). 중간에 *"그림 다시"*,
    *"이 번역 어색해"* 처럼 교정 요청 가능
-4. 완성되면 오른쪽 **② 논문 목록**에서 결과 HTML 클릭 → **③ 미리보기**, 또는 새 탭으로 열기
+5. 완성되면 오른쪽 **② 논문 목록**에서 결과 HTML 클릭 → **③ 미리보기**, 또는 새 탭으로 열기
 
 결과는 그림이 모두 박힌 **단일 HTML 한 장**(self-contained)이라, 그 파일만 옮겨도 어디서나 열립니다.
 

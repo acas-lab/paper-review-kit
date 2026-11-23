@@ -3,7 +3,7 @@
 start.py — 원클릭 런처 (비개발자용).
 
 하는 일:
-  1) 전제조건 점검 (Python 버전 · Claude 로그인 · codex · API키 경고)
+  1) 전제조건 점검 (Python 버전 · Claude 로그인 · codex · API키 안내)
   2) webapp/.venv 가상환경 자동 생성 + 의존성 설치
   3) 백엔드(FastAPI) 기동 + 브라우저 자동 오픈
 
@@ -44,6 +44,30 @@ def fail(msg, fix=""):
     sys.exit(1)
 
 
+def claude_login_state(claude_bin):
+    """True(로그인 확인) / False(미로그인 확인) / None(확인 불가).
+
+    Windows·Linux 는 ~/.claude/.credentials.json 파일로 바로 판정한다. macOS 는 자격 증명이
+    키체인에 있어 파일이 없으므로 `claude auth status`(JSON, loggedIn) 로 한 번 더 묻는다.
+    """
+    if (Path.home() / ".claude" / ".credentials.json").exists():
+        return True
+    try:
+        r = subprocess.run([claude_bin, "auth", "status"], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=20, stdin=subprocess.DEVNULL)
+    except Exception:
+        return None
+    out = (r.stdout or "").strip()
+    try:
+        import json
+        data = json.loads(out[out.find("{"):]) if "{" in out else {}
+        if "loggedIn" in data:
+            return bool(data["loggedIn"])
+    except Exception:
+        pass
+    return None
+
+
 def main():
     if os.name == "nt":
         os.system("")                       # ANSI 색 활성화
@@ -64,16 +88,19 @@ def main():
     if shutil.which("claude") is None:
         fail("Claude Code(claude 명령)를 찾을 수 없어요.",
              "Claude Code를 설치하세요: https://claude.com/claude-code")
-    creds = Path.home() / ".claude" / ".credentials.json"
-    if not creds.exists():
-        fail("Claude에 로그인돼 있지 않아요.",
-             "터미널에 `claude` 를 입력해 한 번 로그인(구독 계정)한 뒤 다시 실행하세요.")
-    say("  ✓ Claude Code 로그인 확인", C_DIM)
+    login = claude_login_state(shutil.which("claude"))
+    if login is True:
+        say("  ✓ Claude Code 로그인 확인", C_DIM)
+    elif login is False:
+        # 하드 차단하지 않는다 — 판정이 틀릴 수 있고(다른 인증 방식), 세션 시작 시 실제 오류가 다시 보인다.
+        say("  ⚠ Claude 로그인이 확인되지 않아요.", C_WARN)
+        say("    터미널에 `claude` 를 입력해 한 번 로그인(구독 계정)하세요. 그대로 계속 진행합니다.", C_DIM)
+    else:
+        say("  · Claude 로그인 상태를 미리 확인하지 못했어요 (macOS 키체인 등). 세션 시작 시 확인됩니다.", C_DIM)
 
-    # 3) API 키 경고 (있으면 구독 대신 키로 과금됨)
+    # 3) API 키 안내 — 대시보드는 이 키를 쓰지 않는다 (아래 6단계와 runner.py 가 환경에서 제거)
     if os.environ.get("ANTHROPIC_API_KEY"):
-        say("  ⚠ ANTHROPIC_API_KEY 가 설정돼 있어요 — 구독 대신 이 키로 과금됩니다.", C_WARN)
-        say("    (구독으로 쓰려면 이 환경변수를 지우세요.)", C_DIM)
+        say("  · ANTHROPIC_API_KEY 가 설정돼 있지만 대시보드는 이 키를 무시하고 구독 로그인(OAuth)을 사용해요.", C_DIM)
 
     # 4) codex (선택)
     if shutil.which("codex"):
@@ -97,7 +124,8 @@ def main():
     say(f"\n  >> 대시보드 시작 → {URL}", C_OK)
     say("     (종료: 이 창에서 Ctrl+C)\n", C_DIM)
     env = dict(os.environ)
-    env.pop("ANTHROPIC_API_KEY", None)  # OAuth 폴백 보장
+    env.pop("ANTHROPIC_API_KEY", None)  # OAuth 폴백 보장 (키 과금 방지)
+    env["PAPER_REVIEW_PORT"] = str(PORT)  # main.py 의 Host/Origin 검사가 같은 포트를 쓰도록
     proc = subprocess.Popen(
         [str(PYEXE), "-m", "uvicorn", "main:app",
          "--app-dir", str(WEBAPP / "backend"),

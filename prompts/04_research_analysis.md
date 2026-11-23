@@ -55,7 +55,7 @@ Your role is to **reconstruct the author's research thinking process**.
 
 ### 8번 카드 — `diss-summary` 세부 규약 (정본 = `samples/cares/tabs_data/dissection.json`)
 
-> **갱신 정책 (2026-05-12)**: 기존 4-row(관찰/방법/차별/결과) 정형은 **9-row 정형**으로 확장. \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해할 수 있는 깊이</em>\"가 기준. 기존 4-row paper(SAFE/FrameFusion/SGL/SparseVLM 등)는 점진적 마이그레이션 권장.
+> **갱신 정책 (2026-05-12)**: 기존 4-row(관찰/방법/차별/결과) 정형은 **9-row 정형**으로 확장. \"<em>논문 안 읽은 사람도 이 카드 한 장만 보고 충분히 이해할 수 있는 깊이</em>\"가 기준. 4-row 카드만 있는 구세대 산출물은 `tools/overview_inject.py`로 9행 + overview를 직접 주입해 소급한다(모체 papers 1~15를 2026-11-04 소급 — 모체 사례, 배포본 미포함). 그런 논문은 재빌드 후 이 도구를 다시 돌린다.
 
 마지막 카드는 다른 카드들과 같은 마크업 구조(`diss-card diss-summary` + `diss-step "08"` + `diss-head` + `diss-rows`)를 쓰되, **rows는 다음 9개를 모두 포함**한다.
 
@@ -69,7 +69,7 @@ Your role is to **reconstruct the author's research thinking process**.
 | 4 | **기존 방법은 왜 부족한가 (Gap)** | 비교 대상 갈래(A/B/C)별로 무엇이 부족한지. 단순 단점 나열이 아닌 \"<em>아무도 X+Y를 동시에 안 했다</em>\"의 구조적 빈자리 명시. |
 | 5 | **어떻게 해결했나 (Method)** | 핵심 메커니즘을 단계(① → ② → ③)로 나열. 수식 번호·변수·핵심 트릭(예: Gumbel-Softmax, attention masking)을 그대로. 가정/제약(training-free 여부 등) 한 줄. |
 | 6 | **다른 논문과 무엇이 다른가 (Novelty)** | 1~3개 차별점을 굵게. \"<em>축이 다르다</em>\" 식의 구조적 차이를 잡는다 — \"layer 진행 중 점진 가지치기 + cross-modal 가이드 + plug-and-play\". |
-| 7 | **효과 — 숫자 (Results)** | ① 핵심 절감/정량 수치 ② 비교 baseline 대비 격차 ③ 추가 trade-off 옵션 ④ 자체 overhead. 모든 숫자에 단위 표기 (예: AI/CS — TFLOPs / %p / × / +N.Np; 단위·지표는 `config.json#domain.metric_conventions`). |
+| 7 | **효과 - 숫자 (Results)** | ① 핵심 절감/정량 수치 ② 비교 baseline 대비 격차 ③ 추가 trade-off 옵션 ④ 자체 overhead. 모든 숫자에 단위 표기 (예: AI/CS — TFLOPs / %p / × / +N.Np; 단위·지표는 `config.json#domain.metric_conventions`). |
 | 8 | **한계와 의미 (Limitations & Implication)** | ablation 부재·단일 base model·real-world 미검증 등 구체적 한계 + \"그럼에도 의미\"의 시사점 한 줄. |
 | 9 | **30초 요약 (For Beginners)** | 전혀 모르는 사람을 위한 한 단락. 비유·일상어로 풀어쓰며 학술 용어는 괄호 병기. 다른 row들이 학자 대상이라면 이건 일반인 대상. |
 
@@ -85,7 +85,8 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 - **사이즈**: 1536×864 (16:9 widescreen) 권장
 - **5단 구성**: **PROBLEM → KEY OBSERVATIONS → METHOD → WHAT'S NEW → RESULTS** (좌→우)
 - **컴포넌트**: `<figure class="diss-overview-figure">` (정본 마크업·CSS = `rules/component_rules.md` §13/§14)
-- **임베드**: HTML 빌드 시 base64 인라인. `_build.py`의 `render_diss()`에서 `c["id"] == "summary"` 분기로 헤더 아래·rows 위에 삽입
+- **임베드**: HTML 빌드 시 base64 인라인. `_build.py`의 `render_diss_card()`에서 `cls == "diss-summary"` 분기로 헤더 아래·rows 위에 삽입
+- **codex 미사용(모드 B) 폴백**: summary 카드에 `"overview": [["PROBLEM", "..."], ["OBSERVATION", "..."], ["METHOD", "..."], ["NOVELTY", "..."], ["RESULTS", "..."]]`(단마다 한두 문장, 실제 수치 포함)를 넣으면 PNG가 없을 때 기준 빌더(`templates/paper_base/_build.py#_overview_svg`)가 결정적 SVG로 그린다. PNG가 있으면 PNG가 우선한다
 
 생성 방법은 다음 \"## 이미지 생성\" 절 참조 (codex CLI, 6계명).
 
@@ -172,7 +173,7 @@ summary 카드 헤더 바로 아래·rows 위에 **반드시 한 장 인포그�
 - 파일명 규약: `dissection_<purpose>.png` (예: `dissection_overview.png`, `dissection_flow_3stage.png`)
 - **HTML 임베드: base64 인라인 의무** (CLAUDE.md 자산 임베딩 정책 — 단일 파일 자족·휴대성 우선). 외부 참조는 개발 미리보기 한정.
 
-`dissection_overview.png`는 `_build.py`의 `render_diss()`가 `c["id"] == "summary"` 분기 시 자동 임베드. 기타 보조 이미지는 `cards[].image` 필드로 참조 가능.
+`dissection_overview.png`(또는 모드 B `dissection_overview.svg`, 둘 다 없으면 `overview` 데이터의 결정적 SVG)는 기준 빌더 `render_diss_card()`가 `cls == "diss-summary"` 카드에 자동 임베드한다. 기타 보조 이미지는 카드의 `"image": "assets/generated/dissection_<purpose>.png|.svg"` + `"image_caption"`으로 참조한다(카드 헤더 아래 `concept-figure`). summary 태그 9개는 위 표의 굵은 글씨 그대로 쓴다 - `check_paper_structure.py`가 글자 단위로 대조한다.
 
 ### overview prompt 작성 가이드 (정본)
 

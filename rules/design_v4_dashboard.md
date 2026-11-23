@@ -11,7 +11,7 @@
 
 **정본 파일 (수정 금지 기준, 복사 출발점)**
 - 최종 산출물 정본 — `samples/cares/CARES_output.html` (4세대 · v4 8탭 + Paper Study) ✅ 이 툴킷에 동봉
-- **빌더 정본 — `samples/cares/_build.py`** (실제 데이터로 8탭+Paper Study 렌더) ✅ 이 툴킷에 동봉
+- **빌더 복사 출발점 — `templates/paper_base/_build.py`** (`TODO_PAPER_*`만 채움) · 워크드 예제 `samples/cares/_build.py` (실제 데이터로 8탭+Paper Study 렌더) ✅ 이 툴킷에 동봉
 - **변환 도구 정본 — `tools/restyle_dash_v4.py` (범용 · 논문별 수정 0곳)** ✅ 이 툴킷에 포함
   v3 템플릿 `_build.py` 산출물 → v4 변환 (토큰 스왑·topbar·8탭 분리·해시 라우팅 일체).
   헤더 내용은 전부 `config.json#meta`에서 읽는다. (모체의 CARES 전용 `_restyle_dash_v3.py`는
@@ -135,7 +135,8 @@ Phase 1 Aerial View(훑어보기·RQ 찾기·Gap 파악) → Phase 2 Interrogati
 - **위치가 dissection 앞인 이유**: Dissection·Diagrams는 Claude의 완성 해석이므로, 스스로 결론을 세우는
   워크북이 그보다 앞에 서야 한다 (스포일러 차단 학습 동선).
 - 데이터 = `tabs_data/study.json` (스키마·작성 규칙 = `prompts/11_paper_study.md`).
-  study.json이 없으면 `_build.py`가 자동으로 `.section-empty` 셸을 렌더 — 탭 자체는 항상 존재.
+  study.json은 **기본 빌드 필수**다. 없으면 `_build.py`가 `.section-empty` 셸을 렌더해 탭 자체는 항상 존재하지만,
+  그것은 개발 중 "작성 전" 임시 상태일 뿐 산출물이 아니다(`tools/check_paper_structure.py` FAIL).
 - 컴포넌트 상세 = `rules/component_rules.md` §17. 변환 도구는 `tab-study` pane 존재를 감지해
   7↔8탭을 자동 처리(`tools/restyle_dash_v4.py` — study 탭 버튼 삽입 + `studyNav → go` 전환).
 
@@ -180,16 +181,17 @@ route();
 
 **`.col{min-width:0}` 의 세대 불일치 - 현행 유지 (모체 사례 — 배포본 미포함).** 이 선언은 papers 27~35 에만 있고 1~26 에는 없다. 없는 쪽에서 papers/3 이 900px 폭에서 페이지 가로 33px 밀림을 낸다. 그러나 1~26 에 `min-width:0` 을 넣으면 그리드 아이템의 최소 콘텐츠 폭 방어가 풀려 **인라인 수식이 옆 컬럼을 침범**한다(900px 에서 6곳, 760px 에서 9곳). 가로 33px 밀림보다 수식 침범이 나쁘므로 통일하지 않는다. 신규 논문(27 이후 계보)은 `min-width:0` 을 유지한다.
 
-**인라인 SVG 다이어그램 안의 `font-family="Georgia, serif"` - 현행 유지.** §1 의 serif 금지는 페이지 타이포그래피(제목·본문·카드 헤더)를 겨냥한 것이고, 이 선언들은 손으로 그린 `class="diagram"`/`class="diagram-svg"` 캔버스 **안쪽의 `<text>` 라벨**이다(papers 1·2·3·4·7~10·12·17, 총 71곳: `Input`/`Conv1`/`softmax` 같은 단계 라벨, `X`·`Z`·`R_t` 같은 기호, 캔버스 내부 제목 2곳). 그림의 일부이므로 규약 대상이 아니고, SVG `<text>` 는 리플로우가 없어 좌표가 고정된 `<rect>` 안에 놓여 있다. 폰트를 바꾸면 advance width 가 달라져 박스를 넘치거나 이웃 라벨과 충돌하며, 67곳을 전수 시각 검증하지 않고는 확인할 수 없다. 얻는 것보다 위험이 크다.
+**인라인 SVG 다이어그램 안의 `font-family="Georgia, serif"` - 현행 유지.** §1 의 serif 금지는 페이지 타이포그래피(제목·본문·카드 헤더)를 겨냥한 것이고, 이 선언들은 손으로 그린 `class="diagram"`/`class="diagram-svg"` 캔버스 **안쪽의 `<text>` 라벨**이다(모체 papers 1·2·3·4·7~10·12·17, 총 71곳: `Input`/`Conv1`/`softmax` 같은 단계 라벨, `X`·`Z`·`R_t` 같은 기호, 캔버스 내부 제목 2곳). 그림의 일부이므로 규약 대상이 아니고, SVG `<text>` 는 리플로우가 없어 좌표가 고정된 `<rect>` 안에 놓여 있다. 폰트를 바꾸면 advance width 가 달라져 박스를 넘치거나 이웃 라벨과 충돌하며, 67곳을 전수 시각 검증하지 않고는 확인할 수 없다. 얻는 것보다 위험이 크다.
 
 ## 6. 빌드 경로
 
 **신규 논문 (권장)** — v3 템플릿 조립 + 범용 변환 도구의 2단:
-1. 빌더 `_build.py`를 복사해 데이터(JSON·assets)를 조립한다 (복사 출발점 = `samples/cares/_build.py`).
-   **_build.py에서 논문별로 바꿀 곳**: ①~④ 탭의 `tab-intro` 문구(dissection/knowledge/questions),
-   footer 한 줄. 출력 파일명은 `meta.short_name`에서 자동 유도(영숫자만 — 예: GeoLLaVA-8K → GeoLLaVA8K_output.html). ③ knowledge intro에는 수식 언급을 넣지 않는다(수식은 Mathematics 탭 — 분리는 도구가).
-2. `config.json#meta`에 topbar 필드를 채운다 (도구가 여기서 헤더를 생성):
-   `title` `short_name` `authors` `affiliation` (필수) +
+1. 빌더 `_build.py`를 복사해 데이터(JSON·assets)를 조립한다 (복사 출발점 = `templates/paper_base/_build.py`,
+   워크드 예제 = `samples/cares/_build.py`).
+   **_build.py에서 논문별로 바꿀 곳**: `TODO_PAPER_*` 표시 전부(`templates/paper_base/README.md` 표 —
+   ②③④ `tab-intro` 문구, 판정 카드 절, overview alt/figcaption, 수식/개념 패널 부제, footer 등). 출력 파일명은 `meta.short_name`에서 자동 유도(영숫자만 — 예: GeoLLaVA-8K → GeoLLaVA8K_output.html). ③ knowledge intro에는 수식 언급을 넣지 않는다(수식은 Mathematics 탭 — 분리는 도구가).
+2. `config.json#meta`에 topbar 필드를 채운다 (도구가 여기서 헤더를 생성). 초안은 Stage 1(`workflow.md`, `config.json#domain`과 같은 단계)에서 쓰고 이 조립 전에 확정한다:
+   `title` `short_name` `authors` `affiliation` (필수) + `venue`(한 줄 게재 정보) · `year` · `source_pdf`(`rawpaper/` 파일명 — Stage 13 영상이 읽는다) +
    `keyword`(2줄째) · `venue_short` · `status`(Oral 등) · `arxiv` · `listed`(등재일) · `code` · `generated`(생성일).
    venue_short~listed 는 conference 형식(예: CARES)이며 빈 필드는 생략된다. journal·preprint·book/thesis 는 §2 표의 형식으로
    `venue_short`(저널 권(호)·출판사 등)·`listed`(게재 연월·연도)를 채우고 `arxiv`를 비우거나, venue_short~listed 를 모두 비우고
@@ -198,14 +200,14 @@ route();
    `href="{meta["code"]}"`). 코드 URL이 없으면 **키 자체를 생략**한다 — "공개 예정" 같은 서술을 넣으면 깨진 링크가 된다.
    (다른 meta 키는 텍스트로만 렌더되므로 이 제약은 `code`에만 해당.)
 2-bis. **Paper Study 준비물** — `tabs_data/study.json`(Stage 11, `prompts/11_paper_study.md`) +
-   `config.json#captions_en`(도표 뷰어용 원문 캡션) + `study/` 폴더(+.gitkeep). study.json이 없으면
-   빌더가 ①′를 자동 셸 렌더하므로 빌드 자체는 막히지 않는다.
-3. 실행: `python _build.py && python ../../tools/restyle_dash_v4.py "papers/N. shortname"`
+   `config.json#captions_en`(도표 뷰어용 원문 캡션) + `study/` 폴더(+.gitkeep). study.json은 필수다 —
+   없으면 빌더가 ①′를 자동 셸로 그려 조립은 되지만, 그 셸은 "작성 전" 임시 상태일 뿐 산출물이 아니다(`check_paper_structure.py` FAIL).
+3. 실행(킷 루트에서): `python "papers/N. shortname/_build.py" && python tools/restyle_dash_v4.py "papers/N. shortname"` → 이어서 `workflow.md` Stage 10 주입·검사 체인
    — **논문별 스크립트 수정 0곳.** 도구가 이미 v4인 파일에는 실행을 거부한다(이중 적용 방지).
    ⚠️ `_build.py`만 단독 재실행하면 v3 raw로 돌아간다 — 반드시 변환까지 페어로 실행.
 
 **기존 논문 마이그레이션** — 산출물이 v3 표준 템플릿이면 위 2·3단계만으로 끝
-(config meta 필드 보강 → 도구 실행). 앵커가 어긋나는 오래된 빌드(papers 4~19 일부)는
+(config meta 필드 보강 → 도구 실행). 앵커가 어긋나는 오래된 빌드(모체 papers 4~19 일부)는
 도구의 sub1 실패 지점을 보고 해당 논문의 CSS/마크업을 v3 표준으로 맞춘 뒤 재시도.
 
 **Paper Study 탭 소급 (이미 v4인 논문)** — **범용 도구 `tools/paper_study_retrofit.py "papers/N. name"`**

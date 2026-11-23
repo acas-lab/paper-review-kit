@@ -17,6 +17,7 @@
 | `5_start_web.bat` | **웹 모드 매일 실행기** — `webapp/win_start.bat` 을 호출. 첫 실행 때 `webapp/.venv` 생성 + 패키지 설치(몇 분) 후 브라우저가 `http://127.0.0.1:8765` 를 엶 | 매일 |
 | `6_start_cli.bat` | **CLI 모드 매일 실행기** — 킷 루트에서 `claude` 를 열어 줌. `GUIDE.html` 4절의 프롬프트를 붙여 넣고 시작 | 매일 |
 | `7_install_codex_optional.bat` | **선택** — `npm install -g @openai/codex`. 학습 보조 이미지를 PNG 로 그리는 모드 A 에만 필요(없으면 Claude 가 SVG 로 그리는 모드 B 로 자동 대체). 설치 후 `codex login` 은 직접 실행 | 필요할 때만 |
+| `8_install_video.bat` | 논문 소개 영상(Stage 13) 도구 — `skills/motion-broll` 을 `.claude/skills/motion-broll` 로 복사(스킬 설치) → `tools/video/make_video.py - setup`(ffmpeg·node 패키지·Chromium) → **선택** TTS 환경(`- setup-tts`, 수 GB, NVIDIA GPU 권장) → `- doctor` 로 결과 출력. 영상 단계가 처음 실행될 때 같은 설치를 스스로 하므로 미리 해 두는 용도 | 영상을 만들기 전 한 번 |
 
 ## 순서
 
@@ -25,6 +26,7 @@
    - 이미 설치된 단계는 `[OK] already installed` 만 찍고 끝나므로, 다시 눌러도 안전합니다.
 2. **매일**: `5_start_web.bat`(브라우저에서 작업) 또는 `6_start_cli.bat`(터미널에서 Claude 와 대화) 중 하나
 3. `7` 은 codex 이미지 생성을 쓰고 싶을 때만
+4. `8` 은 소개 영상 도구를 미리 설치할 때 (건너뛰어도 첫 영상 때 자동 설치)
 
 막히면 `0_check.bat` 을 다시 눌러 어느 번호가 남았는지 확인하세요.
 
@@ -54,4 +56,9 @@ claude
 
 # 7. (선택) codex
 npm install -g @openai/codex && codex login
+
+# 8. 소개 영상 도구 (스킬 복사 + ffmpeg·node 패키지·Chromium, TTS는 수 GB)
+python3 tools/video/make_video.py - setup
+python3 tools/video/make_video.py - setup-tts   # 선택: 첫 영상 때 자동 설치
+python3 tools/video/make_video.py - doctor
 ```

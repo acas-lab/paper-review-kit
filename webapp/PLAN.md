@@ -120,9 +120,8 @@ claude -p \
 webapp/
 ├── PLAN.md            ← (이 문서)
 ├── backend/
-│   ├── main.py        · FastAPI 엔트리 (REST + WebSocket)
-│   ├── claude_runner.py · claude -p 서브프로세스 구동 + stream-json 파싱
-│   ├── papers.py      · 업로드/폴더 생성/결과 서빙
+│   ├── main.py        · FastAPI 엔트리 (REST + WebSocket) · 업로드/논문 목록/결과 서빙 · Host/Origin 검사
+│   ├── runner.py      · claude-agent-sdk(ClaudeSDKClient) 세션 구동 + 이벤트 변환
 │   └── requirements.txt
 ├── frontend/
 │   ├── index.html     · 대시보드
@@ -138,8 +137,8 @@ webapp/
 ## 7. 이미지 생성 — 모드 선택 (codex PNG / Claude SVG)
 
 - **두 모드 선택 (2026-06-29 추가)**: 상단 토글로 사용자가 고른다.
-  - **모드 A `codex`** — 백엔드 Claude가 **CLAUDE.md §11 "6계명"** 대로 Bash로 `codex`를 직접 호출 → PNG. 규칙: 플러그인 없이 직접 터미널 제어 / prompt.txt UTF-8 / `< /dev/null` / **이미지 내부에 논문 제목·헤더·저자명 금지** / 출력 경로·해상도 명시. 전제: `codex` CLI 설치·로그인.
-  - **모드 B `claude_svg`** — Claude가 외부 도구 없이 **인라인 `<svg>` 도식을 직접 작성**. codex 불필요. v3 토큰으로 테마 일관. codex 미설치 시 자동 폴백.
+  - **모드 A `codex`** — 백엔드 Claude가 **`rules/component_rules.md` §11 "6계명"** 대로 Bash로 `codex`를 직접 호출 → PNG. 규칙: 플러그인 없이 직접 터미널 제어 / prompt.txt UTF-8 / `< /dev/null` / **이미지 내부에 논문 제목·헤더·저자명 금지** / 출력 경로·해상도 명시. 전제: `codex` CLI 설치·로그인.
+  - **모드 B `claude_svg`** — Claude가 외부 도구 없이 **인라인 `<svg>` 도식을 직접 작성**. codex 불필요. v4 토큰으로 테마 일관. codex 미설치 시 자동 폴백.
 - 프론트가 매 메시지에 `[이미지 생성 모드: codex|claude_svg]` 태그를 붙이고, 백엔드 `runner.WEBAPP_APPEND`가 그 태그의 의미를 세션에 주입한다. 규약 정본: `rules/component_rules.md` §11.9 (CLI·웹 공통).
 - codex 미설치면 토글이 `claude_svg`로 잠겨 그래도 이미지 단계가 진행된다(graceful degrade).
 
@@ -185,7 +184,7 @@ webapp/
 ## 11. 다음 액션 (합의 후)
 
 1. 이 PLAN 리뷰·수정 → 확정
-2. `webapp/backend/claude_runner.py` 프로토타입: `claude -p` 스트림 파싱 1개 검증(가장 불확실한 부분 먼저)
+2. `webapp/backend/runner.py` 프로토타입: Claude 세션 스트림 파싱 1개 검증(가장 불확실한 부분 먼저 — 구현은 claude-agent-sdk, `verify_glue.py` 참고)
 3. 최소 프론트(채팅+업로드) 연결
 4. 한 논문으로 end-to-end 스모크 테스트
 ```

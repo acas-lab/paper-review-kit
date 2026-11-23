@@ -43,6 +43,10 @@ Stage 1 은 논문 전체를 처음 통독하는 단계이므로, 여기서 `con
 
 Cleaned text 와 별개의 부산물이며, 본문 텍스트 자체는 건드리지 않는다.
 
+## topbar 메타 (`config.json#meta`) 초안
+
+같은 통독에서 `config.json#meta`(topbar 필드)의 초안도 쓴다 — PDF 제목·저자·소속·venue·연도·코드 URL. Stage 10 조립 전에 확정한다. 필드 목록·형식은 `rules/design_v4_dashboard.md` §6 2단계(topbar 필드)이고, venue 표기 형식은 위 `config.json#domain`의 `venue_type`을 따른다. 코드 URL이 없으면 `meta.code` 키를 뺀다(값이 그대로 `href`가 된다).
+
 ## 금지
 
 - 요약 금지

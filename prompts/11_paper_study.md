@@ -4,6 +4,10 @@
 콘텐츠가 된다. 탭 등록·라우팅 규약 = `rules/design_v4_dashboard.md` §3-bis, 컴포넌트 정본 =
 `rules/component_rules.md` §17, 구현 정본 = `samples/cares/_build.py` + `samples/cares/tabs_data/study.json` (배포본에 동봉된 실제 v4 8탭 정본).
 
+**이 단계는 기본 빌드 필수다.** study.json이 없을 때 빌더가 그리는 ①′ 자동 셸은 개발 중 "작성 전" 임시 상태일 뿐
+산출물이 아니다 — `tools/check_paper_structure.py`·`tools/check_study_refs.py`가 FAIL로 잡고, Study 검토 버튼
+(`study_review_inject.py`)도 study.json을 기준 분석으로 쓴다.
+
 > 이 킷은 특정 분야(AI/ML)에 묶이지 않는다. 자연과학·공학·AI/CS·의학·인문사회 어느 분야의 논문이든 같은 절차로 만든다. 분야에 따라 달라지는 것(용어 표기 관행·증거의 종류·대안 설명 축·배경지식 단위·학회/저널 메타)은 `config.json#domain`(정본: `rules/domain_profile.md`)에서 읽어 채운다. 문서 안의 ML 논문 예시는 **예시일 뿐** 규칙이 아니다.
 
 ## 이 탭의 성격 — 다른 탭과 무엇이 다른가
@@ -131,8 +135,11 @@ Dissection·Background·Diagrams는 Claude의 **완성된 해설**이다. Paper 
 노트 내보내기/가져오기로만 보존), **같은 pid는 Step 간 체크 공유**.
 
 - `pids`를 생략하면 섹션 전체. 섹션 일부만 필요하면(예: §4에서 4.1만) pids로 지정.
-- `sec`는 **structured.json의 실제 section_id**. 서론은 `s_intro` 관례 필수 — Translation 탭의
-  "Paper Study로 돌아가기" 버튼이 이 id를 anchor로 삽입된다.
+- `sec`는 **structured.json의 실제 section_id**를 그대로 쓴다 — `tools/structure_paper.py` 출력이면
+  `s2`(Abstract)·`s3`(1 Introduction) 같은 번호 id다. 예시의 `s_intro`·`s_method`는 CARES(수작업 id)
+  표기일 뿐이고, id를 바꾸려고 structured.json을 고치지 않는다(sentence_id가 함께 바뀐다). 기준 빌더는
+  Step 2 `rq.read`의 **마지막 항목을 서론**으로 보고 Translation 탭의 "Paper Study로 돌아가기" anchor를
+  그 섹션에 둔다 — `rq.read`는 [Abstract, 서론] 순서로 쓴다.
 - Step별 표준 배정: Step 2 = Abstract + 서론 / Step 3 = 서론(공유) + Related Work /
   Step 4 = 방법 + 실험 설정 / Step 5 = 결과·어블레이션 / Step 6 = Discussion /
   Step 7 = Discussion(공유) + Limitations.

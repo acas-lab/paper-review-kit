@@ -2,3 +2,7 @@
 *.sh text eol=lf
 # Windows 배치 파일은 CRLF
 *.bat text eol=crlf
+# 바이너리 (영상 도구의 목소리 원본·글꼴, 스킬 글꼴) — 줄바꿈 변환·diff 금지
+*.mp3 binary
+*.ttf binary
+*.woff2 binary

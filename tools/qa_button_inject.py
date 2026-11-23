@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """qa_button_inject.py - 메모 플로팅 드로어에 'Q&A 생성' 버튼을 주입.
 
-메모 드로어(.memo-drawer/.memo-pad/.memo-status)는 자립형(memo_inject.py, papers 1~3)
-이든 CARES-통합형(papers 4~26)이든 **동일 클래스**를 쓴다. 그래서 이 도구는 런타임에
-JS 로 `.memo-drawer` 를 찾아 버튼 바를 붙이는 방식으로 26편 전체를 균일 처리한다
+메모 드로어(.memo-drawer/.memo-pad/.memo-status)는 자립형(memo_inject.py, 빌더 없는 논문)
+이든 CARES-통합형(samples/cares 계보 빌더)이든 **동일 클래스**를 쓴다. 그래서 이 도구는 런타임에
+JS 로 `.memo-drawer` 를 찾아 버튼 바를 붙이는 방식으로 모든 논문을 균일 처리한다
 (기존 마크업·콘텐츠 무변경, additive, idempotent).
 
 버튼 동작
@@ -28,14 +28,19 @@ JS 로 `.memo-drawer` 를 찾아 버튼 바를 붙이는 방식으로 26편 전�
   `nochange{reason:"noop"}` 를 보내면 **클라이언트 해시를 봉인하지 않고 '그래도 다시 생성'**
   우회를 노출한다 - 정당한 새 질문이 해시로 영구 차단되는 경로를 없애기 위해서다.
 
+- **하드닝된 브릿지 대응 (v4, 2026-11)**: 브릿지 1.3 은 POST 에 `Content-Type: application/json`
+  + `X-QA-Bridge: 1` 을 요구한다(교차 사이트 simple request 차단 → preflight 강제). 공용 helper
+  (`__qaBridgeEnsure`·`__qaBridgeJob2`)에 `.v = 2` 를 붙여, 구버전 helper 가 먼저 정의된 페이지에서도
+  새 helper 로 덮어쓴다.
+
 또한 ⑥ tab-qa 에 헤드리스 claude 가 써넣을 카드용 `.qa-mem-*` CSS 를 함께 주입한다
 (스타일을 파일에 고정 → 헤드리스 런은 클래스만 맞추면 됨).
 
 사용법:  python tools/qa_button_inject.py "papers/N. shortname"
-        python tools/qa_button_inject.py --all        # papers 전체
+        python tools/qa_button_inject.py --all        # papers/* + samples/* 전체
 검증  :  재실행 시 이미 있으면 skip (idempotent).
 
-정본: papers 1~26 (2026-07-09) · v2 비동기 job (2026-09-10) · v3 묶음 카드(.qa-mem-covers) + noop 우회 안내 (2026-09-10, 모체 papers 1~35 — 배포본 미포함).
+정본: samples/cares (배포 킷 견본) · v2 비동기 job (2026-09-10) · v3 묶음 카드(.qa-mem-covers) + noop 우회 안내 (2026-09-10) · v4 브릿지 1.3 헤더 (2026-11).
 """
 import sys
 from pathlib import Path
@@ -100,7 +105,7 @@ QA_CSS = """
 
 QA_JS = r"""
 <script>
-/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v3 - 비동기 job 폴링 + qabridge:// 자동 시작 + 묶음 카드/해시 우회 ==== */
+/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v4 - JSON+X-QA-Bridge 헤더 · 비동기 job 폴링 + qabridge:// 자동 시작 + 묶음 카드/해시 우회 ==== */
 (function(){
   var SHORT = "__SHORT__";
   function bridgeUrl(){
@@ -115,7 +120,8 @@ QA_JS = r"""
   }
 
   /* ---- 공용: 브릿지가 켜져 있는지 확인하고, 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 ---- */
-  if(!window.__qaBridgeEnsure){
+  /* v2 = 하드닝된 브릿지(1.3+) 대응. 구버전 helper 가 먼저 정의돼 있어도 덮어쓴다. */
+  if(!window.__qaBridgeEnsure || (window.__qaBridgeEnsure.v|0) < 2){
     window.__qaBridgeEnsure = function(onReady, onStatus){
       var url = bridgeUrl();
       function ping(){ return fetchT(url + '/ping', {method:'GET'}, 2000).then(function(r){ return !!(r && r.ok); }).catch(function(){ return false; }); }
@@ -139,13 +145,14 @@ QA_JS = r"""
         })();
       });
     };
+    window.__qaBridgeEnsure.v = 2;
   }
 
   /* ---- 공용: 비동기 job 접수 + 폴링 (qa_button_inject / study_review_inject 공유, v2) ----
      헤드리스 claude 는 10분을 넘기는 일이 흔하다. 한 번의 fetch 로 끝까지 기다리면
      브라우저 타임아웃·탭 이동에 결과를 잃으므로, 202 로 job_id 만 받고 /job 을 폴링한다.
      job_id 는 localStorage 에 남겨 새로고침·재오픈 후에도 같은 작업에 다시 붙는다. */
-  if(!window.__qaBridgeJob2){
+  if(!window.__qaBridgeJob2 || (window.__qaBridgeJob2.v|0) < 2){
     window.__qaBridgeJob2 = function(o){
       /* o = {path, body, jobKey, running(text)->html, onStatus(html,cls), onResult(res),
               onGiveUp(), onLost(), onError(err), resumeOnly} */
@@ -186,7 +193,7 @@ QA_JS = r"""
       }
       var body = o.body || {};
       body.async = 1;              /* 새 클라이언트 표식 - 없으면 브릿지가 동기 응답(구버전 호환) */
-      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body)}, 20000)
+      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'application/json', 'X-QA-Bridge':'1'}, body: JSON.stringify(body)}, 20000)
         .then(function(r){ return r.json(); })
         .then(function(res){
           if(res && res.status === 'accepted' && res.job_id){
@@ -198,6 +205,7 @@ QA_JS = r"""
         .catch(function(err){ stopped = true; if(o.onError) o.onError(err); });
       return true;
     };
+    window.__qaBridgeJob2.v = 2;
   }
 
   var HKEY = "prstudy:" + SHORT + ":qa_client_hash";
@@ -338,6 +346,16 @@ _STRIP_CSS = re.compile(r"<style>\s*/\* ==== 메모 Q&A 생성 버튼 \(qa_butto
 _STRIP_JS = re.compile(r"<script>\s*/\* ==== 메모 Q&A 생성 버튼 \(qa_button_inject\.py\).*?</script>\s*", re.S)
 
 
+def all_output_htmls():
+    """--all 대상: papers/*/ 와 samples/*/ 의 *_output.html (배포 킷은 papers 가 비어 있고 견본은 samples/cares)."""
+    out = []
+    for b in ("papers", "samples"):
+        base = ROOT / b
+        if base.is_dir():
+            out.extend(sorted(base.glob("*/*_output.html")))
+    return out
+
+
 def inject_one(html_path):
     short = html_path.name.replace("_output.html", "")
     text = html_path.read_text(encoding="utf-8")
@@ -381,13 +399,24 @@ def main():
         pass
 
     args = sys.argv[1:]
+    # --check: 주입 여부만 보고하고 파일은 고치지 않는다 (workflow.md Stage 10 체인 3번)
+    check_only = "--check" in args
+    args = [a for a in args if a != "--check"]
+    if check_only:
+        htmls = all_output_htmls() if (not args or args[0] == "--all") else \
+            list((Path(args[0]) if Path(args[0]).is_absolute() else ROOT / args[0]).glob("*_output.html"))
+        miss = 0
+        for h in htmls:
+            ok = "qa-gen-bar" in h.read_text(encoding="utf-8")
+            miss += not ok
+            print(f"[{'ok ' if ok else 'MISS'}] {h.parent.name}/{h.name}: Q&A 버튼 {'주입됨' if ok else '없음'}")
+        raise SystemExit(1 if miss else 0)
     if not args:
         raise SystemExit('usage: python tools/qa_button_inject.py "papers/N. shortname" | --all')
     if args[0] == "--all":
-        base = ROOT / "papers"
-        htmls = sorted(base.glob("*/*_output.html"))
+        htmls = all_output_htmls()
         if not htmls:
-            raise SystemExit(f"[FAIL] no *_output.html under {base}")
+            raise SystemExit(f"[FAIL] no *_output.html under {ROOT / 'papers'} or {ROOT / 'samples'}")
         done = 0
         for h in htmls:
             if inject_one(h):

@@ -39,11 +39,11 @@ English Term (한글 설명)
 
 개념 카드의 단위(무엇을 한 카드로 세우는가)는 `config.json#domain.background_units` 를 따른다 (예: AI/CS — 추론 루프·토큰; 실험과학 — 실험 흐름·측정 원리; 인문사회 — 이론 계보·개념 정의·방법론).
 
-모든 개념 카드(`fund_cards`, `concept_cards`)는 다음 3단계를 모두 포함:
+모든 개념 카드(`fund_cards`, `concept_cards`)의 `body` 한 단락은 다음 3단계를 차례로 모두 포함(필드는 `{label, title, body}` - 정본 스키마 `prompts/07_background_knowledge.md`):
 
-1. **직관 (`intuition`)** — 비유 / 큰 그림 / "왜 필요한가"
-2. **구조·작동 (`structure`)** — 실제 메커니즘
-3. **논문 연결 (`paper_role`)** — 이 논문에서 어떤 역할을 하는가
+1. **직관** — 비유 / 큰 그림 / "왜 필요한가"
+2. **구조·작동** — 실제 메커니즘
+3. **논문 연결** — 이 논문에서 어떤 역할을 하는가
 
 한 단계라도 비면 그 카드는 미완성.
 
@@ -65,9 +65,10 @@ English Term (한글 설명)
 {
   "eq_id": "eq1_<keyword>",
   "tex": "...",            // LaTeX (JSON 안에서 \\ 두 번)
-  "what": "수식이 무엇을 계산하는가",
-  "why":  "왜 이 형태인가 / 왜 도입했는가",
-  "links": "이 식의 출력이 어디서 쓰이는가 (앞뒤 연결)"
+  "label": "수식 이름 (평문)",
+  "where": "기호 의미 - 수식이 무엇을 계산하는가 (HTML)",
+  "intuition": "직관·연결 - 왜 이 형태인가, 출력이 어디서 쓰이는가 (HTML)",
+  "refs": ["p3_s2"]
 }
 ```
 
@@ -79,11 +80,11 @@ English Term (한글 설명)
 
 ## 6. 다이어그램 SVG
 
-`primer.svg_key`로 참조되는 도입 다이어그램은 Stage 10에서 Claude가 단일 HTML에 SVG로 인라인하거나, `assets/generated/knowledge_*.png`를 만들어 base64 인라인한다 (CLAUDE.md 자산 임베딩 정책).
+`primer.image_path`로 참조하는 도입 다이어그램은 `assets/generated/knowledge_*.png`(모드 A, base64 인라인) 또는 같은 자리의 `knowledge_*.svg`(모드 B, 빌더가 인라인)로 둔다 (CLAUDE.md 자산 임베딩 정책, `rules/component_rules.md` §11.9).
 
 - 외부 라이브러리 의존 없음
 - 정적 (애니메이션은 ⑥ `tab-qa`의 위젯에서 사용)
-- 색상은 디자인 토큰(`--accent`, `--sage`, `--gold`, `--indigo`, `--plum`) 사용
+- 색상은 v4 디자인 토큰(`--accent`, `--accent-soft`, `--azure`, `--mint`, `--amber`, `--ink`) 사용 (`rules/design_v4_dashboard.md` §1)
 - FrameFusion이 개입하는 위치 같은 핵심 포인트는 ★ 빨간 배지 등으로 강조
 
 ---

@@ -21,7 +21,7 @@ def _load_source() -> str:
         if cand.exists():
             return cand.read_text(encoding="utf-8")
     raise SystemExit("[FAIL] Paper Study 정본 빌더를 찾을 수 없습니다 "
-                     "(samples/cares/_build.py 또는 papers/26. cares/_build.py).")
+                     "(samples/cares/_build.py, 모체: papers/26. cares/_build.py).")
 
 
 SRC = _load_source()

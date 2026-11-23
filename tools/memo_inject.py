@@ -3,7 +3,7 @@
 
 대상: 이미 v4 대시보드지만 Paper Study 모듈(sget/sset·notes 시스템)이 없어
 `paper_study_retrofit.py`(빌더 필요)를 못 쓰는 논문 - 특히 _build.py가 없는
-papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
+모체 papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
 
 정본 CARES의 메모는 Paper Study 모듈 JS 안에 통합돼 있어(sget/sset 의존) 그대로
 떼어낼 수 없다. 이 도구는 **자체 localStorage 키(`prstudy:{SHORT}:memo`)** 를 가진
@@ -16,7 +16,7 @@ papers 1~3 (SAFE / FrameFusion / SGL, 대화형·수작업 빌드).
 사용법: python tools/memo_inject.py "papers/N. shortname"
 검증: 재실행 시 이미 있으면 skip (idempotent).
 
-정본 사례: papers 1~3 (2026-07-09).
+정본 사례: 모체 papers 1~3 (2026-07-09).
 """
 import re
 import sys

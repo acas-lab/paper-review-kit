@@ -11,6 +11,7 @@ study.json의 ref 종류 (rules/component_rules.md §17, prompts/11):
           claude_items[].evidence[].ref, result_assets[], assets[].
 
 사용법: python tools/check_study_refs.py "papers/N. shortname"
+        python tools/check_study_refs.py --all      # papers/* + samples/* (산출물이 있는 폴더)
 """
 import json
 import re
@@ -103,15 +104,42 @@ def check_caption_language(paper: Path):
     return bad
 
 
+REPO = Path(__file__).resolve().parent.parent
+
+
+def all_folders():
+    """papers/* + samples/* 중 산출물 HTML 이 있는 폴더 - 빈 배포본에서도 정본 samples/cares 를 검사한다."""
+    out = []
+    for base in ("papers", "samples"):
+        b = REPO / base
+        if b.is_dir():
+            out += [d for d in sorted(b.iterdir()) if d.is_dir() and list(d.glob("*_output.html"))]
+    return out
+
+
 def main():
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
-    paper = Path(sys.argv[1])
+    if sys.argv[1] == "--all":
+        fails = 0
+        for d in all_folders():
+            try:
+                check_one(d)
+            except SystemExit as e:
+                if e.code not in (None, 0):
+                    print(e.code)
+                    fails += 1
+        if fails:
+            raise SystemExit(f"[FAIL] {fails}편")
+        return
+    check_one(Path(sys.argv[1]))
+
+
+def check_one(paper: Path):
     study_path = paper / "tabs_data" / "study.json"
     if not study_path.exists():
-        # Paper Study는 opt-in - study.json이 없으면 검증할 것이 없다 (①′는 빌더가 자동 셸 렌더)
-        print(f"[skip] {paper.name}: tabs_data/study.json 없음 - Paper Study 미작성 (①′ 자동 셸)")
-        return
+        # study.json은 기본 빌드 필수 (CLAUDE.md § 기본 빌드 범위) - 빌더의 자동 셸은 '작성 전' 상태일 뿐
+        raise SystemExit(f"[FAIL] {paper.name}: tabs_data/study.json 없음 - Stage 11(prompts/11_paper_study.md) 미완")
     sec, para, sent, assets = collect_ids(paper)
     cap_bad = check_caption_language(paper)
     study = json.loads(study_path.read_text(encoding="utf-8"))

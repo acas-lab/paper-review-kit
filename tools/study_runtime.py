@@ -2,14 +2,14 @@
 """study_inject.py 런타임 자산 - Paper Study 뷰어 마크업 + 자립형 JS.
 
 CARES 정본과 동일한 클래스명(.para-reader/.pr-*/.asset-viewer/.av-*)을 쓰되,
-CARES 모놀리식 IIFE에 의존하지 않는 자립형 IIFE. papers 1~3 DOM 규약에 배선:
+CARES 모놀리식 IIFE에 의존하지 않는 자립형 IIFE. 모체 papers 1~3 DOM 규약에 배선:
   - 문장: [data-pair="pN_sM"]   - 섹션: section#sN
   - 단락: .paragraph-block#pN   - 자산: #fig_N (study_inject가 id 소급) 안의 img
 탭 점프는 각 논문 nav 버튼 .click()으로 위임(해시 라우팅 재사용).
 localStorage 네임스페이스 prstudy:{SHORT}:* - memo_inject.py의 메모와 공유(노트 내보내기 포함).
 """
 
-# 뷰어 마크업 - av-guide(학습 가이드) 버튼은 papers 1~3에 study_modals 데이터가 없어 제외.
+# 뷰어 마크업 - av-guide(학습 가이드) 버튼은 모체 papers 1~3에 study_modals 데이터가 없어 제외.
 VIEWER_MARKUP = """
 <div class="para-reader" role="dialog" aria-label="본문 단락 보기" aria-hidden="true">
   <div class="pr-panel">

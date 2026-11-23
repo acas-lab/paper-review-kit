@@ -22,12 +22,12 @@
 
 사용법:
     python tools/check_image_prompts.py "papers/N. shortname"   # 한 논문
-    python tools/check_image_prompts.py --all                    # papers/ 전체
+    python tools/check_image_prompts.py --all                    # papers/ + samples/ 전체
     python tools/check_image_prompts.py <prompt 파일 경로>        # 파일 하나
 
 하드 실패(FAIL) = 캔버스·5단 헤더·overview 수치/분량·컷아웃·6계명·한자 이물.
 경고(warn) = 패널 수·팔레트·레이아웃 문구·개념도 수치·PNG 부재 (서식 의존이 커 참고용).
-papers 5~9·20·24 등 2026-05-12(6계명 도입) 이전 프롬프트는 ⑦에서 FAIL이 나는 것이 정상이다 -
+모체 papers 5~9·20·24 등 2026-05-12(6계명 도입) 이전 프롬프트는 ⑦에서 FAIL이 나는 것이 정상이다 -
 이 게이트는 지금 만들고 있는 논문에 적용한다.
 
 정본: rules/component_rules.md §11.8 (+ overview 전용 §14.5)
@@ -182,7 +182,9 @@ def main():
         print("\n[ok] 프롬프트 밀도·구조 통과")
         return
 
-    papers = (sorted(p for p in (REPO / "papers").iterdir() if p.is_dir())
+    # --all = papers/* + samples/* (빈 배포본에서도 정본 samples/cares 를 검사한다)
+    papers = ([p for base in ("papers", "samples") if (REPO / base).is_dir()
+               for p in sorted((REPO / base).iterdir()) if p.is_dir()]
               if arg == "--all" else [Path(arg)])
     total_fail = 0
     for paper in papers:

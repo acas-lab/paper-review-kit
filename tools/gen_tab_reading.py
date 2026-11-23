@@ -33,6 +33,17 @@ import re
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent  # repo root (tools/ 의 부모) - CWD 와 무관
+
+
+def resolve_paper_dir(name):
+    """'N. name' (papers/ 아래) · 'papers/N. name' · 'samples/x' · 절대 경로 모두 허용."""
+    p = Path(name)
+    for cand in ((p,) if p.is_absolute() else (ROOT / p, ROOT / "papers" / p)):
+        if cand.is_dir():
+            return cand
+    return None
+
 
 def strip_citations(text):
     text = re.sub(r"\s*\[[\d\s,\-–]+\]", "", text)
@@ -231,9 +242,9 @@ def main():
                     help="write to stdout instead of papers/<name>/_tab_reading.html")
     args = ap.parse_args()
 
-    paper_dir = Path("papers") / args.paper_name
-    if not paper_dir.exists():
-        sys.exit(f"papers/{args.paper_name} not found")
+    paper_dir = resolve_paper_dir(args.paper_name)
+    if paper_dir is None:
+        sys.exit(f"paper folder not found: {args.paper_name} (looked under {ROOT} and {ROOT / 'papers'})")
 
     body, (n_para, n_sent, n_hot, n_callout, n_asset, n_recall) = build_tab_reading(paper_dir)
 

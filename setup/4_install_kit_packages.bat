@@ -7,6 +7,7 @@ rem ------------------------------------------------------------------
 rem  Step 4 : Python packages used by the CLI tools in  tools\*.py
 rem     pymupdf    - PDF text / figure extraction (structure_paper, autocrop)
 rem     playwright - headless Chromium for tools\check_memo_layer.py
+rem  The list lives in  requirements.txt  at the kit root (single source).
 rem  Installed into the SYSTEM Python. (Web mode does NOT need this:
 rem  webapp\start.py creates its own webapp\.venv on first start.)
 rem  ASCII-only on purpose (cmd.exe parses .bat in the OEM code page).
@@ -55,15 +56,21 @@ if "!HAVE_FITZ!!HAVE_PW!"=="11" (
   echo [OK] already installed: pymupdf, playwright
   echo      ^(re-checking the Chromium browser for playwright...^)
 ) else (
-  echo Installing: pip pymupdf playwright  ^(a few minutes on first run^)
+  if exist "requirements.txt" (
+    set "PIPARGS=-r requirements.txt"
+  ) else (
+    set "PIPARGS=pymupdf playwright"
+  )
+  echo Installing: pip !PIPARGS!  ^(a few minutes on first run^)
   echo.
-  !PYCMD! -m pip install --upgrade pip pymupdf playwright
+  !PYCMD! -m pip install --upgrade pip
+  !PYCMD! -m pip install !PIPARGS!
   set "RC=!ERRORLEVEL!"
   echo.
   if not "!RC!"=="0" (
     echo [FAIL] pip returned error code !RC!.
     echo      Check your internet connection, then run this file again.
-    echo      Manual command:  !PYCMD! -m pip install --upgrade pip pymupdf playwright
+    echo      Manual command:  !PYCMD! -m pip install !PIPARGS!
     echo.
     pause
     exit /b 1

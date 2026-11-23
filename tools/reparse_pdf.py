@@ -44,6 +44,17 @@ import re
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent  # repo root (tools/ 의 부모) - CWD 와 무관
+
+
+def resolve_paper_dir(name):
+    """'N. name' (papers/ 아래) · 'papers/N. name' · 'samples/x' · 절대 경로 모두 허용."""
+    p = Path(name)
+    for cand in ((p,) if p.is_absolute() else (ROOT / p, ROOT / "papers" / p)):
+        if cand.is_dir():
+            return cand
+    return None
+
 try:
     import fitz
 except ModuleNotFoundError:  # 첫 실행 시 자동 설치 (CLI도 webapp venv와 동일한 경험)
@@ -202,7 +213,13 @@ def load_paper_config(paper_dir):
     """Import papers/<name>/_parse_config.py and return its module."""
     cfg_path = paper_dir / "_parse_config.py"
     if not cfg_path.exists():
-        sys.exit(f"missing {cfg_path}; author it with PAGES_BODY / SECTION_PATTERNS / FRONT_MATTER_SENTENCES (see `python tools/reparse_pdf.py --help` and the module docstring)")
+        sys.exit(
+            f"missing {cfg_path}\n"
+            "  reparse_pdf.py needs a paper-specific _parse_config.py (PAGES_BODY / SECTION_PATTERNS /\n"
+            "  FRONT_MATTER_SENTENCES - see the module docstring). The kit does not ship one.\n"
+            "  For new papers use the canonical structurer instead:\n"
+            '    python tools/structure_paper.py "rawpaper/<paper>.pdf" "papers/N. name/structured.json"'
+        )
     spec = importlib.util.spec_from_file_location("paper_parse_config", cfg_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -320,21 +337,25 @@ def main():
                     help="write to structured.json.new instead of overwriting structured.json")
     args = ap.parse_args()
 
-    paper_dir = Path("papers") / args.paper_name
-    if not paper_dir.exists():
-        sys.exit(f"papers/{args.paper_name} not found")
+    paper_dir = resolve_paper_dir(args.paper_name)
+    if paper_dir is None:
+        sys.exit(f"paper folder not found: {args.paper_name} (looked under {ROOT} and {ROOT / 'papers'})")
 
+    paper_cfg = load_paper_config(paper_dir)  # 없으면 여기서 안내 후 종료(가장 흔한 실패)
     cfg = json.loads((paper_dir / "config.json").read_text(encoding="utf-8"))
-    pdf_rel = cfg["metadata"]["source_pdf"]
+    pdf_rel = (cfg.get("metadata") or {}).get("source_pdf") or (cfg.get("meta") or {}).get("source_pdf")
+    if not pdf_rel:
+        sys.exit(f"{paper_dir / 'config.json'}: metadata.source_pdf (or meta.source_pdf) is missing")
     pdf_path = Path(pdf_rel)
+    if not pdf_path.is_absolute():
+        pdf_path = ROOT / pdf_path  # config 의 source_pdf 는 repo 루트 기준 상대 경로
     if not pdf_path.exists():
         sys.exit(f"PDF not found: {pdf_path}")
 
-    paper_cfg = load_paper_config(paper_dir)
     sections = parse_pdf(pdf_path, paper_cfg)
 
     output = {
-        "source_pdf": str(pdf_path).replace("\\", "/"),
+        "source_pdf": str(pdf_rel).replace("\\", "/"),
         "chunking_mode": "section_paragraph",
         "paragraph_id_scheme": "p1, p2, p3, ...",
         "sections": sections,

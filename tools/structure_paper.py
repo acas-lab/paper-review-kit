@@ -20,6 +20,8 @@ Output schema = rules/parsing_rules.md §3-1-bis:
 USAGE:
   python tools/structure_paper.py "rawpaper/Paper.pdf" "papers/N. name/structured.json"
   # library: from tools.structure_paper import structure; structure(pdf, out_json)
+  Also writes fulltext.txt (raw page text) next to structured.json if it does not exist —
+  the source the Stage-2 completeness check (prompts/02 C-4) compares against.
 The output is a COMPLETE first pass — eyeball it and fix any rare split glitch by hand.
 """
 from __future__ import annotations
@@ -67,10 +69,24 @@ def _norm(text: str) -> str:
     return text
 
 
+_HYPH_KEEP: set = set()   # "a-b" compounds seen un-broken somewhere in the paper (structure() fills it)
+
+
+def _join_hyphen(m) -> str:
+    a, b = m.group(1), m.group(2)
+    # keep a real compound hyphen: next part starts uppercase/digit ("ConvNeXT-XXL",
+    # "Qwen2-0.5B") or the paper writes the same pair with a hyphen elsewhere
+    # ("convolutional-transformer"); otherwise it is a line-break split ("as-sociated").
+    head = re.search(r"[A-Za-z0-9]+$", a).group(0)
+    tail = re.match(r"[A-Za-z0-9]+", b).group(0)
+    if b[:1].isupper() or b[:1].isdigit() or f"{head}-{tail}".lower() in _HYPH_KEEP:
+        return f"{a}-{b}"
+    return f"{a}{b}"
+
+
 def _dehyphen(text: str) -> str:
     text = _norm(text)
-    text = re.sub(r"(\w)[­\-]\n(\w)", r"\1\2", text)  # word-break hyphen across lines
-    text = re.sub(r"(\w)-\s*\n\s*(\w)", r"\1\2", text)
+    text = re.sub(r"(\w+)[­\-]\s*\n\s*(\w+)", _join_hyphen, text)  # hyphen at a line break
     text = text.replace("\n", " ")
     text = re.sub(r"\s+", " ", text).strip()
     return text
@@ -88,6 +104,20 @@ def _is_prose(sent: str) -> bool:
     if re.match(r"^\(?[a-z]\)\s", sent):        # "(a) Qwen2-0.5B" subplot label
         return False
     return True
+
+
+RUNIN = re.compile(r"^[A-Z][A-Za-z0-9\-]*(?: [A-Za-z0-9&\-]+){0,5}\.$")
+
+
+def _prose_sents(text: str):
+    """Sentences kept for the body. A short run-in paragraph title at the start
+    ("Training Setup." / "Evaluation.") is kept as its own sentence — _is_prose alone
+    dropped it (fewer than 3 words), losing the label from the body (Stage 2 1:1)."""
+    out = []
+    for i, s in enumerate(_split_sentences(text)):
+        if _is_prose(s) or (i == 0 and RUNIN.match(s)):
+            out.append(s)
+    return out
 
 
 def _is_header(line: str):
@@ -133,11 +163,49 @@ def _figure_boxes(page, W, H):
     return [b for b in boxes if (b[2] - b[0]) > 50 and (b[3] - b[1]) > 30]
 
 
+_AC = None   # autocrop_assets module, loaded once (False = unavailable)
+
+
+def _asset_boxes(page, W, H):
+    """Figure/table rects from the asset-crop tool (caption-anchored, same logic that
+    makes assets/*.png). Booktabs tables have only thin rules, so _figure_boxes cannot
+    see them and their header row ("Image Input #Visual GQA ...") leaked into the body
+    as prose (FastVLM Tab.1-5). A text block lying wholly inside an asset crop is part of
+    that asset, not body text (see the guards in _columns)."""
+    global _AC
+    if _AC is None:
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                "_autocrop_assets", Path(__file__).with_name("autocrop_assets.py"))
+            _AC = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(_AC)
+        except Exception:
+            _AC = False
+    if not _AC:
+        return []
+    ac = _AC
+    caps = ac._captions(page)
+    if not caps:
+        return []
+    elems = ac._graphic_elements(page, W, H)
+    bands = ac._bands(W)
+    out = []
+    for cap in caps:
+        try:
+            r, _safe = ac._bbox_for_caption(cap, elems, caps, bands, W, H)
+        except Exception:
+            continue
+        out.append([r.x0, r.y0, r.x1, r.y1])
+    return out
+
+
 def _columns(page):
     """Return reading-ordered (x-band) text blocks, excluding headers/footers/captions
     and figure-internal labels (text whose centre sits inside a figure box)."""
     W, H = page.rect.width, page.rect.height
     fboxes = _figure_boxes(page, W, H)
+    aboxes = _asset_boxes(page, W, H)
     blocks = [b for b in page.get_text("blocks") if (b[4] or "").strip()]
     keep = []
     for x0, y0, x1, y1, txt, *_ in blocks:
@@ -152,6 +220,14 @@ def _columns(page):
         # margin catches axis labels / subplot captions that hug the plot edge
         if any(bx0 - 18 <= cxc <= bx2 + 18 and by0 - 18 <= cyc <= by3 + 18
                for bx0, by0, bx2, by3 in fboxes):
+            continue
+        # whole block inside an asset crop -> table header / figure text. A header line or
+        # multi-sentence prose is kept even then, so a too-wide crop (Rethinking Fig.1
+        # spans into the Abstract column) can never delete body text.
+        if (any(bx0 - 3 <= x0 and x1 <= bx2 + 3 and by0 - 3 <= y0 and y1 <= by3 + 3
+                for bx0, by0, bx2, by3 in aboxes)
+                and not _is_header(txt.strip().split("\n")[0])
+                and len(re.findall(r"[a-z]{2}[.!?]\s+[A-Z]", txt)) < 2):
             continue
         keep.append((x0, y0, x1, y1, txt))
     # two-column if most blocks sit clearly in one half
@@ -180,13 +256,21 @@ def _split_sentences(text: str):
         if merged:
             prev = merged[-1]
             last = prev.rstrip()
-            # don't end after an abbreviation, a single capital letter, or a digit-dot (decimal/enum)
+            # don't end after an abbreviation, an initial ("J. Smith"), or a bare list
+            # number ("1. The ...") — but a version/number that closes a sentence
+            # ("... in LLaVA-1.5. For", "... v0.2.2. We", "... in Tab. 6. We") IS an end.
             tail = re.split(r"[\s(]", last)[-1].rstrip(".").lower()
-            if tail in ABBR or re.search(r"\b[A-Z]\.$", last) or re.search(r"\d\.$", last):
+            if (tail in ABBR or re.search(r"(?:^|[\s(])[A-Z]\.$", last)
+                    or re.fullmatch(r"\(?\d{1,2}\.", last)):
                 merged[-1] = prev + " " + p
                 continue
         merged.append(p)
     return [s.strip() for s in merged if s.strip()]
+
+
+def _terminated(raw: str) -> bool:
+    """Block ends a sentence (., !, ?, : — optionally followed by a closing quote/bracket)."""
+    return bool(re.search(r"[.!?:][\"')\]]*\s*$", _norm(raw).strip()))
 
 
 def _peel_header(block):
@@ -208,6 +292,9 @@ def _peel_header(block):
 
 def structure(pdf_path, out_json=None, title=None):
     doc = fitz.open(str(pdf_path))
+    _HYPH_KEEP.clear()
+    for pg in doc:   # hyphenated compounds written on one line somewhere in the paper
+        _HYPH_KEEP.update(m.lower() for m in re.findall(r"[A-Za-z0-9]+-[A-Za-z0-9]+", _norm(pg.get_text())))
     lines = []
     for pno in range(doc.page_count):
         for block in _columns(doc[pno]):
@@ -216,6 +303,7 @@ def structure(pdf_path, out_json=None, title=None):
     sec_i = para_i = 0
     pending_subtitle = None
     stopped = False
+    open_para = None          # (section, paragraph, raw text) of an unterminated paragraph
     for block in lines:
         first = block.strip().split("\n")[0]
         if STOP.match(first):
@@ -224,6 +312,7 @@ def structure(pdf_path, out_json=None, title=None):
         # peel a leading header off the block (handles 'N\nTITLE\npara' ICLR blocks)
         head, block = _peel_header(block)
         if head:
+            open_para = None
             if re.match(r"^\d+\.\d", head):       # subsection x.y -> subtitle
                 pending_subtitle = head
             else:                                  # top-level / word header -> new section
@@ -240,8 +329,19 @@ def structure(pdf_path, out_json=None, title=None):
         text = _dehyphen(block)
         if len(text) < 2:
             continue
-        sents = [s for s in _split_sentences(text) if _is_prose(s)]
+        sents = _prose_sents(text)
         if not sents:
+            continue
+        # A paragraph that broke at a column/page end (previous block stops without
+        # terminal punctuation: "... model fam-" | "ily [80] ...") continues here —
+        # same paragraph_id, re-split as one text, instead of a new fragment paragraph.
+        if not head and open_para is not None and open_para[0] is cur:
+            raw = open_para[2].rstrip() + "\n" + block.lstrip()
+            sents2 = _prose_sents(_dehyphen(raw))
+            para = open_para[1]
+            para["sentences"] = [{"sentence_id": f"{para['paragraph_id']}_s{j+1}", "text": s}
+                                 for j, s in enumerate(sents2)]
+            open_para = (cur, para, raw) if not _terminated(raw) else None
             continue
         para_i += 1
         pid = f"p{para_i}"
@@ -252,6 +352,7 @@ def structure(pdf_path, out_json=None, title=None):
         para["sentences"] = [{"sentence_id": f"{pid}_s{j+1}", "text": s}
                              for j, s in enumerate(sents)]
         cur["paragraphs"].append(para)
+        open_para = (cur, para, block) if not _terminated(block) else None
     # drop empty sections
     sections = [s for s in sections if s["paragraphs"]]
     # drop a tiny leading title-page section (title/authors/emails) when real sections follow
@@ -265,6 +366,12 @@ def structure(pdf_path, out_json=None, title=None):
         result = {"title": title, **result}
     if out_json:
         Path(out_json).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        # fulltext.txt = the comparison source for the Stage-2 completeness check
+        # (prompts/02_structuring.md C-4) and captions_en (prompts/11). Written once;
+        # a hand-cleaned fulltext.txt (Stage 1) is never overwritten.
+        ft = Path(out_json).with_name("fulltext.txt")
+        if not ft.exists():
+            ft.write_text("\n".join(_norm(pg.get_text()) for pg in doc), encoding="utf-8")
     return result
 
 

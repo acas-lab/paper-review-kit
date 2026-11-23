@@ -12,14 +12,14 @@
 
 변환 내용 (rules/design_v4_dashboard.md 정본 규약):
   ① v3 lavender 토큰 → v4 저채도 grey-lavender  ② hero 카드 → topbar(로고+3줄+우측 메타)
-  ③ 숫자 pill 6탭 → 숫자 없는 7탭 (knowledge의 eq-panel을 Mathematics 탭으로 분리)
+  ③ 숫자 pill 탭 → 숫자 없는 탭 (knowledge의 eq-panel을 Mathematics 탭으로 분리 — Paper Study 포함 시 8탭)
   ④ 해시 라우팅(뒤로/앞으로 버튼·딥링크)  ⑤ serif 제거·radius 14·--shadow·밝은 수식 블록
 
 검증: 변환 전후 콘텐츠 인벤토리 상대 비교(문장·카드·자산 수 보존 + 탭 +1) - 논문별 수치 하드코딩 없음.
 Paper Study 탭(tab-study)이 있는 v3 산출물은 7→8탭, 없으면 6→7탭으로 변환된다.
 논문별로 수정할 곳: 없음 (전부 config.json meta에서 읽음).
 
-첫 적용 사례·원형: papers/26. cares/_restyle_dash_v3.py (CARES 전용 historical).
+첫 적용 사례·원형: CARES 전용 _restyle_dash_v3.py (모체 사례 — 배포본 미포함). 정본 적용 예: samples/cares.
 """
 import base64
 import json
@@ -316,6 +316,9 @@ nav.tabs .tab-btn.active::before{content:"";position:absolute;left:14px;right:14
         intro_p = msub.group(1).strip() if msub else "핵심 수식을 유도·직관·함의와 함께 푸는 탭."
         math_body = eq_panel
     else:
+        # 수식 카드가 있는데 패널을 못 찾으면 빈 탭으로 조용히 넘어가지 않는다
+        if 'class="eq-card"' in t[i_k:i_q]:
+            raise SystemExit('[FAIL] eq-card 가 있는데 <section class="eq-panel"> 이 없음 - 패널 마크업을 section 으로 맞출 것')
         intro_p = "이 논문의 핵심 수식 탭입니다."
         math_body = '<section class="section section-empty"><p class="section-empty-note">수식 카드가 없는 논문입니다.</p></section>'
 

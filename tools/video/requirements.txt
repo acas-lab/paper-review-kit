@@ -1,0 +1,6 @@
+# 영상 파이프라인 호스트 파이썬 패키지 (make_video.py - setup 이 설치). TTS는 별도 venv(tts_env, - setup-tts)
+PyMuPDF
+Pillow
+numpy
+imageio-ffmpeg
+faster-whisper

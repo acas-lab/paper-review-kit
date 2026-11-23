@@ -54,17 +54,35 @@ v5 는 자리가 부족하면 메모를 가이드 **위에** 띄웠는데, 그�
 (`.av-img img{max-height:82vh}`). 이미지만 남으면 필요한 폭이 작아지므로(560 → 260)
 세 패널이 1080px 에서도 공존한다. 가이드를 닫으면 캡션·번역이 그대로 돌아온다.
 
+v7 (2026-11-23) - 자산 뷰어 반응형(가로 <-> 세로 적층) + 가이드·메모 나란히 서기의 하한 교정
+-------------------------------------------------------------------------------------------
+(1) v6 의 "이미지 전용 모드"는 가이드가 캡션·번역을 대신한다는 전제였지만, 가이드 4섹션
+    (look/num/author/check)에는 원문 캡션·번역·해석이 없다. 감추면 정보가 사라진다.
+    v7 은 감추지 않고 **뷰어를 세로로 쌓는다** - 위: 이미지 / 가운데: 원문 캡션 + 번역 /
+    아래: 해석 보기. 패널 본문(`.av-body`)이 통째로 세로 스크롤한다.
+    전환 기준은 뷰포트 폭 상수가 아니라 **이미지**다. 가로 배치에서 이미지 칸에 남는 폭
+    (`패널 폭 - 428` = 텍스트 칸 400 + 이미지 칸 여백 28)이 그 이미지의 필요 폭
+    `min(360px, 원본 폭, 0.78vh x 종횡비)` 보다 작으면 세로 적층(`body.mlx-av-stack`),
+    아니면 논문 자체 배치(av-tall = 가로 / av-wide = 세로)를 그대로 둔다. 메모·가이드
+    여닫기·창 크기 변경·이미지 로드마다 다시 판정한다.
+(2) v6 은 오버레이가 없을 때도 `vw - 메모 - 가이드 >= 360` 을 요구해, 1080px 에서
+    가이드(389) + 메모(345) = 734 -> 남는 폭 346 으로 탈락, 메모가 가이드를 덮었다.
+    본문은 오버레이가 아니라 맥락이므로 360 은 과했다. v7 은 **남는 띠 120px**
+    (바깥 더블클릭으로 메모를 닫을 자리)만 요구한다 -> 뷰포트 700px 까지 나란히.
+    자산 뷰어가 열려 있어도 같은 기준으로 나란히 서고, 뷰어는 세로 적층으로 버틴다
+    (오버레이 폭 >= 304 = 패널 260 + 여백 44 일 때 축소, 그 아래는 `mlx-float`).
+
 additive · idempotent · 업데이터(구버전 블록 제거 후 재주입). 기존 마크업·콘텐츠 무변경.
 
 사용법:
     python tools/memo_layer_fix.py "papers/N. shortname"
-    python tools/memo_layer_fix.py --all
+    python tools/memo_layer_fix.py --all      # papers/ + samples/ (산출물이 있는 폴더)
 """
 import re
 import sys
 from pathlib import Path
 
-VERSION = "v6"
+VERSION = "v7"
 BEGIN = f"<!-- MEMO-LAYER-FIX {VERSION} (tools/memo_layer_fix.py) -->"
 END = "<!-- /MEMO-LAYER-FIX -->"
 # 구버전까지 싹 지우기 위한 범용 패턴
@@ -92,7 +110,7 @@ body.mlx-memo.mlx-shrink .notes-picker,
 /* .study-modal 이라도 실제로는 440px 사이드 드로어인 세대(papers 24 계열)가 있다.
    그런 요소는 JS 가 .mlx-side 로 표시하며, 옆자리를 이미 배정받았으므로 축소 대상에서 뺀다. */
 body.mlx-memo.mlx-shrink .study-modal:not(.mlx-side){right:var(--overlay-right)}
-body.mlx-memo.mlx-shrink .asset-viewer.av-shift{padding-right:22px;justify-content:center}
+body.mlx-memo.mlx-shrink .asset-viewer.open{padding-right:22px;justify-content:center}
 body.mlx-memo.mlx-shrink .img-lightbox-stage{max-width:max(520px,calc(96vw - var(--overlay-right)))}
 body.mlx-memo.mlx-shrink .img-lightbox img{max-width:min(100%,max(520px,calc(96vw - var(--overlay-right))))}
 body.mlx-memo.mlx-shrink .img-lightbox-caption{max-width:max(340px,calc(80vw - var(--overlay-right)))}
@@ -108,14 +126,21 @@ body.mlx-narrow .study-drawer,
 body.mlx-narrow .mlx-side{width:var(--sd-w)}
 body.mlx-narrow .memo-drawer{width:var(--memo-w)}
 
-/* ---- 학습 가이드를 열면 자산 뷰어는 이미지 전용이 된다 - 원문 캡션·번역은 가이드가 대신한다 ---- */
-body.mlx-guided .asset-viewer .av-text{display:none}
-body.mlx-guided .asset-viewer .av-body{flex-direction:column}
-body.mlx-guided .asset-viewer .av-img{flex:1 1 auto;padding:10px;align-items:center}
-body.mlx-guided .asset-viewer .av-img img{max-height:82vh;max-width:100%}
-body.mlx-guided .asset-viewer .av-panel{width:min(1240px,max(260px,calc(95vw - var(--overlay-right))));max-width:none}
-/* 가이드가 열려 있으면 뷰어를 그 폭만큼 왼쪽으로 - 논문 자체 규칙(470px 고정)을 실제 폭으로 교정 */
-body.mlx-sd .asset-viewer.av-shift{padding-right:calc(var(--sd-w) + 22px)}
+/* ---- 자산 뷰어 반응형 (v7): 이미지 칸이 그 이미지의 필요 폭보다 좁아지면 세로로 쌓는다 ----
+   위: 이미지 / 가운데: 원문 캡션 + 번역 / 아래: 해석 보기. 패널 본문이 통째로 세로 스크롤한다.
+   가이드를 열어도 캡션·번역을 감추지 않는다(v6 의 이미지 전용 모드 폐기) - 판정은 JS(sync) 가 한다. */
+body.mlx-av-stack .asset-viewer .av-panel{width:100%;max-width:min(1240px,100%)}
+body.mlx-av-stack .asset-viewer .av-body{flex-direction:column !important;overflow-x:hidden;overflow-y:auto}
+body.mlx-av-stack .asset-viewer .av-img{flex:0 0 auto !important;padding:10px}
+body.mlx-av-stack .asset-viewer .av-img img{max-height:58vh !important;max-width:100%}
+body.mlx-av-stack .asset-viewer .av-text{flex:0 0 auto !important;max-height:none !important;overflow:visible;border-left:0 !important;border-top:1px solid var(--line)}
+/* 좁은 패널에서 머리줄이 여러 줄로 접혀 이미지를 밀어내지 않게 - 안내 문구는 말줄임, 라벨·버튼은 한 줄 */
+body.mlx-av-stack .asset-viewer .av-head{padding:10px 12px;gap:8px}
+body.mlx-av-stack .asset-viewer .av-label{white-space:nowrap;flex-shrink:0}
+body.mlx-av-stack .asset-viewer .av-hint{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mlx-av-stack .asset-viewer .av-head .study-fab{white-space:nowrap;flex-shrink:0}
+/* 가이드가 열려 있으면 뷰어를 그 폭만큼 왼쪽으로 - 논문 자체 규칙(470px 고정 · 1100px 이하 해제)을 실제 폭으로 교정 */
+body.mlx-sd:not(.mlx-shrink) .asset-viewer.open{padding-right:calc(var(--sd-w) + 22px)}
 
 /* ---- 좁아서 축소를 포기한 경우: 메모가 오버레이 위에 뜬다 (찌그러뜨리는 것보다 낫다) ---- */
 body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)}
@@ -125,13 +150,15 @@ body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)
 
 JS = """
 <script>
-/* ==== 메모 상시 접근 레이어 (memo_layer_fix.py v5) - 열린 오버레이를 감지해 자리를 배분 ==== */
+/* ==== 메모 상시 접근 레이어 (memo_layer_fix.py v7) - 열린 오버레이를 감지해 자리를 배분 ==== */
 (function(){
   var SEL = '.memo-drawer,.study-drawer,.study-modal,.img-lightbox,.asset-viewer,.para-reader,.notes-picker';
-  var OVER = '.img-lightbox.open,.asset-viewer.open,.para-reader.open,.notes-picker.open';
-  var MIN_OVER = 560;   // 오버레이 패널이 읽을 수 있는 최소 폭
-  var MIN_PAGE = 360;   // 오버레이가 없을 때 본문에 남겨 둘 최소 폭
-  var MIN_IMG  = 260;   // 이미지 전용 모드(가이드가 캡션을 대신)일 때의 최소 폭
+  var HARD = '.img-lightbox.open,.para-reader.open,.notes-picker.open';
+  var MIN_OVER = 560;   // 라이트박스·리더·노트 선택 패널이 읽을 수 있는 최소 폭
+  var MIN_PAGE = 120;   // 가이드 + 메모 옆에 남길 본문 띠 (바깥 더블클릭으로 메모를 닫을 자리)
+  var MIN_VIEW = 304;   // 자산 뷰어가 세로 적층으로 버티는 최소 오버레이 폭 (패널 260 + 좌우 여백 44)
+  var ROW_IMG  = 360;   // 가로 배치에서 이미지가 가져야 할 최소 폭 (이미지가 더 작으면 그 크기까지만)
+  var TEXT_COL = 428;   // 가로 배치의 텍스트 칸 400 + 이미지 칸 여백 28
   var raf = 0;
 
   function clamp(lo, v, hi){ return Math.max(lo, Math.min(v, hi)); }
@@ -151,7 +178,9 @@ JS = """
     var sd = null, modal = null;
     if (cand){
       var cw = cand.offsetWidth || 0;
-      if (cw > 0 && cw <= vw * 0.6) sd = cand;
+      // 폭이 뷰포트의 60% 이하면 사이드 드로어. 단 좁은 화면(733px 미만)에서는 440px 드로어도 60% 를 넘으므로,
+      // 드로어 폭(<= 460) 자체로도 인정한다 - 화면을 덮는 모달은 폭이 뷰포트와 같아 여기서 걸러진다.
+      if (cw > 0 && (cw <= vw * 0.6 || (cw <= 460 && cw <= vw - 100))) sd = cand;
       else if (cw > 0) modal = cand;
     }
     // 사이드 드로어로 취급하기로 한 요소를 표시해 둔다 - 클래스가 .study-modal 이어도(papers 24 계열)
@@ -160,10 +189,10 @@ JS = """
     if (prevSide && prevSide !== sd) prevSide.classList.remove('mlx-side');
     if (sd) sd.classList.add('mlx-side');
 
-    var over = document.querySelector(OVER) || modal;
+    // 자산 뷰어는 세로 적층으로 좁은 폭을 버틸 수 있지만, 라이트박스·리더·노트 선택·풀스크린 모달은 그렇지 않다.
+    var hard = document.querySelector(HARD) || modal;
     var viewer = document.querySelector('.asset-viewer.open');
-    // 가이드 + 자산 뷰어 = 이미지 전용 모드. 원문 캡션·번역은 가이드가 대신하므로 감추고 이미지를 키운다.
-    var guided = !!(sd && viewer);
+    var over = hard || viewer;
 
     // 좁은 화면에서는 두 드로어를 함께 줄여, 메모가 가이드를 덮지 않고도 가운데에 볼 자리가 남게 한다.
     var narrow = vw < 1200;
@@ -172,13 +201,16 @@ JS = """
 
     // 남는 폭이 읽을 수 있는가 - 오버레이 패널은 vw 기준 95% 안에서 다시 좁아지므로 그것까지 감안한다.
     function fits(reserve){
-      if (!over) return vw - reserve >= MIN_PAGE;
-      if (guided) return vw - reserve >= MIN_IMG;
+      if (!over) return true;
+      if (!hard) return vw - reserve >= MIN_VIEW;
       return vw * 0.95 - reserve >= MIN_OVER;
     }
 
-    // 1) 메모 드로어가 가이드 옆에 나란히 설 자리가 있는가. 없으면 메모가 가이드 위에 뜬다.
-    var sideBySide = !!sd && memoOpen && fits(memoW + sdW);
+    // 1) 메모 드로어가 가이드 옆에 나란히 서는가. 가이드는 메모에 덮이지 않는다 - 본문이든 자산 뷰어든
+    //    두 드로어 옆에 띠(MIN_PAGE)만 남으면 나란히 선다(뷰포트 700px 까지). 그 아래에서만 메모가 가이드 위에 뜬다.
+    //    라이트박스류가 위에 열려 있으면 가이드는 어차피 그 뒤라, 종전대로 오버레이가 읽히는 폭일 때만 나란히.
+    var sideBySide = !!sd && memoOpen &&
+      (hard ? fits(memoW + sdW) : (vw - (memoW + sdW) >= MIN_PAGE));
     // 2) 가이드만 열렸을 때 메모 버튼을 그 왼쪽에 둘 자리가 있는가.
     var fabAside = !!sd && (vw - sdW >= 300);
 
@@ -186,11 +218,27 @@ JS = """
     //    나란히 서면 두 폭의 합, 겹쳐 뜨면 둘 중 넓은 쪽이 오른쪽에 예약해야 할 띠의 폭이다.
     var reserve = sideBySide ? (memoW + sdW) : Math.max(memoW, sd ? sdW : 0);
     var shrink = memoOpen && !!over && fits(reserve);
-    if (memoOpen && over && !shrink && reserve !== memoW && fits(memoW)){
+    if (memoOpen && over && !shrink && !sideBySide && reserve !== memoW && fits(memoW)){
       reserve = memoW;          // 가이드 몫을 포기하면 들어가는 경우
       shrink = true;
     }
     if (!shrink) reserve = 0;
+
+    // 4) 자산 뷰어 배치 - 가로(이미지 | 캡션·번역·해석)로 두면 이미지 칸이 그 이미지의 필요 폭보다
+    //    좁아지는가. 그렇다면 세로 적층. 기준은 뷰포트 폭이 아니라 이미지(원본 폭·종횡비)와 남는 폭이다.
+    //    전환 중인 DOM 을 재지 않고 산식으로 구한다(패널 폭이 배치에 따라 바뀌어 측정하면 진동한다).
+    var stack = false;
+    if (viewer){
+      var im = viewer.querySelector('.av-img img');
+      var nw = im ? (im.naturalWidth || 0) : 0, nh = im ? (im.naturalHeight || 0) : 0;
+      var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+      var band = shrink ? reserve : (fabAside ? sdW : 0);
+      var avail = vw - band - (vw <= 760 ? 32 : 44);
+      var panel = Math.min(1240, avail, Math.max(540, vw * 0.95 - (shrink ? reserve : 0)));
+      var need = ROW_IMG;
+      if (nw > 0 && nh > 0) need = Math.min(ROW_IMG, nw, 0.78 * vh * nw / nh);
+      stack = (panel - TEXT_COL) < need;
+    }
 
     body.classList.toggle('mlx-memo', memoOpen);
     body.classList.toggle('mlx-sd', fabAside);
@@ -198,7 +246,7 @@ JS = """
     body.classList.toggle('mlx-shrink', shrink);
     body.classList.toggle('mlx-float', memoOpen && !!over && !shrink);
     body.classList.toggle('mlx-narrow', narrow);
-    body.classList.toggle('mlx-guided', guided);
+    body.classList.toggle('mlx-av-stack', stack);
 
     var root = document.documentElement;
     if (sd) root.style.setProperty('--sd-w', sdW + 'px');
@@ -254,6 +302,11 @@ JS = """
       .observe(document.body, {childList:true});
     window.addEventListener('resize', schedule);
     window.addEventListener('orientationchange', schedule);
+    // 자산 뷰어의 이미지가 바뀌면(다른 도표를 열면) 필요 폭이 달라지므로 다시 판정한다. load 는 버블하지 않아 capture.
+    document.addEventListener('load', function(e){
+      var t = e.target;
+      if (t && t.tagName === 'IMG' && t.closest && t.closest('.asset-viewer')) schedule();
+    }, true);
 
     // 메모 바깥을 두 번 연속 클릭하면 메모를 닫는다. 한 번 클릭으로 닫지 않는 이유는
     // 그림·문장·가이드를 클릭하며 읽는 도중에 메모가 저절로 사라지면 안 되기 때문이다.
@@ -311,13 +364,14 @@ def patch(folder: Path) -> str:
 
     check = html.read_text(encoding="utf-8")
     assert check.count(BEGIN) == 1, "블록 1회 주입 실패"
-    for old in ("MEMO-LAYER-FIX v4", "MEMO-LAYER-FIX v5"):
+    for old in ("MEMO-LAYER-FIX v4", "MEMO-LAYER-FIX v5", "MEMO-LAYER-FIX v6"):
         assert old not in check, f"구버전({old}) 블록 잔존"
     assert check.count("z-index:2400 !important") == 2, "z-index 승격 누락"
-    for cls in ("mlx-memo", "mlx-sd-side", "mlx-shrink", "mlx-float", "mlx-narrow", "mlx-guided"):
+    assert "mlx-guided" not in check, "v6 이미지 전용 모드(mlx-guided) 잔존"
+    for cls in ("mlx-memo", "mlx-sd-side", "mlx-shrink", "mlx-float", "mlx-narrow", "mlx-av-stack"):
         assert cls in check, f"body 상태 클래스 누락: {cls}"
     verb = "갱신" if had else "주입"
-    return f"[OK]   {html.name}: 메모 레이어 {verb} (z=2400 · 자리 배분 · 이미지 전용 · 더블클릭 닫기)"
+    return f"[OK]   {html.name}: 메모 레이어 {verb} (z=2400 · 자리 배분 · 뷰어 반응형 · 더블클릭 닫기)"
 
 
 def main():
@@ -325,10 +379,12 @@ def main():
         raise SystemExit('usage: python tools/memo_layer_fix.py "papers/N. name" | --all')
     root = Path(__file__).resolve().parent.parent
     if sys.argv[1] == "--all":
+        # papers/* (번호 순) + samples/* (산출물이 있는 폴더) - 빈 배포본에서도 no-op 이 아니다
         targets = sorted(
             (p for p in (root / "papers").iterdir() if p.is_dir()),
             key=lambda p: int(re.match(r"(\d+)", p.name).group(1)) if re.match(r"\d+", p.name) else 999,
-        )
+        ) + sorted(p for p in (root / "samples").iterdir()
+                   if p.is_dir() and list(p.glob("*_output.html")))
     else:
         targets = [Path(sys.argv[1])]
 

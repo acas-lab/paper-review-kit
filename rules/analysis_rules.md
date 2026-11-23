@@ -39,7 +39,7 @@ observation → dissatisfaction with prior work → new idea → implementation 
 | 산출물 | 정본 키/클래스 |
 |---|---|
 | Dissection 카드 7종 | `diss-motivation / -observe / -compare / -logic / -verify / -risk / -extend` |
-| Coaching 카드 4종 | `q-hidden / q-myth / q-critic / q-extend` |
+| Coaching 카드 4종 | `coach-assume / coach-design / coach-critique / coach-extend` (`rules/coaching_rules.md`) |
 | Callout 타입 2종 | `warn`, `key` |
 | Figure 해석 두 층 | `interpretations` (전문가) + `beginner_notes` (초보자) |
 

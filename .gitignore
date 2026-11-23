@@ -1,6 +1,16 @@
 # 원논문 PDF는 저작권상 저장소에 포함하지 않습니다 — 각자 적법하게 입수
-rawpaper/
+rawpaper/*
+!rawpaper/.gitkeep
 *.pdf
+
+# 각자 빌드한 논문 (원논문 그림·원문이 base64로 들어가므로 공유 저장소에 올리지 않는다 - NOTICE.md)
+# 개인 저장소에서 버전 관리하려면 아래 두 줄을 지운다
+papers/*
+!papers/.gitkeep
+
+# Paper Study 노트 내보내기 · Q&A 브릿지 장부 (사용자 개인 파일)
+**/study/*.json
+**/study/.qa_state.json
 
 # Python
 __pycache__/
@@ -22,8 +32,16 @@ venv/
 research_profile.json
 research/
 
-# Claude Code 로컬 설정
+# Claude Code 로컬 설정 + 프로젝트 스킬 설치본(.claude/skills/motion-broll — 원본은 추적되는 skills/motion-broll/)
 .claude/
+
+# 논문 소개 영상(Stage 13): 재설치로 복구되는 도구와 렌더 생성물
+tools/video/node_modules/
+tools/video/bin/
+tools/video/tts_env/
+**/video/work/
+**/*_video.mp4
+**/video/history/*.mp4
 
 # Editor / OS
 .vscode/

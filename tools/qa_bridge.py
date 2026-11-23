@@ -15,7 +15,7 @@ spawn 해서 기존 Q&A 지침(prompts/10_qa.md)대로 qa.json 을 만들고 ⑥
   질문 목록을 헤드리스 claude 에 넘겨 "새 질문만 append" 하도록 지시(의미 수준 dedup).
 - **군집화·상한 없음 (v1.2, 2026-09-10)**: 이전 프롬프트는 "한 번에 최대 6개"로 카드 수를
   제한했다. 그런데 성공하면 메모 **전체** 해시가 processed_hash 로 봉인되므로, 상한에 걸려
-  미뤄진 질문은 사용자가 메모를 고치지 않는 한 영구히 생성되지 않았다(papers 26·30 이 정확히
+  미뤄진 질문은 사용자가 메모를 고치지 않는 한 영구히 생성되지 않았다(모체 사례 — 배포본 미포함: papers 26·30 이 정확히
   6개에서 멈춰 있었다). 그래서 **상한을 없애고**, 대신 관련 있는 메모 항목들을 한 카드로
   **묶어 연결된 설명**으로 답하게 한다. 카드 수는 상한이 아니라 메모의 주제 수가 결정한다.
 - **해시 봉인 규칙 (v1.2)**: 영구 차단 경로를 남기지 않는 것이 요구사항이다.
@@ -52,9 +52,28 @@ spawn 해서 기존 Q&A 지침(prompts/10_qa.md)대로 qa.json 을 만들고 ⑥
 - POST /gen-qa      {short, memo, force?, async?} → 증분 Q&A 생성
 - POST /review-study {short, answers, async?}     → Paper Study 답변 검토
 - GET  /job?id=<id> → {status:"running", elapsed, log_tail} | 완료된 결과 그대로
-- OPTIONS *         → CORS preflight (혹시 대비)
+- OPTIONS *         → CORS preflight (허용 Origin 에만 응답)
 
-CORS: file:// 페이지의 Origin 은 "null" 이므로 모든 응답에 ACAO:* 를 붙인다.
+보안 (2026-11, 공개 배포 전 하드닝)
+-----------------------------------
+이 서버는 헤드리스 claude(acceptEdits + Bash 일부)를 띄우므로, **임의 웹사이트가 요청을
+보내면 프롬프트 주입 → 로컬 셸 실행**으로 이어진다. 그래서 다음을 모두 강제한다.
+- **Host 검사**: Host 헤더가 127.0.0.1:PORT / localhost:PORT 가 아니면 403 (DNS rebinding 차단).
+- **Origin 검사**: Origin 이 없거나(브라우저 아닌 로컬 도구) `null`(file:// 로 연 학습 HTML)
+  또는 http://127.0.0.1:* / http://localhost:* 일 때만 허용. 그 외는 /ping 포함 전부 403.
+  허용 Origin 은 ACAO 에 그대로 반사한다(`*` 사용 안 함).
+- **POST 는 `Content-Type: application/json` + `X-QA-Bridge: 1` 필수** - 두 조건 모두 CORS
+  "simple request" 가 아니므로 브라우저는 반드시 preflight 를 보내고, preflight 는 허용 Origin
+  에만 답한다. text/plain 등은 415, 헤더 없으면 403.
+- **입력 제한**: short 는 `^[A-Za-z0-9_-]{1,64}$`, 해석된 폴더는 ROOT/papers 또는 ROOT/samples
+  안이어야 한다. 본문 512KB 초과는 413. 동시 claude 실행은 short 당 1개, 전체 MAX_JOBS 개.
+- **도구 범위**: 헤드리스 claude 의 Bash 는 python/py/codex 등 필요한 패턴만 허용.
+- **바인드**: --host 가 루프백이 아니면 --allow-remote 없이는 시작을 거부한다.
+
+잔여 위험: sandbox 속성이 붙은 iframe(다른 사이트 안)도 Origin 이 `null` 이다. 그런 페이지가
+이 브릿지가 켜져 있는 동안 열려 있으면 요청을 보낼 수 있다. 브릿지는 필요할 때만 켜고,
+작업이 끝나면 창을 닫아 종료할 것. `Bash(python *)` 는 그 자체로 임의 코드 실행이 가능한
+패턴이므로 도구 범위 축소는 심층 방어일 뿐 위의 Origin/Host 검사가 1차 방어선이다.
 
 사용법
 ------
@@ -63,7 +82,7 @@ CORS: file:// 페이지의 Origin 은 "null" 이므로 모든 응답에 ACAO:* �
     QA_BRIDGE_MODEL=sonnet python tools/qa_bridge.py   # 헤드리스 모델 지정
     QA_BRIDGE_SKIP_PERMS=1 python tools/qa_bridge.py   # 권한 우회(편집 막힐 때)
 
-정본: papers 1~26 (2026-07-09).
+정본: samples/cares (배포 킷 동봉 견본).
 """
 import argparse
 import hashlib
@@ -82,7 +101,55 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
-VERSION = "1.2"
+VERSION = "1.3"
+
+# ---- 하드닝 상수 ----
+SHORT_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+MAX_BODY = 512 * 1024  # POST 본문 상한(바이트)
+MAX_JOBS = int(os.environ.get("QA_BRIDGE_MAX_JOBS", "4") or 4)  # 동시 claude 실행 상한(전체)
+_claude_slots = threading.BoundedSemaphore(max(1, MAX_JOBS))
+PAPER_BASES = ("papers", "samples")  # find_paper 가 허용하는 검색 루트(ROOT 기준)
+
+# 헤드리스 claude 에 허용하는 도구. Stage 9+10 흐름은 python(JSON 검증·base64 인라인·주입
+# 스크립트)과 codex(보조 이미지) 정도만 셸로 부른다. 맨 `Bash` 는 모든 명령을 자동 허용하므로 쓰지 않는다.
+ALLOWED_TOOLS = [
+    "Bash(python *)",
+    "Bash(python3 *)",
+    "Bash(py *)",
+    "Bash(codex *)",
+    "Bash(cd *)",
+    "Bash(mkdir *)",
+    "Bash(ls *)",
+    "Edit",
+    "MultiEdit",
+    "Write",
+    "Read",
+    "Glob",
+    "Grep",
+]
+
+
+def valid_short(short):
+    return isinstance(short, str) and bool(SHORT_RE.match(short))
+
+
+def _inside_paper_roots(path):
+    try:
+        rp = Path(path).resolve()
+    except Exception:
+        return False
+    for b in PAPER_BASES:
+        base = (ROOT / b).resolve()
+        try:
+            rp.relative_to(base)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def skip_perms_enabled():
+    return os.environ.get("QA_BRIDGE_SKIP_PERMS", "").strip().lower() in ("1", "true", "yes")
 
 # repo 루트 = tools/ 의 부모
 ROOT = Path(__file__).resolve().parent.parent
@@ -189,14 +256,17 @@ def job_view(job):
 
 def find_paper(short):
     """short('CARES' 등) → papers/N. name 폴더 Path. {short}_output.html 로 매칭.
-    배포 킷은 papers 가 비어 있을 수 있어 samples/(정본 samples/cares 등)도 함께 스캔한다."""
-    roots = []
-    for base in (ROOT / "papers", ROOT / "samples", ROOT):
-        if base.is_dir():
-            roots.append(base)
-    for base in roots:
+    배포 킷은 papers 가 비어 있을 수 있어 samples/(정본 samples/cares 등)도 함께 스캔한다.
+    short 는 SHORT_RE 로 검증하고, 결과 폴더가 ROOT/papers·ROOT/samples 밖이면(심볼릭 링크 등) 버린다."""
+    if not valid_short(short):
+        return None
+    for b in PAPER_BASES:
+        base = ROOT / b
+        if not base.is_dir():
+            continue
         for d in sorted(base.iterdir()):
-            if d.is_dir() and (d / f"{short}_output.html").exists():
+            cand = d / f"{short}_output.html"
+            if d.is_dir() and cand.exists() and _inside_paper_roots(cand) and _inside_paper_roots(d):
                 return d
     return None
 
@@ -286,10 +356,14 @@ def save_state(folder, state):
 
 def save_study_notes(folder, short, memo):
     """생성 직전 메모를 노트 파일로 저장 - prompts/10_qa.md 가 읽는 형식."""
+    if not valid_short(short):
+        raise ValueError("invalid short")
     d = folder / "study"
     d.mkdir(exist_ok=True)
     ymd = datetime.now().strftime("%y%m%d")
     path = d / f"{short}_study_notes_{ymd}.json"
+    if not _inside_paper_roots(path):
+        raise ValueError("notes path escapes paper roots")
     payload = {
         "short": short,
         "savedAt": datetime.now().isoformat(timespec="seconds"),
@@ -405,18 +479,34 @@ def build_prompt(folder, short, memo, existing_questions):
     )
 
 
+class BridgeBusy(Exception):
+    """동시 실행 상한(MAX_JOBS) 초과."""
+
+
 def run_claude(prompt, log):
-    """헤드리스 claude -p 실행. stdout 을 실시간 로그로 흘리고 전체를 반환."""
+    """헤드리스 claude -p 실행. stdout 을 실시간 로그로 흘리고 전체를 반환.
+    동시 실행은 전체 MAX_JOBS 개로 제한한다(초과 시 BridgeBusy)."""
+    if not _claude_slots.acquire(blocking=False):
+        raise BridgeBusy()
+    try:
+        return _run_claude(prompt, log)
+    finally:
+        _claude_slots.release()
+
+
+def _run_claude(prompt, log):
     model = os.environ.get("QA_BRIDGE_MODEL", "").strip()
     args = [CLAUDE, "-p", "--add-dir", str(ROOT)]
-    if os.environ.get("QA_BRIDGE_SKIP_PERMS", "").strip() in ("1", "true", "yes"):
+    if skip_perms_enabled():
+        print("[WARN] QA_BRIDGE_SKIP_PERMS=1 - 헤드리스 claude 를 --dangerously-skip-permissions 로 실행합니다 (모든 도구 무제한).",
+              file=sys.stderr, flush=True)
         args += ["--dangerously-skip-permissions"]
     else:
         args += ["--permission-mode", "acceptEdits"]
     if model:
         args += ["--model", model]
     # allowedTools 는 가변인자라 맨 끝에 둔다
-    args += ["--allowedTools", "Bash", "Edit", "MultiEdit", "Write", "Read", "Glob", "Grep"]
+    args += ["--allowedTools"] + ALLOWED_TOOLS
 
     log(f"[claude] spawn: {' '.join(args)}")
     env = dict(os.environ)
@@ -477,7 +567,10 @@ def generate(short, memo, force, log):
 
         existing = state.get("generated_questions", [])
         prompt = build_prompt(folder, short, memo, existing)
-        rc, lines = run_claude(prompt, log)
+        try:
+            rc, lines = run_claude(prompt, log)
+        except BridgeBusy:
+            return {"status": "busy", "message": f"동시 작업 상한({MAX_JOBS})에 도달했습니다. 잠시 후 다시 시도하세요."}
         result = parse_result(lines)
         if result is None:
             return {
@@ -653,7 +746,10 @@ def generate_review(short, answers, log):
             json.dumps(answers, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         prompt = build_review_prompt(folder, short, answers)
-        rc, out = run_claude(prompt, log)
+        try:
+            rc, out = run_claude(prompt, log)
+        except BridgeBusy:
+            return {"status": "busy", "message": f"동시 작업 상한({MAX_JOBS})에 도달했습니다. 잠시 후 다시 시도하세요."}
         result = parse_result(out, marker="STUDY_REVIEW_RESULT")
         if result is None:
             return {"status": "error", "message": f"검토 결과 파싱 실패 (exit {rc}). 브릿지 콘솔 로그 확인."}
@@ -685,19 +781,68 @@ def review_precheck(short, answers):
 DISCONNECT_ERRORS = (ConnectionAbortedError, ConnectionResetError, BrokenPipeError)
 
 
+LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1", "[::1]")
+
+
+def origin_allowed(origin):
+    """Origin 헤더 허용 판정. None(헤더 없음 = 브라우저가 아닌 로컬 도구) / "null"(file://) /
+    http://127.0.0.1:* · http://localhost:* 만 허용."""
+    if origin is None:
+        return True
+    origin = origin.strip()
+    if origin == "null":
+        return True
+    try:
+        u = urlparse(origin)
+        host = u.hostname or ""
+        _ = u.port  # 잘못된 포트면 ValueError
+    except Exception:
+        return False
+    return u.scheme == "http" and host in ("127.0.0.1", "localhost") and not u.path.strip("/")
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "qa_bridge/" + VERSION
 
-    def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+    # ---- 보안 게이트 ----
+    def _host_ok(self):
+        host = (self.headers.get("Host") or "").strip().lower()
+        return host in getattr(self.server, "allowed_hosts", ())
 
-    def _json(self, code, obj):
+    def _origin(self):
+        return self.headers.get("Origin")
+
+    def _guard(self):
+        """Host·Origin 검사. 실패하면 403 을 보내고 False."""
+        if not self._host_ok():
+            self.close_connection = True
+            self._json(403, {"status": "error", "message": "forbidden host"}, cors=False)
+            return False
+        if not origin_allowed(self._origin()):
+            self.close_connection = True
+            self._json(403, {"status": "error", "message": "forbidden origin"}, cors=False)
+            return False
+        return True
+
+    def _cors(self):
+        origin = self._origin()
+        if origin is None or not origin_allowed(origin):
+            return
+        self.send_header("Access-Control-Allow-Origin", origin.strip())
+        self.send_header("Vary", "Origin")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-QA-Bridge")
+        self.send_header("Access-Control-Max-Age", "600")
+        # Chrome Private Network Access: file:// 등 → 루프백 요청 preflight 허용 표시
+        if (self.headers.get("Access-Control-Request-Private-Network") or "").lower() == "true":
+            self.send_header("Access-Control-Allow-Private-Network", "true")
+
+    def _json(self, code, obj, cors=True):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
         try:
             self.send_response(code)
-            self._cors()
+            if cors:
+                self._cors()
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
@@ -713,6 +858,8 @@ class Handler(BaseHTTPRequestHandler):
         pass  # 우리 자체 로그만 쓴다
 
     def do_OPTIONS(self):
+        if not self._guard():
+            return
         try:
             self.send_response(204)
             self._cors()
@@ -721,6 +868,8 @@ class Handler(BaseHTTPRequestHandler):
             self.close_connection = True
 
     def do_GET(self):
+        if not self._guard():
+            return
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
         if path == "/job" or path.startswith("/job/"):
@@ -760,29 +909,64 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"ok": False, "message": "unknown path"})
 
     def do_POST(self):
-        path = self.path.rstrip("/")
+        if not self._guard():
+            return
+        path = urlparse(self.path).path.rstrip("/")
         if path not in ("/gen-qa", "/review-study"):
+            self.close_connection = True
             self._json(404, {"status": "error", "message": "unknown path"})
+            return
+        # CORS simple request 차단: application/json + 커스텀 헤더 둘 다 요구 → 브라우저는 반드시 preflight.
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+        if ctype != "application/json":
+            self.close_connection = True
+            self._json(415, {"status": "error", "message": "Content-Type: application/json 이 필요합니다."})
+            return
+        if (self.headers.get("X-QA-Bridge") or "").strip() != "1":
+            self.close_connection = True
+            self._json(403, {"status": "error", "message": "X-QA-Bridge: 1 헤더가 필요합니다."})
             return
         try:
             n = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            n = -1
+        if n < 0:
+            self.close_connection = True
+            self._json(400, {"status": "error", "message": "잘못된 Content-Length"})
+            return
+        if n > MAX_BODY:
+            self.close_connection = True
+            self._json(413, {"status": "error", "message": f"요청 본문이 너무 큽니다 (상한 {MAX_BODY // 1024}KB)."})
+            return
+        try:
             raw = self.rfile.read(n).decode("utf-8") if n else "{}"
             data = json.loads(raw)
+            if not isinstance(data, dict):
+                raise ValueError("JSON object 가 아닙니다")
         except Exception as e:
             self._json(400, {"status": "error", "message": f"잘못된 요청: {e}"})
             return
-        short = (data.get("short") or "").strip()
+        short = data.get("short")
+        short = short.strip() if isinstance(short, str) else ""
         if not short:
             self._json(400, {"status": "error", "message": "short 누락"})
+            return
+        if not valid_short(short):
+            self._json(400, {"status": "error", "message": "short 형식 오류 (영숫자·_·- 1~64자)"})
+            return
+        memo = data.get("memo") or ""
+        answers = data.get("answers") or {}
+        if not isinstance(memo, str) or not isinstance(answers, dict) or not all(
+            isinstance(k, str) and isinstance(v, (str, type(None))) for k, v in answers.items()
+        ):
+            self._json(400, {"status": "error", "message": "memo 는 문자열, answers 는 {문자열: 문자열} 이어야 합니다."})
             return
 
         def log(msg):
             stamp = time.strftime("%H:%M:%S")
             print(f"{stamp} {msg}", flush=True)
 
-        memo = data.get("memo") or ""
         force = bool(data.get("force"))
-        answers = data.get("answers") or {}
         if path == "/gen-qa":
             kind = "gen-qa"
             log(f"[bridge] /gen-qa short={short} force={force} memo_len={len(memo)}")
@@ -866,11 +1050,32 @@ def main():
     ap = argparse.ArgumentParser(description="메모 Q&A 생성 로컬 브릿지")
     ap.add_argument("--port", type=int, default=int(os.environ.get("QA_BRIDGE_PORT", "8787")))
     ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument(
+        "--allow-remote",
+        action="store_true",
+        help="루프백이 아닌 --host 바인드를 허용(위험: 같은 네트워크에서 claude 실행 요청 가능)",
+    )
     # qabridge:// 프로토콜 실행 시 URL 이 인자로 붙어 오므로 알 수 없는 인자는 무시
     args, _unknown = ap.parse_known_args()
 
-    if not (ROOT / "papers").is_dir() and not list(ROOT.glob("*/*_output.html")):
-        print(f"[warn] papers 폴더를 {ROOT} 아래에서 찾지 못했습니다. --add-dir 확인 필요.")
+    if args.host not in LOOPBACK_HOSTS and not args.allow_remote:
+        print(
+            f"[FAIL] --host {args.host} 는 루프백이 아닙니다. 이 서버는 claude 를 실행하므로 외부 노출을 거부합니다. "
+            "정말 필요하면 --allow-remote 를 함께 주세요.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    if args.host not in LOOPBACK_HOSTS:
+        print(f"[WARN] --allow-remote: {args.host}:{args.port} 에 바인드합니다. 네트워크 접근 가능한 누구나 요청할 수 있습니다.",
+              file=sys.stderr)
+    if skip_perms_enabled():
+        print("=" * 72, file=sys.stderr)
+        print("[WARN] QA_BRIDGE_SKIP_PERMS=1 : 헤드리스 claude 가 --dangerously-skip-permissions 로 실행됩니다.", file=sys.stderr)
+        print("[WARN] 도구 허용 목록이 무시되고 모든 셸 명령이 확인 없이 실행됩니다. 필요할 때만 켜세요.", file=sys.stderr)
+        print("=" * 72, file=sys.stderr, flush=True)
+
+    if not any((ROOT / b).is_dir() for b in PAPER_BASES):
+        print(f"[warn] papers/ · samples/ 폴더를 {ROOT} 아래에서 찾지 못했습니다.")
 
     try:
         srv = BridgeServer((args.host, args.port), Handler)
@@ -878,6 +1083,10 @@ def main():
         # 이미 다른 인스턴스가 그 포트를 쓰는 중 - 프로토콜 재실행 등. 조용히 종료.
         print(f"포트 {args.port} 를 열 수 없습니다 (브릿지가 이미 실행 중일 수 있습니다): {e}")
         return
+    hosts = {f"127.0.0.1:{args.port}", f"localhost:{args.port}", f"[::1]:{args.port}"}
+    if args.host not in LOOPBACK_HOSTS:
+        hosts.add(f"{args.host}:{args.port}".lower())
+    srv.allowed_hosts = frozenset(hosts)
     print(f"qa_bridge {VERSION} - http://{args.host}:{args.port}")
     print(f"  repo root : {ROOT}")
     print(f"  claude    : {CLAUDE}")

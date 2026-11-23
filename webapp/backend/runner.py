@@ -34,11 +34,15 @@ _VENV = Path(__file__).resolve().parents[1] / ".venv"
 _VENV_BIN = _VENV / ("Scripts" if os.name == "nt" else "bin")
 
 # 권한: 파일 편집 자동승인 + Bash 화이트리스트. 파괴적 명령은 차단.
+# 잔여 위험: `Bash(python *)` 는 `python -c "..."` 로 임의 코드를 돌릴 수 있으므로, 아래 deny-list
+# (rm·curl 등)는 실수 방지용일 뿐 보안 경계가 아니다. 실제 경계는 (1) 서버가 127.0.0.1 에만 바인드,
+# (2) main.py 의 Host/Origin 검사(다른 사이트가 /ws 세션을 열지 못함), (3) 사용자가 직접 입력한 지시뿐이다.
+# `pip *` 는 자동 허용하지 않는다 — 의존성(PyMuPDF 등)은 start.py 가 backend/requirements.txt 로
+# venv 에 미리 설치한다. 선택 도구(playwright)는 사용자가 직접 설치.
 ALLOWED_TOOLS = [
     "Read", "Write", "Edit", "Glob", "Grep",
     "Task",                              # 병렬 서브에이전트 — CLI처럼 번역/분석 fan-out (속도)
     "Bash(python *)", "Bash(python3 *)", "Bash(py *)", "Bash(codex *)",
-    "Bash(pip *)",                       # 의존성 설치(PyMuPDF 등) — CLI 패리티
     "Bash(mkdir *)", "Bash(cp *)", "Bash(mv *)",  # 폴더 생성·자산 백업/이동
     "Bash(ls *)", "Bash(cat *)", "Bash(echo *)",
     "Bash(type *)", "Bash(find *)",
@@ -57,11 +61,13 @@ WEBAPP_APPEND = (
     "- 부득이 임시 파일이 필요하면 시스템 임시 폴더에 만들고, papers/·samples/ 같은 "
     "콘텐츠 폴더에는 `_chk`·`_tmp`·`_pairs` 등 잔여 파일을 남기지 않는다 "
     "(이 폴더들에서는 rm이 차단되어 정리도 안 된다).\n"
-    "- JSON(번역·분석)을 고친 뒤 HTML에 반영하려면 해당 논문 폴더의 `_build.py`를 다시 실행해야 한다.\n"
+    "- JSON(번역·분석)을 고친 뒤 HTML에 반영하려면 해당 논문 폴더의 `_build.py`를 다시 실행하고 "
+    "아래 주입·검사 체인(restyle_dash_v4 → memo_layer_fix → 주입기 3종 → 검사)을 처음부터 다시 돌린다 "
+    "(`_build.py`만 돌리면 v3 중간 산물로 되돌아간다).\n"
     "- 🔴 web↔CLI 결과 통일성: 기계적·구조적 단계는 **반드시 정본 도구를 그대로 사용**한다 — "
     "본문 구조화는 `python tools/structure_paper.py <pdf> <out structured.json>`(전 본문 1:1 캡처), "
     "figure/표 크롭은 `python tools/autocrop_assets.py <pdf> <assets>` + `--verify`, "
-    "조립은 폴더의 `_build.py`. 손으로 좌표·문장을 추측하거나 본문 일부만 담지 말 것. "
+    "조립은 `templates/paper_base/_build.py`를 논문 폴더로 복사해 TODO_PAPER만 채운 `_build.py`. 손으로 좌표·문장을 추측하거나 본문 일부만 담지 말 것. "
     "이 도구들은 같은 입력에 같은 출력을 내므로 CLI와 결과가 일치한다. 자세한 정책: CLAUDE.md "
     "§web↔CLI 결과 통일성.\n"
     "- 🔴 분야 일반: 이 킷은 AI/ML 전용이 아니다. Stage 1 에서 `config.json#domain`(정본 `rules/domain_profile.md`)을 "
@@ -74,7 +80,7 @@ WEBAPP_APPEND = (
     "config#meta에서 헤더 자동 생성). `_build.py`만 단독 재실행하면 v3로 되돌아가므로 변환까지 페어로 실행.\n"
     "- 🔴 캡션은 `config.json#captions`=자산 캡션의 **한국어 번역**(학습자 대면 — 무리한 한국어 변환 금지 적용), "
     "`config.json#captions_en`=**영어 원문**(Paper Study 도표 뷰어용) 둘 다 채운다. ①′ Paper Study 탭은 "
-    "`tabs_data/study.json`(작성 규칙 `prompts/11_paper_study.md`)이 있으면 채우고 없으면 빌더가 자동 셸 렌더. "
+    "`tabs_data/study.json`(Stage 11, 작성 규칙 `prompts/11_paper_study.md`)이 **기본 빌드 필수** - 빌더의 자동 셸은 작성 전 임시 상태일 뿐 산출물이 아니다(check_paper_structure FAIL). "
     "빌드 후 검증: `python tools/check_study_refs.py \"papers/N. name\"`(ref 실존+캡션 KR) · "
     "`python tools/check_html_escape.py \"papers/N. name\"`(수식 `<` 이스케이프). ⑤ Code·⑥ Q&A는 셸만.\n"
     "- 🔴 감성 온도 0 · 논리 최대: 번역(①)을 제외한 **Claude가 직접 쓰는 모든 한국어 서술**"
@@ -87,11 +93,19 @@ WEBAPP_APPEND = (
     "② `python tools/memo_layer_fix.py \"papers/N. name\"`(메모 상시 접근 레이어 z 2400 + 가로 자리 배분) → "
     "③ `python tools/qa_button_inject.py \"papers/N. name\"` · `python tools/study_review_inject.py \"papers/N. name\"` · "
     "`python tools/reader_asset_chip.py \"papers/N. name\"`(플로팅 리더 안 도표 진입 칩; 셋 다 additive·idempotent·업데이터) → "
-    "④ 검사: `python tools/check_html_escape.py \"papers/N. name\"` → Grep `&lt;b&gt;`(평문/HTML 필드 누출) → "
+    "④ 검사: `python tools/check_html_escape.py \"papers/N. name\"` → Grep `&lt;b&gt;`·`&amp;lt;`(평문/HTML 필드 누출, 둘 다 0건) → "
     "`python tools/check_study_refs.py \"papers/N. name\"` → `python tools/tone_lint.py \"papers/N. name\"` → "
-    "`python tools/check_memo_layer.py \"papers/N. name\"`(playwright 없으면 자동 skip). "
+    "`python tools/check_memo_layer.py \"papers/N. name\"`(playwright 없으면 자동 skip) → `python tools/check_paper_structure.py \"papers/N. name\"`(FAIL 0). "
     "①′ 메모 → ⑥ Q&A 온디맨드 버튼과 Study 답변 검토 버튼의 실제 채움은 사용자가 브라우저에서 버튼을 눌러 로컬 브릿지"
     "(`tools/qa_bridge.py`)로 온디맨드 수행 — 빌드 시엔 버튼·스캐폴드만 넣는다.\n"
+    "- 🔴 소개 영상(Stage 13, CLAUDE.md §기본 동작과 동일): 사용자가 영상을 빼라고 하지 않으면 HTML 검사 뒤 "
+    "`rules/video_rules.md`·`prompts/13_video.md`에 따라 `{ShortName}_video.mp4`도 만든다. 모든 단계는 "
+    "`python tools/video/make_video.py \"papers/N. name\" <단계>` 하나로 실행한다(node·npx·ffmpeg를 직접 부르지 않는다): "
+    "new → 원고 `video/기획안.md` → check-script → tts → animatic → words → briefs → 클립 조각 → clips-build → beats → "
+    "check-assets → clips-render(반복) → base-render(반복) → final → check. motion-broll 스킬은 "
+    "`.claude/skills/motion-broll/SKILL.md`가 없으면 `skills/motion-broll/`에서 복사 설치한다(`python tools/video/make_video.py - doctor`가 자동). "
+    "도구(ffmpeg·node_modules·Chromium·TTS 수 GB)는 각 단계가 처음 실행 때 스스로 설치하며, 막히면 HTML까지 마치고 빠진 것을 보고한다. "
+    "렌더(clips-render·base-render)는 포그라운드로 반복 실행하고 백그라운드·병렬 렌더는 하지 않는다.\n"
     "- 사용자 메시지 앞에 `[이미지 생성 모드: codex|claude_svg]` 태그가 붙어 온다. "
     "이는 학습 보조 이미지(② ~ ⑥) 생성 방식을 지정한다 — `codex`면 codex CLI ImageGen(PNG), "
     "`claude_svg`면 외부 도구 없이 인라인 `<svg>` 도식을 직접 작성. 규약 정본은 "
@@ -121,6 +135,8 @@ def make_options(resume_session_id: Optional[str] = None) -> ClaudeAgentOptions:
         system_prompt={"type": "preset", "preset": "claude_code", "append": WEBAPP_APPEND},
         allowed_tools=ALLOWED_TOOLS,
         disallowed_tools=DISALLOWED_TOOLS,
+        # project/local = 킷의 CLAUDE.md·.claude/ 설정(CLI 패리티). user = 사용자 본인의 ~/.claude 설정
+        # (CLI 에서 claude 를 직접 쓸 때와 같은 동작 — 개인 훅·권한·CLAUDE.md 도 함께 적용된다).
         setting_sources=["user", "project", "local"],  # CLAUDE.md/rules 로드 보장
         env=_build_env(),
         resume=resume_session_id,

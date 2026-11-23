@@ -348,11 +348,11 @@ details.beginner-note .beginner-body{margin-top:10px;font-size:13.5px;line-heigh
 .pr-prev:disabled,.pr-next:disabled{opacity:0.4;cursor:not-allowed}
 .pr-open-translation{font:inherit;font-size:12px;color:var(--muted);background:none;border:0;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 /* ---- 학습 메모: 플로팅 버튼(우측 상단, to-top의 x · 탭 제목의 y) + 자유 서식 메모장 드로어 ---- */
-.memo-fab{position:fixed;right:26px;top:150px;z-index:1650;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
+.memo-fab{position:fixed;right:26px;top:150px;z-index:2400;font:inherit;font-size:13px;font-weight:800;color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);border-radius:999px;padding:9px 18px;cursor:pointer;box-shadow:0 6px 18px rgba(48,53,66,0.14);display:inline-flex;align-items:center;gap:7px}
 .memo-fab:hover{color:#ffffff;background:var(--amber)}
 .memo-fab .memo-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0}
 .memo-fab:hover .memo-dot{background:#ffffff}
-.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:1650;display:flex;flex-direction:column}
+.memo-drawer{position:fixed;top:0;right:0;height:100vh;width:380px;max-width:92vw;background:var(--paper);border-left:1px solid var(--line);box-shadow:-12px 0 36px rgba(30,34,46,0.14);transform:translateX(100%);transition:transform 240ms ease;z-index:2400;display:flex;flex-direction:column}
 .memo-drawer.open{transform:translateX(0)}
 .memo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px 8px}
 .memo-title{font-weight:800;font-size:14px;color:var(--amber)}
@@ -1500,261 +1500,80 @@ footer.foot{text-align:center;margin-top:40px;color:var(--muted);font-size:12.5p
 })();
 </script>
 
-<!-- MEMO-LAYER-FIX v6 (tools/memo_layer_fix.py) -->
 <style>
-/* ---- 메모를 최상위 레이어로: 라이트박스(2000)·노트선택(1700)·학습가이드(1600)·자산뷰어(1500)·리더(1450) 위 ---- */
-:root{--memo-w:380px;--sd-w:440px;--memo-gap:26px;--overlay-right:0px}
-.memo-fab{z-index:2400 !important;transition:right 200ms ease}
-.memo-drawer{z-index:2400 !important;transition:transform 240ms ease,right 200ms ease}
-
-/* ---- 학습 가이드 드로어 옆에 나란히 선다 - 자리가 있을 때만 (JS 가 판정해 클래스를 붙인다) ---- */
-body.mlx-sd .memo-fab{right:calc(var(--memo-gap) + var(--sd-w))}
-body.mlx-sd-side .memo-drawer{right:var(--sd-w);box-shadow:-12px 0 30px rgba(30,34,46,0.12)}
-
-/* ---- 메모가 열리면 전체화면 오버레이를 그만큼 좁힌다 - 남는 폭이 읽을 수 있을 때만 ---- */
-body.mlx-memo.mlx-shrink .img-lightbox,
-body.mlx-memo.mlx-shrink .asset-viewer,
-body.mlx-memo.mlx-shrink .para-reader,
-body.mlx-memo.mlx-shrink .notes-picker,
-/* .study-modal 이라도 실제로는 440px 사이드 드로어인 세대(papers 24 계열)가 있다.
-   그런 요소는 JS 가 .mlx-side 로 표시하며, 옆자리를 이미 배정받았으므로 축소 대상에서 뺀다. */
-body.mlx-memo.mlx-shrink .study-modal:not(.mlx-side){right:var(--overlay-right)}
-body.mlx-memo.mlx-shrink .asset-viewer.av-shift{padding-right:22px;justify-content:center}
-body.mlx-memo.mlx-shrink .img-lightbox-stage{max-width:max(520px,calc(96vw - var(--overlay-right)))}
-body.mlx-memo.mlx-shrink .img-lightbox img{max-width:min(100%,max(520px,calc(96vw - var(--overlay-right))))}
-body.mlx-memo.mlx-shrink .img-lightbox-caption{max-width:max(340px,calc(80vw - var(--overlay-right)))}
-/* 오버레이 안이지만 position:fixed 라 뷰포트에 붙어 있는 조각(구세대 라이트박스 닫기 버튼·힌트)은 직접 밀어준다 */
-body.mlx-memo.mlx-shrink .mlx-shift-x{margin-right:var(--overlay-right)}
-body.mlx-memo.mlx-shrink .mlx-shift-half{margin-left:calc(-1 * var(--overlay-right) / 2)}
-body.mlx-memo.mlx-shrink .pr-panel{width:min(1080px,max(540px,calc(95vw - var(--overlay-right))))}
-body.mlx-memo.mlx-shrink .np-panel{width:min(520px,max(340px,calc(94vw - var(--overlay-right))))}
-body.mlx-memo.mlx-shrink .av-panel{max-width:min(1240px,max(540px,calc(95vw - var(--overlay-right))))}
-
-/* ---- 좁은 화면에서는 두 드로어를 함께 줄여 가운데에 볼 자리를 만든다 (메모가 가이드를 덮지 않도록) ---- */
-body.mlx-narrow .study-drawer,
-body.mlx-narrow .mlx-side{width:var(--sd-w)}
-body.mlx-narrow .memo-drawer{width:var(--memo-w)}
-
-/* ---- 학습 가이드를 열면 자산 뷰어는 이미지 전용이 된다 - 원문 캡션·번역은 가이드가 대신한다 ---- */
-body.mlx-guided .asset-viewer .av-text{display:none}
-body.mlx-guided .asset-viewer .av-body{flex-direction:column}
-body.mlx-guided .asset-viewer .av-img{flex:1 1 auto;padding:10px;align-items:center}
-body.mlx-guided .asset-viewer .av-img img{max-height:82vh;max-width:100%}
-body.mlx-guided .asset-viewer .av-panel{width:min(1240px,max(260px,calc(95vw - var(--overlay-right))));max-width:none}
-/* 가이드가 열려 있으면 뷰어를 그 폭만큼 왼쪽으로 - 논문 자체 규칙(470px 고정)을 실제 폭으로 교정 */
-body.mlx-sd .asset-viewer.av-shift{padding-right:calc(var(--sd-w) + 22px)}
-
-/* ---- 좁아서 축소를 포기한 경우: 메모가 오버레이 위에 뜬다 (찌그러뜨리는 것보다 낫다) ---- */
-body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)}
-@media print{.memo-fab,.memo-drawer{display:none !important}}
+/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v4 ==== */
+.qa-gen-bar{margin:0 18px 4px;display:flex;flex-direction:column;gap:7px}
+.qa-gen-btn{font:inherit;font-size:13px;font-weight:800;color:#ffffff;background:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.qa-gen-btn:hover{filter:brightness(1.06)}
+.qa-gen-btn:disabled{opacity:.55;cursor:default}
+.qa-gen-btn .qa-spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;display:none;animation:qa-spin 0.8s linear infinite}
+.qa-gen-btn.busy .qa-spin{display:inline-block}
+@keyframes qa-spin{to{transform:rotate(360deg)}}
+.qa-gen-status{font-size:11.5px;line-height:1.6;color:var(--muted);min-height:1.2em}
+.qa-gen-status.ok{color:var(--mint)}
+.qa-gen-status.err{color:var(--rose)}
+.qa-gen-status a,.qa-gen-status button.qa-link{color:var(--accent);font:inherit;font-size:11.5px;font-weight:700;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
+/* ==== ⑥ tab-qa 메모 생성 카드 (헤드리스 claude 가 채움) ==== */
+.qa-mem-root{display:flex;flex-direction:column;gap:16px;margin-top:10px}
+.qa-mem-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--paper);box-shadow:var(--shadow)}
+.qa-mem-card .qa-mem-q{margin:0 0 8px;font-size:15px;font-weight:800;color:var(--accent)}
+/* 묶음 카드가 답하는 메모 원문 질문 목록 (하위 질문 2개 이상일 때만 렌더) */
+.qa-mem-card .qa-mem-covers{margin:0 0 10px;padding:7px 12px 7px 27px;list-style:disc;border:1px dashed var(--line);border-radius:8px;background:transparent}
+.qa-mem-card .qa-mem-covers li{font-size:12px;line-height:1.6;color:var(--muted);margin:2px 0}
+.qa-mem-card .qa-mem-covers li::marker{color:var(--accent-mid)}
+.qa-mem-card .qa-mem-tldr{margin:0 0 10px;font-size:13.5px;background:var(--accent-soft);border-radius:8px;padding:9px 12px;color:var(--ink);line-height:1.65}
+.qa-mem-card p{font-size:13.5px;line-height:1.75;color:var(--ink)}
+.qa-mem-card table{border-collapse:collapse;font-size:12.5px;margin:8px 0;width:100%}
+.qa-mem-card th,.qa-mem-card td{border:1px solid var(--line);padding:5px 9px;text-align:left}
+.qa-mem-card th{background:var(--accent-soft)}
+.qa-mem-callout{border-radius:9px;padding:10px 13px;font-size:13px;line-height:1.7;margin:8px 0}
+.qa-mem-callout.key{background:var(--mint-soft);border:1px solid var(--mint)}
+.qa-mem-callout.warn{background:var(--rose-soft);border:1px solid var(--rose)}
+.qa-mem-callout.safe{background:var(--accent-soft);border:1px solid var(--accent-mid)}
+.qa-mem-card figure{margin:10px 0}
+.qa-mem-card figure img{max-width:100%;border-radius:9px;border:1px solid var(--line)}
+/* ==== ⑥ tab-qa 보조 클래스 (v4, 2026-09-10) - 카테고리 라벨 · 표 · 수식 · 캡션 ====
+   헤드리스 run 이 만들어 쓰던 미정의 클래스(qa-mem-cat / qa-mem-figcap / qa-mem-math /
+   qa-mem-math-note)를 여기서 확정한다. 브릿지 프롬프트의 화이트리스트와 1:1 로 대응하며,
+   목록 밖 클래스를 새로 만들지 않는 것이 그 프롬프트의 규약이다. */
+.qa-mem-root+.qa-mem-root,.qa-mem-root[data-review-supp]{margin-top:18px}
+.qa-mem-root>.qa-mem-card{min-width:0}
+/* 카테고리 라벨. <p> 와 <h3> 가 같은 클래스를 쓰므로(메모 쪽 p · 검토 쪽 h3)
+   태그 기본값 margin·font-size·font-weight 를 명시 리셋해 두 태그 렌더를 일치시킨다. */
+.qa-mem-cat,.qa-mem-card .qa-mem-cat,.qa-mem-root>.qa-mem-cat{display:block;box-sizing:border-box;margin:14px 0 8px;padding:0;font-family:inherit;font-size:12px;font-weight:800;line-height:1.5;letter-spacing:.04em;color:var(--accent);text-align:left}
+.qa-mem-card .qa-mem-cat:first-child{margin-top:0}
+/* 카드 묶음 위의 그룹 라벨. 아래 카드들과 한 덩어리로 읽히도록 구분선 하나만 둔다(좌측 색 띠 금지). */
+.qa-mem-root>.qa-mem-cat{margin:0;padding:0 2px 9px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+/* 표. 카드 폭을 넘으면 페이지가 아니라 표가 스크롤한다. */
+.qa-mem-table-wrap{overflow-x:auto;max-width:100%;margin:10px 0}
+.qa-mem-card .qa-mem-table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0}
+/* display 수식. v4 규약대로 배경은 다크가 아니라 밝은 회색이고, 넘치면 자체 스크롤한다. */
+.qa-mem-math,.qa-mem-card .qa-mem-math{margin:12px 0;padding:14px;background:#f1f2f7;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:15.5px;line-height:1.5;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.qa-mem-card .qa-mem-math mjx-container[display]{margin:0}
+.qa-mem-math-note,.qa-mem-card .qa-mem-math-note{margin:-2px 0 10px;font-size:12.5px;font-weight:400;line-height:1.65;color:var(--ink-soft)}
+/* 카드 안 이미지 캡션. .diss-overview-figure figcaption 관례(좌측 정렬 · muted)를 따른다. */
+.qa-mem-figcap,.qa-mem-card .qa-mem-figcap{display:block;margin:8px 0 0;font-size:12.5px;font-weight:400;line-height:1.6;color:var(--muted);text-align:left}
+@media print{.qa-gen-bar{display:none !important}}
 </style>
 
 <script>
-/* ==== 메모 상시 접근 레이어 (memo_layer_fix.py v5) - 열린 오버레이를 감지해 자리를 배분 ==== */
-(function(){
-  var SEL = '.memo-drawer,.study-drawer,.study-modal,.img-lightbox,.asset-viewer,.para-reader,.notes-picker';
-  var OVER = '.img-lightbox.open,.asset-viewer.open,.para-reader.open,.notes-picker.open';
-  var MIN_OVER = 560;   // 오버레이 패널이 읽을 수 있는 최소 폭
-  var MIN_PAGE = 360;   // 오버레이가 없을 때 본문에 남겨 둘 최소 폭
-  var MIN_IMG  = 260;   // 이미지 전용 모드(가이드가 캡션을 대신)일 때의 최소 폭
-  var raf = 0;
-
-  function clamp(lo, v, hi){ return Math.max(lo, Math.min(v, hi)); }
-
-  function sync(){
-    raf = 0;
-    var body = document.body;
-    if (!body) return;
-    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
-
-    var memo = document.querySelector('.memo-drawer');
-    var memoOpen = !!(memo && memo.classList.contains('open'));
-
-    // 열린 학습 가이드가 "옆에 설 수 있는 사이드 드로어"인지, 화면을 덮는 모달(구세대 SGL)인지 구분한다.
-    // 모달이면 옆자리가 없으므로 전체화면 오버레이와 같은 취급을 한다.
-    var cand = document.querySelector('.study-drawer.open, .study-modal.open');
-    var sd = null, modal = null;
-    if (cand){
-      var cw = cand.offsetWidth || 0;
-      if (cw > 0 && cw <= vw * 0.6) sd = cand;
-      else if (cw > 0) modal = cand;
-    }
-    // 사이드 드로어로 취급하기로 한 요소를 표시해 둔다 - 클래스가 .study-modal 이어도(papers 24 계열)
-    // 옆자리를 배정받은 이상 오버레이 축소 대상에서 빠져야 한다.
-    var prevSide = document.querySelector('.mlx-side');
-    if (prevSide && prevSide !== sd) prevSide.classList.remove('mlx-side');
-    if (sd) sd.classList.add('mlx-side');
-
-    var over = document.querySelector(OVER) || modal;
-    var viewer = document.querySelector('.asset-viewer.open');
-    // 가이드 + 자산 뷰어 = 이미지 전용 모드. 원문 캡션·번역은 가이드가 대신하므로 감추고 이미지를 키운다.
-    var guided = !!(sd && viewer);
-
-    // 좁은 화면에서는 두 드로어를 함께 줄여, 메모가 가이드를 덮지 않고도 가운데에 볼 자리가 남게 한다.
-    var narrow = vw < 1200;
-    var sdW = sd ? (narrow ? clamp(300, Math.round(vw * 0.36), 440) : (sd.offsetWidth || 440)) : 0;
-    var memoW = memoOpen ? (narrow ? clamp(280, Math.round(vw * 0.32), 380) : (memo.offsetWidth || 380)) : 0;
-
-    // 남는 폭이 읽을 수 있는가 - 오버레이 패널은 vw 기준 95% 안에서 다시 좁아지므로 그것까지 감안한다.
-    function fits(reserve){
-      if (!over) return vw - reserve >= MIN_PAGE;
-      if (guided) return vw - reserve >= MIN_IMG;
-      return vw * 0.95 - reserve >= MIN_OVER;
-    }
-
-    // 1) 메모 드로어가 가이드 옆에 나란히 설 자리가 있는가. 없으면 메모가 가이드 위에 뜬다.
-    var sideBySide = !!sd && memoOpen && fits(memoW + sdW);
-    // 2) 가이드만 열렸을 때 메모 버튼을 그 왼쪽에 둘 자리가 있는가.
-    var fabAside = !!sd && (vw - sdW >= 300);
-
-    // 3) 오버레이를 좁힐 수 있는가 - 좁히고 남는 폭이 하한 미만이면 축소를 포기한다.
-    //    나란히 서면 두 폭의 합, 겹쳐 뜨면 둘 중 넓은 쪽이 오른쪽에 예약해야 할 띠의 폭이다.
-    var reserve = sideBySide ? (memoW + sdW) : Math.max(memoW, sd ? sdW : 0);
-    var shrink = memoOpen && !!over && fits(reserve);
-    if (memoOpen && over && !shrink && reserve !== memoW && fits(memoW)){
-      reserve = memoW;          // 가이드 몫을 포기하면 들어가는 경우
-      shrink = true;
-    }
-    if (!shrink) reserve = 0;
-
-    body.classList.toggle('mlx-memo', memoOpen);
-    body.classList.toggle('mlx-sd', fabAside);
-    body.classList.toggle('mlx-sd-side', sideBySide);
-    body.classList.toggle('mlx-shrink', shrink);
-    body.classList.toggle('mlx-float', memoOpen && !!over && !shrink);
-    body.classList.toggle('mlx-narrow', narrow);
-    body.classList.toggle('mlx-guided', guided);
-
-    var root = document.documentElement;
-    if (sd) root.style.setProperty('--sd-w', sdW + 'px');
-    root.style.setProperty('--memo-w', (narrow ? clamp(280, Math.round(vw * 0.32), 380) : 380) + 'px');
-    root.style.setProperty('--overlay-right', reserve + 'px');
-  }
-  function schedule(){ if (!raf) raf = requestAnimationFrame(sync); }
-
-  // 오버레이 폭을 좁히면 그 안의 position:fixed 자식은 여전히 뷰포트 기준이라 따라오지 않는다.
-  // 세대마다 닫기 버튼이 absolute(신)/fixed(구)로 갈리므로 계산된 스타일로 판별해 표시만 해 둔다.
-  function markFixed(el){
-    if (el.__mlxfx) return;
-    el.__mlxfx = 1;
-    var kids = el.querySelectorAll('*');
-    for (var j = 0; j < kids.length; j++){
-      var cs = getComputedStyle(kids[j]);
-      if (cs.position !== 'fixed') continue;
-      if (cs.left === 'auto' && cs.right !== 'auto') kids[j].classList.add('mlx-shift-x');
-      else if (cs.right === 'auto' && cs.left !== 'auto' && cs.transform !== 'none') kids[j].classList.add('mlx-shift-half');
-    }
-  }
-
-  // 구세대 자산 해설(.study-modal)은 "바깥 클릭이면 닫는다"를 document 에 걸어 둔다.
-  // 그 바깥에는 메모 버튼·드로어도 포함되므로, 메모를 누르면 해설이 닫혀 버린다.
-  // 메모 UI 안에서 시작한 클릭은 document 까지 올려보내지 않아 그 오작동을 막는다.
-  function sealClicks(el){
-    if (el.__mlxseal) return;
-    el.__mlxseal = 1;
-    el.addEventListener('click', function(e){ e.stopPropagation(); });
-    el.addEventListener('mousedown', function(e){ e.stopPropagation(); });
-  }
-
-  function attach(){
-    var n = document.querySelectorAll(SEL);
-    for (var i = 0; i < n.length; i++){
-      if (!n[i].__mlx){
-        n[i].__mlx = 1;
-        new MutationObserver(schedule).observe(n[i], {attributes:true, attributeFilter:['class','style']});
-      }
-      if (n[i].className.indexOf('memo-drawer') < 0) markFixed(n[i]);
-    }
-    var mf = document.querySelector('.memo-fab');
-    if (mf) sealClicks(mf);
-    var mdEl = document.querySelector('.memo-drawer');
-    if (mdEl) sealClicks(mdEl);
-  }
-
-  function boot(){
-    if (!document.body) return;
-    attach();
-    schedule();
-    new MutationObserver(function(){ attach(); schedule(); })
-      .observe(document.body, {childList:true});
-    window.addEventListener('resize', schedule);
-    window.addEventListener('orientationchange', schedule);
-
-    // 메모 바깥을 두 번 연속 클릭하면 메모를 닫는다. 한 번 클릭으로 닫지 않는 이유는
-    // 그림·문장·가이드를 클릭하며 읽는 도중에 메모가 저절로 사라지면 안 되기 때문이다.
-    document.addEventListener('dblclick', function(e){
-      var d = document.querySelector('.memo-drawer');
-      if (!d || !d.classList.contains('open')) return;
-      var t = e.target;
-      if (t && t.closest && t.closest('.memo-drawer,.memo-fab')) return;
-      var b = d.querySelector('.memo-close');
-      if (b) b.click();
-    }, true);
-
-    // 메모에 포커스가 있는 동안의 키는 페이지 단축키로 새지 않게 가둔다.
-    // ESC = 메모만 닫기(뒤의 라이트박스·드로어는 그대로), 화살표·문자키는 리더 이동에 쓰이지 않게.
-    window.addEventListener('keydown', function(e){
-      var t = e.target;
-      if (!t || !t.closest || !t.closest('.memo-drawer')) return;
-      if (e.key === 'Escape'){
-        var b = document.querySelector('.memo-drawer .memo-close');
-        if (b) b.click();
-      }
-      e.stopPropagation();
-    }, true);
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-
-  // 메모/드로어가 뒤늦게 생성되는 구현(papers 1~3의 자립형 주입)까지 붙잡는다
-  var tries = 0;
-  var iv = setInterval(function(){ attach(); schedule(); if (++tries > 40) clearInterval(iv); }, 150);
-})();
-</script>
-<!-- /MEMO-LAYER-FIX -->
-<style>
-/* ==== Paper Study 검토 피드백 (study_review_inject.py) v2 ==== */
-.study-btn.sr-review-btn{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:800}
-.study-btn.sr-review-btn:hover{filter:brightness(1.06)}
-.study-btn.sr-review-btn:disabled{opacity:.55;cursor:default}
-#study-review-panel{margin:0 0 18px;border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:16px 18px;box-shadow:var(--shadow)}
-#study-review-panel[hidden]{display:none}
-.sr-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
-.sr-head h3{margin:0;font-size:15px;font-weight:800;color:var(--accent)}
-.sr-close{border:1px solid var(--line);background:#fff;border-radius:50%;width:26px;height:26px;font-size:15px;line-height:1;color:var(--muted);cursor:pointer}
-.sr-status{font-size:12px;line-height:1.6;color:var(--muted);min-height:1.1em}
-.sr-status.err{color:var(--rose)}.sr-status.ok{color:var(--mint)}
-.sr-spin{width:13px;height:13px;border:2px solid var(--accent-pale);border-top-color:var(--accent);border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:6px;animation:sr-spin .8s linear infinite}
-@keyframes sr-spin{to{transform:rotate(360deg)}}
-.sr-step{border-top:1px solid var(--line);padding:12px 0}
-.sr-step:first-of-type{border-top:none}
-.sr-step-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sr-step-label{font-size:13.5px;font-weight:800;color:var(--ink)}
-.sr-meter{flex:1;min-width:120px;height:8px;background:var(--accent-soft);border-radius:99px;overflow:hidden}
-.sr-meter-fill{height:100%;background:var(--accent-mid)}
-.sr-meter-fill.lo{background:var(--rose)}.sr-meter-fill.mid{background:var(--amber)}.sr-meter-fill.hi{background:var(--mint)}
-.sr-match{font-size:12px;font-weight:800;color:var(--ink-soft);min-width:52px;text-align:right}
-.sr-block{margin:8px 0 0}
-.sr-block h5{margin:0 0 3px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.sr-block ul{margin:0;padding-left:16px}
-.sr-block li{font-size:13px;line-height:1.65;color:var(--ink);margin:2px 0}
-.sr-why{color:var(--ink-soft);font-size:12.5px}
-.sr-verdict{margin-top:8px;font-size:13px;line-height:1.65;color:var(--ink);background:var(--accent-soft);border-radius:8px;padding:8px 11px}
-.sr-evs{display:inline-flex;gap:5px;flex-wrap:wrap;margin-left:6px;vertical-align:middle}
-.sr-supp{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:12.5px;color:var(--ink)}
-.sr-supp .qa-link{color:var(--accent);font:inherit;font-size:12.5px;font-weight:700;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
-@media print{.sr-review-btn{display:none !important}}
-</style>
-
-<script>
-/* ==== Paper Study 검토 피드백 (study_review_inject.py) v2 - 브릿지 /review-study 비동기 job 폴링 ==== */
+/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v4 - JSON+X-QA-Bridge 헤더 · 비동기 job 폴링 + qabridge:// 자동 시작 + 묶음 카드/해시 우회 ==== */
 (function(){
   var SHORT = "CARES";
-  function bridgeUrl(){ try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; } catch(e){ return "http://127.0.0.1:8787"; } }
-  function fetchT(url, opts, ms){ var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, ms); opts = opts||{}; opts.signal = c.signal; return fetch(url, opts).finally(function(){ clearTimeout(t); }); }
-  /* 공용: 브릿지 확인 + 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 (qa_button_inject 와 공유) */
-  if(!window.__qaBridgeEnsure){
+  function bridgeUrl(){
+    try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; }
+    catch(e){ return "http://127.0.0.1:8787"; }
+  }
+  function fetchT(url, opts, ms){
+    var ctl = new AbortController();
+    var t = setTimeout(function(){ ctl.abort(); }, ms);
+    opts = opts || {}; opts.signal = ctl.signal;
+    return fetch(url, opts).finally(function(){ clearTimeout(t); });
+  }
+
+  /* ---- 공용: 브릿지가 켜져 있는지 확인하고, 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 ---- */
+  /* v2 = 하드닝된 브릿지(1.3+) 대응. 구버전 helper 가 먼저 정의돼 있어도 덮어쓴다. */
+  if(!window.__qaBridgeEnsure || (window.__qaBridgeEnsure.v|0) < 2){
     window.__qaBridgeEnsure = function(onReady, onStatus){
       var url = bridgeUrl();
       function ping(){ return fetchT(url + '/ping', {method:'GET'}, 2000).then(function(r){ return !!(r && r.ok); }).catch(function(){ return false; }); }
@@ -1778,13 +1597,14 @@ body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)
         })();
       });
     };
+    window.__qaBridgeEnsure.v = 2;
   }
 
   /* ---- 공용: 비동기 job 접수 + 폴링 (qa_button_inject / study_review_inject 공유, v2) ----
      헤드리스 claude 는 10분을 넘기는 일이 흔하다. 한 번의 fetch 로 끝까지 기다리면
      브라우저 타임아웃·탭 이동에 결과를 잃으므로, 202 로 job_id 만 받고 /job 을 폴링한다.
      job_id 는 localStorage 에 남겨 새로고침·재오픈 후에도 같은 작업에 다시 붙는다. */
-  if(!window.__qaBridgeJob2){
+  if(!window.__qaBridgeJob2 || (window.__qaBridgeJob2.v|0) < 2){
     window.__qaBridgeJob2 = function(o){
       /* o = {path, body, jobKey, running(text)->html, onStatus(html,cls), onResult(res),
               onGiveUp(), onLost(), onError(err), resumeOnly} */
@@ -1825,7 +1645,7 @@ body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)
       }
       var body = o.body || {};
       body.async = 1;              /* 새 클라이언트 표식 - 없으면 브릿지가 동기 응답(구버전 호환) */
-      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body)}, 20000)
+      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'application/json', 'X-QA-Bridge':'1'}, body: JSON.stringify(body)}, 20000)
         .then(function(r){ return r.json(); })
         .then(function(res){
           if(res && res.status === 'accepted' && res.job_id){
@@ -1837,6 +1657,264 @@ body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)
         .catch(function(err){ stopped = true; if(o.onError) o.onError(err); });
       return true;
     };
+    window.__qaBridgeJob2.v = 2;
+  }
+
+  var HKEY = "prstudy:" + SHORT + ":qa_client_hash";
+  var MEMOKEY = "prstudy:" + SHORT + ":memo";
+  var JOBKEY = "prstudy:" + SHORT + ":qa_job";          /* 진행 중 job_id - 새로고침 후 재접속용 */
+  var PHKEY = "prstudy:" + SHORT + ":qa_pending_hash";  /* 요청 시점 메모 해시(완료 때 확정) */
+  function hget(){ try { return localStorage.getItem(HKEY) || ""; } catch(e){ return ""; } }
+  function hset(v){ try { localStorage.setItem(HKEY, v); } catch(e){} }
+  function djb2(s){ var h = 5381; for (var i=0;i<s.length;i++){ h = ((h<<5)+h + s.charCodeAt(i))|0; } return (h>>>0).toString(16); }
+
+  var tries = 0;
+  (function attach(){
+    var drawer = document.querySelector('.memo-drawer');
+    var pad = drawer && drawer.querySelector('.memo-pad');
+    var statusRow = drawer && drawer.querySelector('.memo-status');
+    if(!drawer || !pad || !statusRow){
+      if(tries++ < 20){ setTimeout(attach, 200); }
+      return;
+    }
+    if(drawer.querySelector('.qa-gen-bar')) return; // idempotent
+
+    var bar = document.createElement('div');
+    bar.className = 'qa-gen-bar';
+    bar.innerHTML =
+      '<button class="qa-gen-btn" type="button"><span class="qa-spin"></span><span class="qa-label">🤖 Q&amp;A 생성</span></button>' +
+      '<div class="qa-gen-status" aria-live="polite"></div>';
+    statusRow.insertAdjacentElement('afterend', bar);
+
+    var btn = bar.querySelector('.qa-gen-btn');
+    var label = bar.querySelector('.qa-label');
+    var status = bar.querySelector('.qa-gen-status');
+
+    function setStatus(html, cls){ status.className = 'qa-gen-status' + (cls ? ' ' + cls : ''); status.innerHTML = html; }
+    function busy(on){ btn.disabled = on; btn.classList.toggle('busy', on); label.textContent = on ? '생성 중…' : '🤖 Q&A 생성'; }
+    function runningText(t){ return '⏳ Q&amp;A 생성 중… ' + t + ' 경과. 브릿지에서 계속 진행 중이며, 탭을 닫았다 열어도 다시 이어집니다.'; }
+
+    function handle(res){
+      var st = res && res.status;
+      var ph = ''; try { ph = localStorage.getItem(PHKEY) || ''; } catch(e){}
+      function seal(){ if(ph) hset(ph); try { localStorage.removeItem(PHKEY); } catch(e){} }
+      if(st === 'ok'){
+        var deferred = (res.deferred|0);
+        if(!deferred) seal();   /* 남긴 질문이 있으면 클라이언트 해시도 봉인하지 않는다(재클릭 = 이어받기) */
+        var cards = (res.new_cards && res.new_cards.length) || (res.new_qids && res.new_qids.length) || 0;
+        var qn = (res.new_questions && res.new_questions.length) || cards;
+        var msg = '✅ 메모 질문 ' + qn + '개를 카드 ' + cards + '장으로 ⑥ Q&amp;A 탭에 추가했습니다.';
+        if(deferred) msg += ' 남은 질문 ' + deferred + '개는 버튼을 다시 눌러 이어서 생성할 수 있습니다.';
+        setStatus(msg + ' <button class="qa-link" data-reload>새로고침하여 보기</button>', 'ok');
+      }
+      else if(st === 'noop'){
+        /* 서버는 processed_hash 를 봉인하지 않는다(noop_hash 만 기록). 오판 대비 우회를 항상 노출. */
+        setStatus('새로 추출된 질문이 없습니다. (메모에 새 질문이 없거나 이미 반영됨) <button class="qa-link" data-force>그래도 다시 생성</button>');
+      }
+      else if(st === 'nochange'){
+        if(res.reason === 'noop'){
+          setStatus('새 질문이 없다고 판정된 메모입니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
+        } else {
+          seal();
+          setStatus('메모 변경 없음 - 새로 추가할 질문이 없습니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
+        }
+      }
+      else if(st === 'busy'){ setStatus(res.message || '이미 생성 중입니다. 잠시 후 다시 시도하세요.', 'err'); }
+      else if(st === 'empty'){ setStatus(res.message || '메모를 먼저 작성하세요.', 'err'); }
+      else { setStatus('⚠ ' + ((res && res.message) || '생성 실패'), 'err'); }
+    }
+
+    function jobOpts(force, resumeOnly, memo){
+      return {
+        path: '/gen-qa',
+        body: {short: SHORT, memo: memo || '', force: !!force},
+        jobKey: JOBKEY,
+        resumeOnly: !!resumeOnly,
+        running: runningText,
+        onStatus: function(h, c){ setStatus(h, c); },
+        onResult: function(res){ busy(false); handle(res); },
+        onGiveUp: function(){
+          busy(false);
+          setStatus('⌛ 오래 기다렸지만 아직 결과가 오지 않았습니다. <b>서버 작업은 계속 진행 중일 수 있습니다</b> - 브릿지 콘솔 로그를 확인하세요. 이 페이지를 새로고침하면 진행 중인 작업에 다시 연결됩니다.', 'err');
+        },
+        onLost: function(){ busy(false); setStatus('진행 중이던 작업을 서버에서 찾지 못했습니다 (브릿지 재시작). 다시 시도하세요.', 'err'); },
+        onError: function(err){
+          busy(false);
+          if(err && err.name === 'AbortError'){
+            setStatus('⚠ 접수 응답이 20초 안에 오지 않았습니다. 브릿지가 <b>구버전</b>이면 비동기 접수를 지원하지 않습니다 - 브릿지를 재시작한 뒤 다시 시도하세요.', 'err');
+          } else {
+            setStatus('⚠ 요청을 보내지 못했습니다. 브릿지 콘솔 로그를 확인하세요.', 'err');
+          }
+        }
+      };
+    }
+
+    function run(force){
+      var memo = pad.value.trim();
+      if(!memo){ setStatus('메모를 먼저 작성하세요.', 'err'); return; }
+      var curHash = djb2(memo);
+      if(!force && curHash === hget()){
+        setStatus('이미 이 메모로 생성했습니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
+        return;
+      }
+      try { localStorage.setItem(MEMOKEY, pad.value); localStorage.setItem(PHKEY, curHash); } catch(e){}  /* 내용 무손실 */
+
+      busy(true);
+      setStatus('브릿지 서버 확인 중…');
+      window.__qaBridgeEnsure(function(up){
+        if(!up){
+          setStatus('⚠ 브릿지를 켜지 못했습니다. 최초 1회 설정이 필요할 수 있어요 - 터미널에서 <code>python tools/qa_bridge_register.py</code> 실행(자동 시작 등록), 또는 <code>python tools/qa_bridge.py</code> 직접 실행.', 'err');
+          busy(false); return;
+        }
+        setStatus(runningText('0초'));
+        window.__qaBridgeJob2(jobOpts(force, false, memo));
+      }, function(msg){ setStatus(msg); });
+    }
+
+    /* 새로고침·재오픈 시: 진행 중이던 job 이 있으면 그 job 에 다시 붙는다 (중복 실행 방지의 핵심) */
+    (function resume(){
+      busy(true);
+      if(!window.__qaBridgeJob2(jobOpts(false, true, ''))){ busy(false); }
+    })();
+
+    btn.addEventListener('click', function(){ run(false); });
+    status.addEventListener('click', function(e){
+      var f = e.target.closest('[data-force]');
+      var r = e.target.closest('[data-reload]');
+      if(f){ e.preventDefault(); run(true); }
+      else if(r){ e.preventDefault(); try { localStorage.setItem(MEMOKEY, pad.value); } catch(err){} location.reload(); }
+    });
+  })();
+})();
+</script>
+
+<style>
+/* ==== Paper Study 검토 피드백 (study_review_inject.py) v2 ==== */
+.study-btn.sr-review-btn{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:800}
+.study-btn.sr-review-btn:hover{filter:brightness(1.06)}
+.study-btn.sr-review-btn:disabled{opacity:.55;cursor:default}
+#study-review-panel{margin:0 0 18px;border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:16px 18px;box-shadow:var(--shadow)}
+#study-review-panel[hidden]{display:none}
+.sr-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.sr-head h3{margin:0;font-size:15px;font-weight:800;color:var(--accent)}
+.sr-close{border:1px solid var(--line);background:#fff;border-radius:50%;width:26px;height:26px;font-size:15px;line-height:1;color:var(--muted);cursor:pointer}
+.sr-status{font-size:12px;line-height:1.6;color:var(--muted);min-height:1.1em}
+.sr-status.err{color:var(--rose)}.sr-status.ok{color:var(--mint)}
+.sr-spin{width:13px;height:13px;border:2px solid var(--accent-pale);border-top-color:var(--accent);border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:6px;animation:sr-spin .8s linear infinite}
+@keyframes sr-spin{to{transform:rotate(360deg)}}
+.sr-step{border-top:1px solid var(--line);padding:12px 0}
+.sr-step:first-of-type{border-top:none}
+.sr-step-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sr-step-label{font-size:13.5px;font-weight:800;color:var(--ink)}
+.sr-meter{flex:1;min-width:120px;height:8px;background:var(--accent-soft);border-radius:99px;overflow:hidden}
+.sr-meter-fill{height:100%;background:var(--accent-mid)}
+.sr-meter-fill.lo{background:var(--rose)}.sr-meter-fill.mid{background:var(--amber)}.sr-meter-fill.hi{background:var(--mint)}
+.sr-match{font-size:12px;font-weight:800;color:var(--ink-soft);min-width:52px;text-align:right}
+.sr-block{margin:8px 0 0}
+.sr-block h5{margin:0 0 3px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.sr-block ul{margin:0;padding-left:16px}
+.sr-block li{font-size:13px;line-height:1.65;color:var(--ink);margin:2px 0}
+.sr-why{color:var(--ink-soft);font-size:12.5px}
+.sr-verdict{margin-top:8px;font-size:13px;line-height:1.65;color:var(--ink);background:var(--accent-soft);border-radius:8px;padding:8px 11px}
+.sr-evs{display:inline-flex;gap:5px;flex-wrap:wrap;margin-left:6px;vertical-align:middle}
+.sr-supp{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:12.5px;color:var(--ink)}
+.sr-supp .qa-link{color:var(--accent);font:inherit;font-size:12.5px;font-weight:700;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
+@media print{.sr-review-btn{display:none !important}}
+</style>
+
+<script>
+/* ==== Paper Study 검토 피드백 (study_review_inject.py) v3 - JSON+X-QA-Bridge 헤더 · 브릿지 /review-study 비동기 job 폴링 ==== */
+(function(){
+  var SHORT = "CARES";
+  function bridgeUrl(){ try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; } catch(e){ return "http://127.0.0.1:8787"; } }
+  function fetchT(url, opts, ms){ var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, ms); opts = opts||{}; opts.signal = c.signal; return fetch(url, opts).finally(function(){ clearTimeout(t); }); }
+  /* 공용: 브릿지 확인 + 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 (qa_button_inject 와 공유) */
+  /* v2 = 하드닝된 브릿지(1.3+) 대응. 구버전 helper 가 먼저 정의돼 있어도 덮어쓴다. */
+  if(!window.__qaBridgeEnsure || (window.__qaBridgeEnsure.v|0) < 2){
+    window.__qaBridgeEnsure = function(onReady, onStatus){
+      var url = bridgeUrl();
+      function ping(){ return fetchT(url + '/ping', {method:'GET'}, 2000).then(function(r){ return !!(r && r.ok); }).catch(function(){ return false; }); }
+      ping().then(function(up){
+        if(up){ onReady(true); return; }
+        if(onStatus) onStatus('브릿지를 켜는 중… 브라우저가 “열기”를 물으면 <b>허용</b>해 주세요. (최초 1회)');
+        try {
+          var f = document.getElementById('__qa_bridge_frame');
+          if(!f){ f = document.createElement('iframe'); f.id = '__qa_bridge_frame'; f.style.display = 'none'; document.body.appendChild(f); }
+          f.src = 'qabridge://start?t=' + (new Date().getTime());
+        } catch(e){}
+        var tries = 0;
+        (function poll(){
+          setTimeout(function(){
+            ping().then(function(u2){
+              if(u2){ onReady(true); }
+              else if(++tries < 20){ if(onStatus) onStatus('브릿지 시작을 기다리는 중… (' + tries + ')'); poll(); }
+              else { onReady(false); }
+            });
+          }, 800);
+        })();
+      });
+    };
+    window.__qaBridgeEnsure.v = 2;
+  }
+
+  /* ---- 공용: 비동기 job 접수 + 폴링 (qa_button_inject / study_review_inject 공유, v2) ----
+     헤드리스 claude 는 10분을 넘기는 일이 흔하다. 한 번의 fetch 로 끝까지 기다리면
+     브라우저 타임아웃·탭 이동에 결과를 잃으므로, 202 로 job_id 만 받고 /job 을 폴링한다.
+     job_id 는 localStorage 에 남겨 새로고침·재오픈 후에도 같은 작업에 다시 붙는다. */
+  if(!window.__qaBridgeJob2 || (window.__qaBridgeJob2.v|0) < 2){
+    window.__qaBridgeJob2 = function(o){
+      /* o = {path, body, jobKey, running(text)->html, onStatus(html,cls), onResult(res),
+              onGiveUp(), onLost(), onError(err), resumeOnly} */
+      var POLL_MS = 2500, FETCH_MS = 10000, MAXWAIT = 40 * 60 * 1000;
+      function bu(){ try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; } catch(e){ return "http://127.0.0.1:8787"; } }
+      function ft(url, opts, ms){ var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, ms); opts = opts || {}; opts.signal = c.signal; return fetch(url, opts).finally(function(){ clearTimeout(t); }); }
+      function jset(v){ try { if(v) localStorage.setItem(o.jobKey, v); else localStorage.removeItem(o.jobKey); } catch(e){} }
+      function jget(){ try { return localStorage.getItem(o.jobKey) || ""; } catch(e){ return ""; } }
+      function fmt(sec){ sec = Math.max(0, Math.round(sec || 0)); var m = Math.floor(sec / 60), s = sec % 60; return m ? (m + '분 ' + s + '초') : (s + '초'); }
+      var t0 = Date.now(), stopped = false, first = true;
+      function done(res){ if(stopped) return; stopped = true; jset(''); o.onResult(res); }
+      function poll(id){
+        if(stopped) return;
+        if(Date.now() - t0 > MAXWAIT){ stopped = true; if(o.onGiveUp) o.onGiveUp(); return; }
+        ft(bu() + '/job?id=' + encodeURIComponent(id), {method:'GET'}, FETCH_MS)
+          .then(function(r){ return r.json(); })
+          .then(function(j){
+            first = false;
+            if(j.status === 'running'){ o.onStatus(o.running(fmt(j.elapsed))); setTimeout(function(){ poll(id); }, POLL_MS); }
+            else if(j.status === 'unknown'){ stopped = true; jset(''); if(o.onLost) o.onLost(); }
+            else done(j);
+          })
+          .catch(function(){
+            /* 일시적 불통이면 계속 재시도한다. 다만 '복원' 중 첫 조회가 실패하면 브릿지가
+               꺼진 것이고 job 은 메모리에만 살아 있으므로 조용히 포기한다. */
+            if(first && o.resumeOnly){ stopped = true; jset(''); return; }
+            first = false;
+            o.onStatus(o.running(fmt((Date.now() - t0) / 1000)) + ' (브릿지 응답 대기…)');
+            setTimeout(function(){ poll(id); }, POLL_MS);
+          });
+      }
+      if(o.resumeOnly){
+        var old = jget();
+        if(!old) return false;
+        o.onStatus(o.running('…'));
+        poll(old);
+        return true;
+      }
+      var body = o.body || {};
+      body.async = 1;              /* 새 클라이언트 표식 - 없으면 브릿지가 동기 응답(구버전 호환) */
+      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'application/json', 'X-QA-Bridge':'1'}, body: JSON.stringify(body)}, 20000)
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if(res && res.status === 'accepted' && res.job_id){
+            jset(res.job_id); t0 = Date.now(); o.onStatus(o.running('0초')); poll(res.job_id);
+          } else {
+            done(res || {status:'error', message:'브릿지가 빈 응답을 보냈습니다.'});  /* 200 즉답(nochange 등) */
+          }
+        })
+        .catch(function(err){ stopped = true; if(o.onError) o.onError(err); });
+      return true;
+    };
+    window.__qaBridgeJob2.v = 2;
   }
 
   var RKEY = "prstudy:" + SHORT + ":study_review";
@@ -2020,290 +2098,253 @@ body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)
 })();
 </script>
 
+<!-- MEMO-LAYER-FIX v7 (tools/memo_layer_fix.py) -->
 <style>
-/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v4 ==== */
-.qa-gen-bar{margin:0 18px 4px;display:flex;flex-direction:column;gap:7px}
-.qa-gen-btn{font:inherit;font-size:13px;font-weight:800;color:#ffffff;background:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
-.qa-gen-btn:hover{filter:brightness(1.06)}
-.qa-gen-btn:disabled{opacity:.55;cursor:default}
-.qa-gen-btn .qa-spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;display:none;animation:qa-spin 0.8s linear infinite}
-.qa-gen-btn.busy .qa-spin{display:inline-block}
-@keyframes qa-spin{to{transform:rotate(360deg)}}
-.qa-gen-status{font-size:11.5px;line-height:1.6;color:var(--muted);min-height:1.2em}
-.qa-gen-status.ok{color:var(--mint)}
-.qa-gen-status.err{color:var(--rose)}
-.qa-gen-status a,.qa-gen-status button.qa-link{color:var(--accent);font:inherit;font-size:11.5px;font-weight:700;background:none;border:none;padding:0;cursor:pointer;text-decoration:underline}
-/* ==== ⑥ tab-qa 메모 생성 카드 (헤드리스 claude 가 채움) ==== */
-.qa-mem-root{display:flex;flex-direction:column;gap:16px;margin-top:10px}
-.qa-mem-card{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--paper);box-shadow:var(--shadow)}
-.qa-mem-card .qa-mem-q{margin:0 0 8px;font-size:15px;font-weight:800;color:var(--accent)}
-/* 묶음 카드가 답하는 메모 원문 질문 목록 (하위 질문 2개 이상일 때만 렌더) */
-.qa-mem-card .qa-mem-covers{margin:0 0 10px;padding:7px 12px 7px 27px;list-style:disc;border:1px dashed var(--line);border-radius:8px;background:transparent}
-.qa-mem-card .qa-mem-covers li{font-size:12px;line-height:1.6;color:var(--muted);margin:2px 0}
-.qa-mem-card .qa-mem-covers li::marker{color:var(--accent-mid)}
-.qa-mem-card .qa-mem-tldr{margin:0 0 10px;font-size:13.5px;background:var(--accent-soft);border-radius:8px;padding:9px 12px;color:var(--ink);line-height:1.65}
-.qa-mem-card p{font-size:13.5px;line-height:1.75;color:var(--ink)}
-.qa-mem-card table{border-collapse:collapse;font-size:12.5px;margin:8px 0;width:100%}
-.qa-mem-card th,.qa-mem-card td{border:1px solid var(--line);padding:5px 9px;text-align:left}
-.qa-mem-card th{background:var(--accent-soft)}
-.qa-mem-callout{border-radius:9px;padding:10px 13px;font-size:13px;line-height:1.7;margin:8px 0}
-.qa-mem-callout.key{background:var(--mint-soft);border:1px solid var(--mint)}
-.qa-mem-callout.warn{background:var(--rose-soft);border:1px solid var(--rose)}
-.qa-mem-callout.safe{background:var(--accent-soft);border:1px solid var(--accent-mid)}
-.qa-mem-card figure{margin:10px 0}
-.qa-mem-card figure img{max-width:100%;border-radius:9px;border:1px solid var(--line)}
-/* ==== ⑥ tab-qa 보조 클래스 (v4, 2026-09-10) - 카테고리 라벨 · 표 · 수식 · 캡션 ====
-   헤드리스 run 이 만들어 쓰던 미정의 클래스(qa-mem-cat / qa-mem-figcap / qa-mem-math /
-   qa-mem-math-note)를 여기서 확정한다. 브릿지 프롬프트의 화이트리스트와 1:1 로 대응하며,
-   목록 밖 클래스를 새로 만들지 않는 것이 그 프롬프트의 규약이다. */
-.qa-mem-root+.qa-mem-root,.qa-mem-root[data-review-supp]{margin-top:18px}
-.qa-mem-root>.qa-mem-card{min-width:0}
-/* 카테고리 라벨. <p> 와 <h3> 가 같은 클래스를 쓰므로(메모 쪽 p · 검토 쪽 h3)
-   태그 기본값 margin·font-size·font-weight 를 명시 리셋해 두 태그 렌더를 일치시킨다. */
-.qa-mem-cat,.qa-mem-card .qa-mem-cat,.qa-mem-root>.qa-mem-cat{display:block;box-sizing:border-box;margin:14px 0 8px;padding:0;font-family:inherit;font-size:12px;font-weight:800;line-height:1.5;letter-spacing:.04em;color:var(--accent);text-align:left}
-.qa-mem-card .qa-mem-cat:first-child{margin-top:0}
-/* 카드 묶음 위의 그룹 라벨. 아래 카드들과 한 덩어리로 읽히도록 구분선 하나만 둔다(좌측 색 띠 금지). */
-.qa-mem-root>.qa-mem-cat{margin:0;padding:0 2px 9px;font-size:12.5px;color:var(--ink-soft);border-bottom:1px solid var(--line)}
-/* 표. 카드 폭을 넘으면 페이지가 아니라 표가 스크롤한다. */
-.qa-mem-table-wrap{overflow-x:auto;max-width:100%;margin:10px 0}
-.qa-mem-card .qa-mem-table{border-collapse:collapse;width:100%;font-size:12.5px;margin:0}
-/* display 수식. v4 규약대로 배경은 다크가 아니라 밝은 회색이고, 넘치면 자체 스크롤한다. */
-.qa-mem-math,.qa-mem-card .qa-mem-math{margin:12px 0;padding:14px;background:#f1f2f7;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:15.5px;line-height:1.5;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
-.qa-mem-card .qa-mem-math mjx-container[display]{margin:0}
-.qa-mem-math-note,.qa-mem-card .qa-mem-math-note{margin:-2px 0 10px;font-size:12.5px;font-weight:400;line-height:1.65;color:var(--ink-soft)}
-/* 카드 안 이미지 캡션. .diss-overview-figure figcaption 관례(좌측 정렬 · muted)를 따른다. */
-.qa-mem-figcap,.qa-mem-card .qa-mem-figcap{display:block;margin:8px 0 0;font-size:12.5px;font-weight:400;line-height:1.6;color:var(--muted);text-align:left}
-@media print{.qa-gen-bar{display:none !important}}
+/* ---- 메모를 최상위 레이어로: 라이트박스(2000)·노트선택(1700)·학습가이드(1600)·자산뷰어(1500)·리더(1450) 위 ---- */
+:root{--memo-w:380px;--sd-w:440px;--memo-gap:26px;--overlay-right:0px}
+.memo-fab{z-index:2400 !important;transition:right 200ms ease}
+.memo-drawer{z-index:2400 !important;transition:transform 240ms ease,right 200ms ease}
+
+/* ---- 학습 가이드 드로어 옆에 나란히 선다 - 자리가 있을 때만 (JS 가 판정해 클래스를 붙인다) ---- */
+body.mlx-sd .memo-fab{right:calc(var(--memo-gap) + var(--sd-w))}
+body.mlx-sd-side .memo-drawer{right:var(--sd-w);box-shadow:-12px 0 30px rgba(30,34,46,0.12)}
+
+/* ---- 메모가 열리면 전체화면 오버레이를 그만큼 좁힌다 - 남는 폭이 읽을 수 있을 때만 ---- */
+body.mlx-memo.mlx-shrink .img-lightbox,
+body.mlx-memo.mlx-shrink .asset-viewer,
+body.mlx-memo.mlx-shrink .para-reader,
+body.mlx-memo.mlx-shrink .notes-picker,
+/* .study-modal 이라도 실제로는 440px 사이드 드로어인 세대(papers 24 계열)가 있다.
+   그런 요소는 JS 가 .mlx-side 로 표시하며, 옆자리를 이미 배정받았으므로 축소 대상에서 뺀다. */
+body.mlx-memo.mlx-shrink .study-modal:not(.mlx-side){right:var(--overlay-right)}
+body.mlx-memo.mlx-shrink .asset-viewer.open{padding-right:22px;justify-content:center}
+body.mlx-memo.mlx-shrink .img-lightbox-stage{max-width:max(520px,calc(96vw - var(--overlay-right)))}
+body.mlx-memo.mlx-shrink .img-lightbox img{max-width:min(100%,max(520px,calc(96vw - var(--overlay-right))))}
+body.mlx-memo.mlx-shrink .img-lightbox-caption{max-width:max(340px,calc(80vw - var(--overlay-right)))}
+/* 오버레이 안이지만 position:fixed 라 뷰포트에 붙어 있는 조각(구세대 라이트박스 닫기 버튼·힌트)은 직접 밀어준다 */
+body.mlx-memo.mlx-shrink .mlx-shift-x{margin-right:var(--overlay-right)}
+body.mlx-memo.mlx-shrink .mlx-shift-half{margin-left:calc(-1 * var(--overlay-right) / 2)}
+body.mlx-memo.mlx-shrink .pr-panel{width:min(1080px,max(540px,calc(95vw - var(--overlay-right))))}
+body.mlx-memo.mlx-shrink .np-panel{width:min(520px,max(340px,calc(94vw - var(--overlay-right))))}
+body.mlx-memo.mlx-shrink .av-panel{max-width:min(1240px,max(540px,calc(95vw - var(--overlay-right))))}
+
+/* ---- 좁은 화면에서는 두 드로어를 함께 줄여 가운데에 볼 자리를 만든다 (메모가 가이드를 덮지 않도록) ---- */
+body.mlx-narrow .study-drawer,
+body.mlx-narrow .mlx-side{width:var(--sd-w)}
+body.mlx-narrow .memo-drawer{width:var(--memo-w)}
+
+/* ---- 자산 뷰어 반응형 (v7): 이미지 칸이 그 이미지의 필요 폭보다 좁아지면 세로로 쌓는다 ----
+   위: 이미지 / 가운데: 원문 캡션 + 번역 / 아래: 해석 보기. 패널 본문이 통째로 세로 스크롤한다.
+   가이드를 열어도 캡션·번역을 감추지 않는다(v6 의 이미지 전용 모드 폐기) - 판정은 JS(sync) 가 한다. */
+body.mlx-av-stack .asset-viewer .av-panel{width:100%;max-width:min(1240px,100%)}
+body.mlx-av-stack .asset-viewer .av-body{flex-direction:column !important;overflow-x:hidden;overflow-y:auto}
+body.mlx-av-stack .asset-viewer .av-img{flex:0 0 auto !important;padding:10px}
+body.mlx-av-stack .asset-viewer .av-img img{max-height:58vh !important;max-width:100%}
+body.mlx-av-stack .asset-viewer .av-text{flex:0 0 auto !important;max-height:none !important;overflow:visible;border-left:0 !important;border-top:1px solid var(--line)}
+/* 좁은 패널에서 머리줄이 여러 줄로 접혀 이미지를 밀어내지 않게 - 안내 문구는 말줄임, 라벨·버튼은 한 줄 */
+body.mlx-av-stack .asset-viewer .av-head{padding:10px 12px;gap:8px}
+body.mlx-av-stack .asset-viewer .av-label{white-space:nowrap;flex-shrink:0}
+body.mlx-av-stack .asset-viewer .av-hint{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mlx-av-stack .asset-viewer .av-head .study-fab{white-space:nowrap;flex-shrink:0}
+/* 가이드가 열려 있으면 뷰어를 그 폭만큼 왼쪽으로 - 논문 자체 규칙(470px 고정 · 1100px 이하 해제)을 실제 폭으로 교정 */
+body.mlx-sd:not(.mlx-shrink) .asset-viewer.open{padding-right:calc(var(--sd-w) + 22px)}
+
+/* ---- 좁아서 축소를 포기한 경우: 메모가 오버레이 위에 뜬다 (찌그러뜨리는 것보다 낫다) ---- */
+body.mlx-memo.mlx-float .memo-drawer{box-shadow:-20px 0 48px rgba(20,22,30,0.34)}
+@media print{.memo-fab,.memo-drawer{display:none !important}}
 </style>
 
 <script>
-/* ==== 메모 Q&A 생성 버튼 (qa_button_inject.py) v3 - 비동기 job 폴링 + qabridge:// 자동 시작 + 묶음 카드/해시 우회 ==== */
+/* ==== 메모 상시 접근 레이어 (memo_layer_fix.py v7) - 열린 오버레이를 감지해 자리를 배분 ==== */
 (function(){
-  var SHORT = "CARES";
-  function bridgeUrl(){
-    try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; }
-    catch(e){ return "http://127.0.0.1:8787"; }
+  var SEL = '.memo-drawer,.study-drawer,.study-modal,.img-lightbox,.asset-viewer,.para-reader,.notes-picker';
+  var HARD = '.img-lightbox.open,.para-reader.open,.notes-picker.open';
+  var MIN_OVER = 560;   // 라이트박스·리더·노트 선택 패널이 읽을 수 있는 최소 폭
+  var MIN_PAGE = 120;   // 가이드 + 메모 옆에 남길 본문 띠 (바깥 더블클릭으로 메모를 닫을 자리)
+  var MIN_VIEW = 304;   // 자산 뷰어가 세로 적층으로 버티는 최소 오버레이 폭 (패널 260 + 좌우 여백 44)
+  var ROW_IMG  = 360;   // 가로 배치에서 이미지가 가져야 할 최소 폭 (이미지가 더 작으면 그 크기까지만)
+  var TEXT_COL = 428;   // 가로 배치의 텍스트 칸 400 + 이미지 칸 여백 28
+  var raf = 0;
+
+  function clamp(lo, v, hi){ return Math.max(lo, Math.min(v, hi)); }
+
+  function sync(){
+    raf = 0;
+    var body = document.body;
+    if (!body) return;
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+
+    var memo = document.querySelector('.memo-drawer');
+    var memoOpen = !!(memo && memo.classList.contains('open'));
+
+    // 열린 학습 가이드가 "옆에 설 수 있는 사이드 드로어"인지, 화면을 덮는 모달(구세대 SGL)인지 구분한다.
+    // 모달이면 옆자리가 없으므로 전체화면 오버레이와 같은 취급을 한다.
+    var cand = document.querySelector('.study-drawer.open, .study-modal.open');
+    var sd = null, modal = null;
+    if (cand){
+      var cw = cand.offsetWidth || 0;
+      // 폭이 뷰포트의 60% 이하면 사이드 드로어. 단 좁은 화면(733px 미만)에서는 440px 드로어도 60% 를 넘으므로,
+      // 드로어 폭(<= 460) 자체로도 인정한다 - 화면을 덮는 모달은 폭이 뷰포트와 같아 여기서 걸러진다.
+      if (cw > 0 && (cw <= vw * 0.6 || (cw <= 460 && cw <= vw - 100))) sd = cand;
+      else if (cw > 0) modal = cand;
+    }
+    // 사이드 드로어로 취급하기로 한 요소를 표시해 둔다 - 클래스가 .study-modal 이어도(papers 24 계열)
+    // 옆자리를 배정받은 이상 오버레이 축소 대상에서 빠져야 한다.
+    var prevSide = document.querySelector('.mlx-side');
+    if (prevSide && prevSide !== sd) prevSide.classList.remove('mlx-side');
+    if (sd) sd.classList.add('mlx-side');
+
+    // 자산 뷰어는 세로 적층으로 좁은 폭을 버틸 수 있지만, 라이트박스·리더·노트 선택·풀스크린 모달은 그렇지 않다.
+    var hard = document.querySelector(HARD) || modal;
+    var viewer = document.querySelector('.asset-viewer.open');
+    var over = hard || viewer;
+
+    // 좁은 화면에서는 두 드로어를 함께 줄여, 메모가 가이드를 덮지 않고도 가운데에 볼 자리가 남게 한다.
+    var narrow = vw < 1200;
+    var sdW = sd ? (narrow ? clamp(300, Math.round(vw * 0.36), 440) : (sd.offsetWidth || 440)) : 0;
+    var memoW = memoOpen ? (narrow ? clamp(280, Math.round(vw * 0.32), 380) : (memo.offsetWidth || 380)) : 0;
+
+    // 남는 폭이 읽을 수 있는가 - 오버레이 패널은 vw 기준 95% 안에서 다시 좁아지므로 그것까지 감안한다.
+    function fits(reserve){
+      if (!over) return true;
+      if (!hard) return vw - reserve >= MIN_VIEW;
+      return vw * 0.95 - reserve >= MIN_OVER;
+    }
+
+    // 1) 메모 드로어가 가이드 옆에 나란히 서는가. 가이드는 메모에 덮이지 않는다 - 본문이든 자산 뷰어든
+    //    두 드로어 옆에 띠(MIN_PAGE)만 남으면 나란히 선다(뷰포트 700px 까지). 그 아래에서만 메모가 가이드 위에 뜬다.
+    //    라이트박스류가 위에 열려 있으면 가이드는 어차피 그 뒤라, 종전대로 오버레이가 읽히는 폭일 때만 나란히.
+    var sideBySide = !!sd && memoOpen &&
+      (hard ? fits(memoW + sdW) : (vw - (memoW + sdW) >= MIN_PAGE));
+    // 2) 가이드만 열렸을 때 메모 버튼을 그 왼쪽에 둘 자리가 있는가.
+    var fabAside = !!sd && (vw - sdW >= 300);
+
+    // 3) 오버레이를 좁힐 수 있는가 - 좁히고 남는 폭이 하한 미만이면 축소를 포기한다.
+    //    나란히 서면 두 폭의 합, 겹쳐 뜨면 둘 중 넓은 쪽이 오른쪽에 예약해야 할 띠의 폭이다.
+    var reserve = sideBySide ? (memoW + sdW) : Math.max(memoW, sd ? sdW : 0);
+    var shrink = memoOpen && !!over && fits(reserve);
+    if (memoOpen && over && !shrink && !sideBySide && reserve !== memoW && fits(memoW)){
+      reserve = memoW;          // 가이드 몫을 포기하면 들어가는 경우
+      shrink = true;
+    }
+    if (!shrink) reserve = 0;
+
+    // 4) 자산 뷰어 배치 - 가로(이미지 | 캡션·번역·해석)로 두면 이미지 칸이 그 이미지의 필요 폭보다
+    //    좁아지는가. 그렇다면 세로 적층. 기준은 뷰포트 폭이 아니라 이미지(원본 폭·종횡비)와 남는 폭이다.
+    //    전환 중인 DOM 을 재지 않고 산식으로 구한다(패널 폭이 배치에 따라 바뀌어 측정하면 진동한다).
+    var stack = false;
+    if (viewer){
+      var im = viewer.querySelector('.av-img img');
+      var nw = im ? (im.naturalWidth || 0) : 0, nh = im ? (im.naturalHeight || 0) : 0;
+      var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+      var band = shrink ? reserve : (fabAside ? sdW : 0);
+      var avail = vw - band - (vw <= 760 ? 32 : 44);
+      var panel = Math.min(1240, avail, Math.max(540, vw * 0.95 - (shrink ? reserve : 0)));
+      var need = ROW_IMG;
+      if (nw > 0 && nh > 0) need = Math.min(ROW_IMG, nw, 0.78 * vh * nw / nh);
+      stack = (panel - TEXT_COL) < need;
+    }
+
+    body.classList.toggle('mlx-memo', memoOpen);
+    body.classList.toggle('mlx-sd', fabAside);
+    body.classList.toggle('mlx-sd-side', sideBySide);
+    body.classList.toggle('mlx-shrink', shrink);
+    body.classList.toggle('mlx-float', memoOpen && !!over && !shrink);
+    body.classList.toggle('mlx-narrow', narrow);
+    body.classList.toggle('mlx-av-stack', stack);
+
+    var root = document.documentElement;
+    if (sd) root.style.setProperty('--sd-w', sdW + 'px');
+    root.style.setProperty('--memo-w', (narrow ? clamp(280, Math.round(vw * 0.32), 380) : 380) + 'px');
+    root.style.setProperty('--overlay-right', reserve + 'px');
   }
-  function fetchT(url, opts, ms){
-    var ctl = new AbortController();
-    var t = setTimeout(function(){ ctl.abort(); }, ms);
-    opts = opts || {}; opts.signal = ctl.signal;
-    return fetch(url, opts).finally(function(){ clearTimeout(t); });
+  function schedule(){ if (!raf) raf = requestAnimationFrame(sync); }
+
+  // 오버레이 폭을 좁히면 그 안의 position:fixed 자식은 여전히 뷰포트 기준이라 따라오지 않는다.
+  // 세대마다 닫기 버튼이 absolute(신)/fixed(구)로 갈리므로 계산된 스타일로 판별해 표시만 해 둔다.
+  function markFixed(el){
+    if (el.__mlxfx) return;
+    el.__mlxfx = 1;
+    var kids = el.querySelectorAll('*');
+    for (var j = 0; j < kids.length; j++){
+      var cs = getComputedStyle(kids[j]);
+      if (cs.position !== 'fixed') continue;
+      if (cs.left === 'auto' && cs.right !== 'auto') kids[j].classList.add('mlx-shift-x');
+      else if (cs.right === 'auto' && cs.left !== 'auto' && cs.transform !== 'none') kids[j].classList.add('mlx-shift-half');
+    }
   }
 
-  /* ---- 공용: 브릿지가 켜져 있는지 확인하고, 꺼져 있으면 qabridge:// 로 자동 시작 후 대기 ---- */
-  if(!window.__qaBridgeEnsure){
-    window.__qaBridgeEnsure = function(onReady, onStatus){
-      var url = bridgeUrl();
-      function ping(){ return fetchT(url + '/ping', {method:'GET'}, 2000).then(function(r){ return !!(r && r.ok); }).catch(function(){ return false; }); }
-      ping().then(function(up){
-        if(up){ onReady(true); return; }
-        if(onStatus) onStatus('브릿지를 켜는 중… 브라우저가 “열기”를 물으면 <b>허용</b>해 주세요. (최초 1회)');
-        try {
-          var f = document.getElementById('__qa_bridge_frame');
-          if(!f){ f = document.createElement('iframe'); f.id = '__qa_bridge_frame'; f.style.display = 'none'; document.body.appendChild(f); }
-          f.src = 'qabridge://start?t=' + (new Date().getTime());
-        } catch(e){}
-        var tries = 0;
-        (function poll(){
-          setTimeout(function(){
-            ping().then(function(u2){
-              if(u2){ onReady(true); }
-              else if(++tries < 20){ if(onStatus) onStatus('브릿지 시작을 기다리는 중… (' + tries + ')'); poll(); }
-              else { onReady(false); }
-            });
-          }, 800);
-        })();
-      });
-    };
+  // 구세대 자산 해설(.study-modal)은 "바깥 클릭이면 닫는다"를 document 에 걸어 둔다.
+  // 그 바깥에는 메모 버튼·드로어도 포함되므로, 메모를 누르면 해설이 닫혀 버린다.
+  // 메모 UI 안에서 시작한 클릭은 document 까지 올려보내지 않아 그 오작동을 막는다.
+  function sealClicks(el){
+    if (el.__mlxseal) return;
+    el.__mlxseal = 1;
+    el.addEventListener('click', function(e){ e.stopPropagation(); });
+    el.addEventListener('mousedown', function(e){ e.stopPropagation(); });
   }
 
-  /* ---- 공용: 비동기 job 접수 + 폴링 (qa_button_inject / study_review_inject 공유, v2) ----
-     헤드리스 claude 는 10분을 넘기는 일이 흔하다. 한 번의 fetch 로 끝까지 기다리면
-     브라우저 타임아웃·탭 이동에 결과를 잃으므로, 202 로 job_id 만 받고 /job 을 폴링한다.
-     job_id 는 localStorage 에 남겨 새로고침·재오픈 후에도 같은 작업에 다시 붙는다. */
-  if(!window.__qaBridgeJob2){
-    window.__qaBridgeJob2 = function(o){
-      /* o = {path, body, jobKey, running(text)->html, onStatus(html,cls), onResult(res),
-              onGiveUp(), onLost(), onError(err), resumeOnly} */
-      var POLL_MS = 2500, FETCH_MS = 10000, MAXWAIT = 40 * 60 * 1000;
-      function bu(){ try { return localStorage.getItem("prstudy:qa_bridge_url") || "http://127.0.0.1:8787"; } catch(e){ return "http://127.0.0.1:8787"; } }
-      function ft(url, opts, ms){ var c = new AbortController(); var t = setTimeout(function(){ c.abort(); }, ms); opts = opts || {}; opts.signal = c.signal; return fetch(url, opts).finally(function(){ clearTimeout(t); }); }
-      function jset(v){ try { if(v) localStorage.setItem(o.jobKey, v); else localStorage.removeItem(o.jobKey); } catch(e){} }
-      function jget(){ try { return localStorage.getItem(o.jobKey) || ""; } catch(e){ return ""; } }
-      function fmt(sec){ sec = Math.max(0, Math.round(sec || 0)); var m = Math.floor(sec / 60), s = sec % 60; return m ? (m + '분 ' + s + '초') : (s + '초'); }
-      var t0 = Date.now(), stopped = false, first = true;
-      function done(res){ if(stopped) return; stopped = true; jset(''); o.onResult(res); }
-      function poll(id){
-        if(stopped) return;
-        if(Date.now() - t0 > MAXWAIT){ stopped = true; if(o.onGiveUp) o.onGiveUp(); return; }
-        ft(bu() + '/job?id=' + encodeURIComponent(id), {method:'GET'}, FETCH_MS)
-          .then(function(r){ return r.json(); })
-          .then(function(j){
-            first = false;
-            if(j.status === 'running'){ o.onStatus(o.running(fmt(j.elapsed))); setTimeout(function(){ poll(id); }, POLL_MS); }
-            else if(j.status === 'unknown'){ stopped = true; jset(''); if(o.onLost) o.onLost(); }
-            else done(j);
-          })
-          .catch(function(){
-            /* 일시적 불통이면 계속 재시도한다. 다만 '복원' 중 첫 조회가 실패하면 브릿지가
-               꺼진 것이고 job 은 메모리에만 살아 있으므로 조용히 포기한다. */
-            if(first && o.resumeOnly){ stopped = true; jset(''); return; }
-            first = false;
-            o.onStatus(o.running(fmt((Date.now() - t0) / 1000)) + ' (브릿지 응답 대기…)');
-            setTimeout(function(){ poll(id); }, POLL_MS);
-          });
+  function attach(){
+    var n = document.querySelectorAll(SEL);
+    for (var i = 0; i < n.length; i++){
+      if (!n[i].__mlx){
+        n[i].__mlx = 1;
+        new MutationObserver(schedule).observe(n[i], {attributes:true, attributeFilter:['class','style']});
       }
-      if(o.resumeOnly){
-        var old = jget();
-        if(!old) return false;
-        o.onStatus(o.running('…'));
-        poll(old);
-        return true;
-      }
-      var body = o.body || {};
-      body.async = 1;              /* 새 클라이언트 표식 - 없으면 브릿지가 동기 응답(구버전 호환) */
-      ft(bu() + o.path, {method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body: JSON.stringify(body)}, 20000)
-        .then(function(r){ return r.json(); })
-        .then(function(res){
-          if(res && res.status === 'accepted' && res.job_id){
-            jset(res.job_id); t0 = Date.now(); o.onStatus(o.running('0초')); poll(res.job_id);
-          } else {
-            done(res || {status:'error', message:'브릿지가 빈 응답을 보냈습니다.'});  /* 200 즉답(nochange 등) */
-          }
-        })
-        .catch(function(err){ stopped = true; if(o.onError) o.onError(err); });
-      return true;
-    };
+      if (n[i].className.indexOf('memo-drawer') < 0) markFixed(n[i]);
+    }
+    var mf = document.querySelector('.memo-fab');
+    if (mf) sealClicks(mf);
+    var mdEl = document.querySelector('.memo-drawer');
+    if (mdEl) sealClicks(mdEl);
   }
 
-  var HKEY = "prstudy:" + SHORT + ":qa_client_hash";
-  var MEMOKEY = "prstudy:" + SHORT + ":memo";
-  var JOBKEY = "prstudy:" + SHORT + ":qa_job";          /* 진행 중 job_id - 새로고침 후 재접속용 */
-  var PHKEY = "prstudy:" + SHORT + ":qa_pending_hash";  /* 요청 시점 메모 해시(완료 때 확정) */
-  function hget(){ try { return localStorage.getItem(HKEY) || ""; } catch(e){ return ""; } }
-  function hset(v){ try { localStorage.setItem(HKEY, v); } catch(e){} }
-  function djb2(s){ var h = 5381; for (var i=0;i<s.length;i++){ h = ((h<<5)+h + s.charCodeAt(i))|0; } return (h>>>0).toString(16); }
+  function boot(){
+    if (!document.body) return;
+    attach();
+    schedule();
+    new MutationObserver(function(){ attach(); schedule(); })
+      .observe(document.body, {childList:true});
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
+    // 자산 뷰어의 이미지가 바뀌면(다른 도표를 열면) 필요 폭이 달라지므로 다시 판정한다. load 는 버블하지 않아 capture.
+    document.addEventListener('load', function(e){
+      var t = e.target;
+      if (t && t.tagName === 'IMG' && t.closest && t.closest('.asset-viewer')) schedule();
+    }, true);
 
+    // 메모 바깥을 두 번 연속 클릭하면 메모를 닫는다. 한 번 클릭으로 닫지 않는 이유는
+    // 그림·문장·가이드를 클릭하며 읽는 도중에 메모가 저절로 사라지면 안 되기 때문이다.
+    document.addEventListener('dblclick', function(e){
+      var d = document.querySelector('.memo-drawer');
+      if (!d || !d.classList.contains('open')) return;
+      var t = e.target;
+      if (t && t.closest && t.closest('.memo-drawer,.memo-fab')) return;
+      var b = d.querySelector('.memo-close');
+      if (b) b.click();
+    }, true);
+
+    // 메모에 포커스가 있는 동안의 키는 페이지 단축키로 새지 않게 가둔다.
+    // ESC = 메모만 닫기(뒤의 라이트박스·드로어는 그대로), 화살표·문자키는 리더 이동에 쓰이지 않게.
+    window.addEventListener('keydown', function(e){
+      var t = e.target;
+      if (!t || !t.closest || !t.closest('.memo-drawer')) return;
+      if (e.key === 'Escape'){
+        var b = document.querySelector('.memo-drawer .memo-close');
+        if (b) b.click();
+      }
+      e.stopPropagation();
+    }, true);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  // 메모/드로어가 뒤늦게 생성되는 구현(papers 1~3의 자립형 주입)까지 붙잡는다
   var tries = 0;
-  (function attach(){
-    var drawer = document.querySelector('.memo-drawer');
-    var pad = drawer && drawer.querySelector('.memo-pad');
-    var statusRow = drawer && drawer.querySelector('.memo-status');
-    if(!drawer || !pad || !statusRow){
-      if(tries++ < 20){ setTimeout(attach, 200); }
-      return;
-    }
-    if(drawer.querySelector('.qa-gen-bar')) return; // idempotent
-
-    var bar = document.createElement('div');
-    bar.className = 'qa-gen-bar';
-    bar.innerHTML =
-      '<button class="qa-gen-btn" type="button"><span class="qa-spin"></span><span class="qa-label">🤖 Q&amp;A 생성</span></button>' +
-      '<div class="qa-gen-status" aria-live="polite"></div>';
-    statusRow.insertAdjacentElement('afterend', bar);
-
-    var btn = bar.querySelector('.qa-gen-btn');
-    var label = bar.querySelector('.qa-label');
-    var status = bar.querySelector('.qa-gen-status');
-
-    function setStatus(html, cls){ status.className = 'qa-gen-status' + (cls ? ' ' + cls : ''); status.innerHTML = html; }
-    function busy(on){ btn.disabled = on; btn.classList.toggle('busy', on); label.textContent = on ? '생성 중…' : '🤖 Q&A 생성'; }
-    function runningText(t){ return '⏳ Q&amp;A 생성 중… ' + t + ' 경과. 브릿지에서 계속 진행 중이며, 탭을 닫았다 열어도 다시 이어집니다.'; }
-
-    function handle(res){
-      var st = res && res.status;
-      var ph = ''; try { ph = localStorage.getItem(PHKEY) || ''; } catch(e){}
-      function seal(){ if(ph) hset(ph); try { localStorage.removeItem(PHKEY); } catch(e){} }
-      if(st === 'ok'){
-        var deferred = (res.deferred|0);
-        if(!deferred) seal();   /* 남긴 질문이 있으면 클라이언트 해시도 봉인하지 않는다(재클릭 = 이어받기) */
-        var cards = (res.new_cards && res.new_cards.length) || (res.new_qids && res.new_qids.length) || 0;
-        var qn = (res.new_questions && res.new_questions.length) || cards;
-        var msg = '✅ 메모 질문 ' + qn + '개를 카드 ' + cards + '장으로 ⑥ Q&amp;A 탭에 추가했습니다.';
-        if(deferred) msg += ' 남은 질문 ' + deferred + '개는 버튼을 다시 눌러 이어서 생성할 수 있습니다.';
-        setStatus(msg + ' <button class="qa-link" data-reload>새로고침하여 보기</button>', 'ok');
-      }
-      else if(st === 'noop'){
-        /* 서버는 processed_hash 를 봉인하지 않는다(noop_hash 만 기록). 오판 대비 우회를 항상 노출. */
-        setStatus('새로 추출된 질문이 없습니다. (메모에 새 질문이 없거나 이미 반영됨) <button class="qa-link" data-force>그래도 다시 생성</button>');
-      }
-      else if(st === 'nochange'){
-        if(res.reason === 'noop'){
-          setStatus('새 질문이 없다고 판정된 메모입니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
-        } else {
-          seal();
-          setStatus('메모 변경 없음 - 새로 추가할 질문이 없습니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
-        }
-      }
-      else if(st === 'busy'){ setStatus(res.message || '이미 생성 중입니다. 잠시 후 다시 시도하세요.', 'err'); }
-      else if(st === 'empty'){ setStatus(res.message || '메모를 먼저 작성하세요.', 'err'); }
-      else { setStatus('⚠ ' + ((res && res.message) || '생성 실패'), 'err'); }
-    }
-
-    function jobOpts(force, resumeOnly, memo){
-      return {
-        path: '/gen-qa',
-        body: {short: SHORT, memo: memo || '', force: !!force},
-        jobKey: JOBKEY,
-        resumeOnly: !!resumeOnly,
-        running: runningText,
-        onStatus: function(h, c){ setStatus(h, c); },
-        onResult: function(res){ busy(false); handle(res); },
-        onGiveUp: function(){
-          busy(false);
-          setStatus('⌛ 오래 기다렸지만 아직 결과가 오지 않았습니다. <b>서버 작업은 계속 진행 중일 수 있습니다</b> - 브릿지 콘솔 로그를 확인하세요. 이 페이지를 새로고침하면 진행 중인 작업에 다시 연결됩니다.', 'err');
-        },
-        onLost: function(){ busy(false); setStatus('진행 중이던 작업을 서버에서 찾지 못했습니다 (브릿지 재시작). 다시 시도하세요.', 'err'); },
-        onError: function(err){
-          busy(false);
-          if(err && err.name === 'AbortError'){
-            setStatus('⚠ 접수 응답이 20초 안에 오지 않았습니다. 브릿지가 <b>구버전</b>이면 비동기 접수를 지원하지 않습니다 - 브릿지를 재시작한 뒤 다시 시도하세요.', 'err');
-          } else {
-            setStatus('⚠ 요청을 보내지 못했습니다. 브릿지 콘솔 로그를 확인하세요.', 'err');
-          }
-        }
-      };
-    }
-
-    function run(force){
-      var memo = pad.value.trim();
-      if(!memo){ setStatus('메모를 먼저 작성하세요.', 'err'); return; }
-      var curHash = djb2(memo);
-      if(!force && curHash === hget()){
-        setStatus('이미 이 메모로 생성했습니다. <button class="qa-link" data-force>그래도 다시 생성</button>');
-        return;
-      }
-      try { localStorage.setItem(MEMOKEY, pad.value); localStorage.setItem(PHKEY, curHash); } catch(e){}  /* 내용 무손실 */
-
-      busy(true);
-      setStatus('브릿지 서버 확인 중…');
-      window.__qaBridgeEnsure(function(up){
-        if(!up){
-          setStatus('⚠ 브릿지를 켜지 못했습니다. 최초 1회 설정이 필요할 수 있어요 - 터미널에서 <code>python tools/qa_bridge_register.py</code> 실행(자동 시작 등록), 또는 <code>python tools/qa_bridge.py</code> 직접 실행.', 'err');
-          busy(false); return;
-        }
-        setStatus(runningText('0초'));
-        window.__qaBridgeJob2(jobOpts(force, false, memo));
-      }, function(msg){ setStatus(msg); });
-    }
-
-    /* 새로고침·재오픈 시: 진행 중이던 job 이 있으면 그 job 에 다시 붙는다 (중복 실행 방지의 핵심) */
-    (function resume(){
-      busy(true);
-      if(!window.__qaBridgeJob2(jobOpts(false, true, ''))){ busy(false); }
-    })();
-
-    btn.addEventListener('click', function(){ run(false); });
-    status.addEventListener('click', function(e){
-      var f = e.target.closest('[data-force]');
-      var r = e.target.closest('[data-reload]');
-      if(f){ e.preventDefault(); run(true); }
-      else if(r){ e.preventDefault(); try { localStorage.setItem(MEMOKEY, pad.value); } catch(err){} location.reload(); }
-    });
-  })();
+  var iv = setInterval(function(){ attach(); schedule(); if (++tries > 40) clearInterval(iv); }, 150);
 })();
 </script>
-
+<!-- /MEMO-LAYER-FIX -->
 </body>
 </html>

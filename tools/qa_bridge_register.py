@@ -86,8 +86,12 @@ def main():
         unregister()
     elif arg in ("--status", "-s"):
         status()
-    else:
+    elif arg == "":
         register()
+    else:
+        # --help 나 오타가 레지스트리를 덮어쓰지 않게 한다 (등록은 인자 없이 실행할 때만).
+        print(__doc__)
+        raise SystemExit(0 if arg in ("-h", "--help") else 2)
 
 
 if __name__ == "__main__":

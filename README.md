@@ -23,8 +23,10 @@
 | ⑤ | Code | 핵심 알고리즘 시뮬레이터 (기본은 셸만) |
 | ⑥ | Q & A | 자가 점검 (기본은 셸만) |
 
-①′ Paper Study는 `tabs_data/study.json`이 준비되면 채우고, 없으면 셸(탭 골격)만 렌더됩니다.
+①′ Paper Study는 기본 빌드에 **필수**입니다 — Stage 11에서 `tabs_data/study.json`을 작성해 채웁니다(없을 때 보이는 셸은 작성 전 임시 상태일 뿐 완성본이 아닙니다).
 ⑤·⑥도 기본 빌드에서 셸만 만들고, 더 깊이 파고들고 싶을 때만 따로 채웁니다.
+
+그리고 HTML을 열기 전에 보는 **10~15분 소개 영상 한 편**(`{ShortName}_video.mp4`, Stage 13 — 연구 다큐멘터리형 내레이션 + 저자 문장 인용 + 모션 그래픽 클립 + 자막)을 함께 만듭니다. 필요 없으면 "영상은 빼줘"라고 말하면 됩니다. 규칙: `rules/video_rules.md`, 도구: `tools/video/make_video.py`.
 
 ---
 
@@ -45,22 +47,25 @@ paper-review-kit/
 ├── SETUP.md               ← ★ 설치 + 첫 논문 따라하기 (여기부터 읽으세요)
 ├── NOTICE.md              ← 저작권·이용 범위 고지 (꼭 확인)
 ├── CLAUDE.md              ← 작업 규칙 정본 (Claude Code가 자동으로 읽음)
-├── workflow.md            ← 작업 흐름 (Stage 0~12 — 빌드는 0~11, 12는 빌드 밖 연구 멘토 세션)
-├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study, 12_research_mentor)
-├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 + design_v4_dashboard 규약
-├── tools/                 ← 재사용 도구 (구조화·자동 크롭·v4 변환·Paper Study 소급·검증)
+├── workflow.md            ← 작업 흐름 (Stage 0~13 — 기본 빌드는 Stage 0~7 → 11 → 10 → 13(영상), 8·9는 요청 시, 12는 빌드 밖 연구 멘토 세션)
+├── prompts/               ← 단계별 프롬프트 (01_cleaning … 11_paper_study, 12_research_mentor, 13_video)
+├── rules/                 ← 파싱/분석/코칭/지식/수식/컴포넌트 + design_v4_dashboard 규약 + project_policies(정책 상세)·build_lessons(빌드 교훈)
+├── templates/paper_base/  ← 기준 빌더 (_build.py 복사 → TODO_PAPER만 채움) + video/ 영상 뼈대
+├── tools/                 ← 재사용 도구 (구조화·자동 크롭·v4 변환·Paper Study 소급·검증) + video/ 소개 영상 파이프라인(글꼴·목소리 원본 포함)
+├── skills/motion-broll/   ← 영상 클립 엔진 스킬(MIT) — 처음 쓸 때 .claude/skills/motion-broll/ 로 자동 복사·설치
 ├── webapp/                ← 브라우저 대시보드 (비개발자용 — win_start.bat / linux_start.sh)
+├── setup/                 ← Windows 더블클릭 설치·실행 스크립트 (0_check ~ 8_install_video)
 ├── samples/               ← 정본 워크드 예제 (디자인·인터랙션 기준 — 베껴 시작)
 │   ├── README.md         (정본 안내 + 1~3세대 인터랙션 개념 히스토리)
 │   ├── design/           (v4 로고 등 공용 자산)
 │   └── cares/            ★ v4 8탭 정본 (실제 논문 전체: 데이터+빌더+산출물, Paper Study 포함)
 └── papers/                ← 비어 있음. 새 논문을 빌드하면 "1. shortname"부터 순차로 쌓임
 ```
-> **`samples/cares/`가 유일한 v4 워크드 정본**입니다 — CARES 논문(ACL 2026)의 실제 데이터(config·structured·translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + 완성 산출물 `CARES_output.html`. 신규 논문의 셸·8탭·Paper Study·디자인은 이걸 복사 출발점으로 합니다.
+> **`samples/cares/`가 유일한 v4 워크드 정본**입니다 — CARES 논문(ACL 2026)의 실제 데이터(config·structured·translations·analysis·tabs_data(+study.json)·assets) + 빌더 `_build.py` + 완성 산출물 `CARES_output.html`. 신규 논문의 빌더는 `templates/paper_base/_build.py`(CARES 빌더에서 논문별 문구만 `TODO_PAPER`로 비운 판)를 복사해 시작하고, 셸·8탭·Paper Study·디자인·데이터 형식은 `cares/`를 보고 맞춥니다.
 
 1~3세대 견본 HTML(SAFE·FrameFusion·SGL)은 배포본에 포함하지 않습니다 — 그 학습 인터랙션(study-drawer·lightbox·hotspot·ref-link 등)은 `cares/`가 모두 흡수했고, 세대별 개념 히스토리는 `samples/README.md`에 있습니다. **셸·헤더·탭·디자인 토큰은 `cares/`의 v4 대시보드**(`rules/design_v4_dashboard.md`)를 따르며, 빌드는 `_build.py`로 v3 조립 후 `tools/restyle_dash_v4.py`로 v4 변환하는 2단입니다.
 
-> 참고: `CLAUDE.md`/`rules/`는 다른 사례 논문(예: `papers/4. perceptron`, `20. sparse_vlm`, `24. geollava8k`, `27. lupi`, `30` 등)도 언급하는데, 이 배포본에는 위 견본·예시만 포함됩니다. 나머지는 방법을 이해하는 데 필수가 아닙니다.
+> 참고: `rules/`(특히 `rules/build_lessons.md`·`rules/project_policies.md`)는 모체 작업 폴더의 사례 논문(예: `papers/20`, `24`, `27`, `30` 등)을 "모체 사례 — 배포본 미포함"으로 언급합니다. 이 배포본에는 `samples/cares` 하나만 포함되며, 나머지는 방법을 이해하는 데 필수가 아닙니다.
 
 ---
 
@@ -74,6 +79,7 @@ paper-review-kit/
 2. `setup/` 폴더의 실행 파일을 **`0_check.bat` → `1_install_python.bat` → `2_install_node_and_claude.bat` → `3_login_claude.bat` → `4_install_kit_packages.bat`** 순서로 더블클릭합니다 (각각 마지막 줄 `[OK]` 확인).
 3. 매일 쓸 때는 `setup/5_start_web.bat`(웹앱) 또는 `setup/6_start_cli.bat`(터미널) 더블클릭.
 4. (선택) `setup/7_install_codex_optional.bat` — 학습 보조 이미지를 PNG로 만들고 싶을 때만.
+   (선택) `setup/8_install_video.bat` — 소개 영상 도구(motion-broll 스킬 설치 · ffmpeg · Chromium · TTS 수 GB)를 미리 설치. 건너뛰어도 첫 영상 때 자동으로 설치됩니다.
 5. 논문 PDF는 **`rawpaper/`** 폴더에 넣습니다 → 웹앱은 업로드 시 시작 문장이 자동 입력되고, CLI는 아래 시작 명령을 붙여넣습니다.
 
 ### 시작 명령 (CLI — 복사해서 `<논문 파일명>`만 채우기)
@@ -84,6 +90,7 @@ rawpaper 폴더의 <논문 파일명>을 보고, 기존 지침(CLAUDE.md·workfl
 학습 보조 이미지가 필요하다고 판단되면, 플러그인 없이 터미널에서 codex를 직접 실행하는
 방식으로 ImageGen을 활용해 이미지를 생성해. 이미지 내부에는 논문 제목·헤더 같은 글자는
 넣지 말고, 내용과 내용을 설명하는 그림(도식)만 나오게 해줘.
+HTML이 끝나면 rules/video_rules.md에 따라 소개 영상(Stage 13)도 만들어줘.
 ```
 
 - Claude Code가 `rawpaper/`의 PDF를 파악해 `papers/N. shortname/` 폴더를 만들고 단계별로 빌드합니다.

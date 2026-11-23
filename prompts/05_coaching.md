@@ -23,34 +23,35 @@ You are a senior researcher in the paper's field (`config.json#domain.field`).
 
 ## 다뤄야 할 4축 (정본 — 클래스명 고정)
 
-| cls | title | 무엇을 담는가 |
-|---|---|---|
-| `q-hidden` | 가려진 가정 | 논문이 명시하지 않은 전제. 어떤 조건에서만 작동하는가? |
-| `q-myth` | 흔한 오해 | 본문을 빠르게 읽으면 생기는 오독·잘못된 이해 |
-| `q-critic` | 비판적 질문 | 약한 실험, 의심스러운 일반화, 누락된 통제 비교(예: AI/CS — ablation, 실험과학 — 대조군·반복 측정, 실증 사회과학 — robustness check) 등에 대한 합리적 의문 |
-| `q-extend` | 확장 아이디어 | 자연스럽게 이어지는 후속 연구·응용 가능성 |
+정본 = `samples/cares/tabs_data/questions.json`, 렌더 = `samples/cares/_build.py#render_q_card`(기준 빌더 `templates/paper_base/_build.py` 동일). 상세 규약: `rules/coaching_rules.md`.
 
-4축은 고정이되, 각 축을 채우는 관점(무엇을 증거로 보는가·어떤 대안 설명을 의심하는가)은 `config.json#domain.evidence_types`·`alt_explanations` 를 따른다.
+| cls | title (영문 태그) | 무엇을 담는가 |
+|---|---|---|
+| `coach-assume` | Hidden Assumption | 논문이 명시하지 않은 전제. 어떤 조건에서만 작동하는가? 감독 신호·데이터의 편향 상속, 순환 가정 |
+| `coach-design` | Design Choices | 왜 이렇게 설계했나 — 대안과의 비교, 통제 비교 표 인용 |
+| `coach-critique` | Critical Questions | 숫자를 곧이곧대로 믿기 전에 따져볼 것 — 분모·조건·비교군, 흔한 오독, 약한 실험·의심스러운 일반화·누락된 통제 비교(예: AI/CS — ablation, 실험과학 — 대조군·반복 측정, 실증 사회과학 — robustness check) |
+| `coach-extend` | Extensions & Open Directions | 자연스럽게 이어지는 후속 연구·응용 가능성 (시점 명시) |
+
+4축과 순서는 고정이되, 각 축을 채우는 관점(무엇을 증거로 보는가·어떤 대안 설명을 의심하는가)은 `config.json#domain.evidence_types`·`alt_explanations` 를 따른다.
 
 ## 출력 스키마
 
 ```json
 {
   "diagrams": [
-    {"id": "diag-key1", "title": "...", "caption": "...", "svg_key": "DIAG_KEY1_SVG"},
-    {"id": "diag-key2", "title": "...", "caption": "...", "svg_key": "DIAG_KEY2_SVG"}
+    {"image_path": "assets/generated/questions_<purpose>.png", "title": "...", "caption": "..."}
   ],
   "cards": [
-    {"cls": "q-hidden", "title": "가려진 가정",  "bullets": ["...", "..."]},
-    {"cls": "q-myth",   "title": "흔한 오해",    "bullets": ["...", "..."]},
-    {"cls": "q-critic", "title": "비판적 질문",  "bullets": ["...", "..."]},
-    {"cls": "q-extend", "title": "확장 아이디어", "bullets": ["...", "..."]}
+    {"cls": "coach-assume",   "title": "Hidden Assumption",            "lead": "논문이 명시하지 않고 전제하는 것들",     "rows": [{"q": "...", "a": "..."}]},
+    {"cls": "coach-design",   "title": "Design Choices",               "lead": "왜 이렇게 설계했나 - 대안과의 비교",      "rows": [{"q": "...", "a": "..."}]},
+    {"cls": "coach-critique", "title": "Critical Questions",           "lead": "숫자를 곧이곧대로 믿기 전에 따져볼 것",   "rows": [{"q": "...", "a": "..."}]},
+    {"cls": "coach-extend",   "title": "Extensions & Open Directions", "lead": "여기서 뻗어나갈 다음 연구",               "rows": [{"q": "...", "a": "..."}]}
   ]
 }
 ```
 
-- `diagrams` (선택): 직관 보조용 SVG 2~3개. 여기서는 `svg_key`로만 참조하고, 실제 SVG 마크업은 Stage 10에서 Claude가 단일 HTML에 인라인으로 작성한다 (또는 `assets/generated/questions_*.png`로 대체).
-- `cards`: 4종 모두 채우는 것이 원칙. 항목당 bullet 2~4개, 각 bullet 80~150자 권장.
+- `diagrams` (선택): ④ 탭 상단 직관 다이어그램 1~3장. `image_path`의 파일(stem)이 `assets/generated/`에 있어야 렌더된다(모드 A codex PNG, 모드 B는 SVG를 HTML에 인라인). `title` 평문, `caption` HTML.
+- `cards`: 4종 모두 채운다. 카드당 q/a 행 3~5개. `q`는 **평문**(한 문장, 80자 내외 — 태그 금지), `a`는 **HTML 필드**(100~250자, `<b>` 강조·수치 인용 권장). `title`·`lead`는 평문.
 
 ---
 
@@ -73,7 +74,7 @@ You are a senior researcher in the paper's field (`config.json#domain.field`).
 
 이 단계에서 생성 가능한 이미지:
 - ④ 탭 상단의 **직관 다이어그램 2~3개** (예: AI/CS 논문 — similarity matrix 추상화, depth × similarity heatmap, cascaded vs non-cascaded 토큰 곡선; 실험과학 논문 — 반응 경로·측정 원리 도식)
-- 4종 카드(`q-hidden` / `-myth` / `-critic` / `-extend`) 중 시각적 보조가 효과적인 카드의 **간단한 메타포 일러스트**
+- 4종 카드(`coach-assume` / `-design` / `-critique` / `-extend`) 중 시각적 보조가 효과적인 카드의 **간단한 메타포 일러스트**
 
 저장 / 임베드:
 - 저장 경로: `papers/[name]/assets/generated/`
@@ -81,7 +82,7 @@ You are a senior researcher in the paper's field (`config.json#domain.field`).
 - **HTML 임베드: base64 인라인 의무** (CLAUDE.md 자산 임베딩 정책)
 - 인라인 SVG가 더 적합한 경우(예: 정확한 그리드/라벨 필요)는 SVG 우선, 분위기/추상화 다이어그램은 ImageGen 생성 이미지 우선
 
-생성된 이미지는 `tabs_data/questions.json#diagrams[].image_path` 선택 필드로 참조 → Stage 10에서 Claude가 다이어그램 카드에 `<img>` 삽입.
+생성된 이미지는 `tabs_data/questions.json#diagrams[].image_path`로 참조 → Stage 10에서 빌더가 `<figure class="concept-figure">`로 base64 삽입.
 
 ---
 

@@ -130,7 +130,7 @@ function send(textOverride) {
   const text = (textOverride != null ? textOverride : input.value).trim();
   if (!text || busy || !ws || ws.readyState !== 1) return;
   // 선택된 논문이 있으면 그 논문을 작업 대상으로 명시(Claude가 어느 논문을 고칠지 알도록)
-  // 이미지 생성 모드도 항상 명시 — CLAUDE.md/§11.8 규약대로 Claude가 codex/SVG 중 택일
+  // 이미지 생성 모드도 항상 명시 — rules/component_rules.md §11.9 규약대로 Claude가 codex/SVG 중 택일
   const tags = `[이미지 생성 모드: ${imageMode}]`
     + (selectedPaper ? ` [작업 대상 논문: papers/${selectedPaper}]` : "");
   const payload = `${tags} ${text}`;
@@ -179,12 +179,17 @@ async function loadAuth() {
     if (!codexAvailable) imageMode = "claude_svg";  // codex 없으면 자동 폴백
     renderImgMode();
     const el = $("#auth");
-    if (!a.claude_logged_in) {
+    if (a.claude_logged_in === false) {
       el.className = "auth auth-warn";
       el.textContent = "⚠ Claude 로그인 필요 — 터미널에서 claude 로그인";
+    } else if (a.claude_logged_in == null) {
+      // macOS 등: 자격 증명이 파일이 아니라 OS 키체인에 있어 서버가 미리 확인할 수 없다
+      el.className = "auth";
+      el.textContent = "· Claude 로그인 상태는 세션 시작 시 확인됩니다" + (a.codex_available ? " · codex ✓" : " · codex 없음(이미지 스킵)");
     } else if (a.api_key_set) {
-      el.className = "auth auth-warn";
-      el.textContent = "⚠ API 키가 설정됨 (구독 대신 키 과금)";
+      // runner 가 세션 환경에서 ANTHROPIC_API_KEY 를 제거하므로 키로 과금되지 않는다
+      el.className = "auth auth-ok";
+      el.textContent = "✓ Claude 구독 로그인됨 (ANTHROPIC_API_KEY 는 무시됨)" + (a.codex_available ? " · codex ✓" : " · codex 없음(이미지 스킵)");
     } else {
       el.className = "auth auth-ok";
       el.textContent = "✓ Claude 구독 로그인됨" + (a.codex_available ? " · codex ✓" : " · codex 없음(이미지 스킵)");
@@ -249,7 +254,7 @@ async function upload(file) {
     uploadMsg.className = "upload-msg"; uploadMsg.textContent = "✓ 저장됨: " + j.saved;
     $("#dropText").textContent = file.name;
     clearPaper();
-    input.value = `방금 "${j.saved}" 를 올렸어. 기존 지침(CLAUDE.md·workflow.md·rules)에 따라 이 논문으로 새 papers 폴더를 만들고 v4 대시보드 8탭 학습 HTML을 생성해줘. 본문 구조화는 tools/structure_paper.py, figure/표 크롭은 tools/autocrop_assets.py(+--verify)로 결정적으로 처리하고, 디자인은 rules/design_v4_dashboard.md 정본을 따라 _build.py 조립 → tools/restyle_dash_v4.py 변환의 2단으로 만들어 (빌더 출발점 samples/cares/_build.py). 캡션은 config.json#captions(한국어 번역)+captions_en(영어 원문)을 둘 다 채워. ①′ Paper Study(tab-study)는 tabs_data/study.json이 있으면 채우고 없으면 셸로 둬, ⑤ Code·⑥ Q&A도 셸만. 빌드가 끝나면 workflow.md Stage 10 체인 순서대로 tools/restyle_dash_v4.py → tools/memo_layer_fix.py → tools/qa_button_inject.py · tools/study_review_inject.py · tools/reader_asset_chip.py 를 돌리고, 검사(check_html_escape → &lt;b&gt; 누출 grep → check_study_refs → tone_lint → check_memo_layer)까지 마쳐줘. codex로 이미지를 만들 때는 호출 전에 tools/check_image_prompts.py로 프롬프트를 게이트해줘. 번역을 뺀 모든 한국어 서술은 감성 온도 0(흥미롭게도·훌륭한·우아한·정말·~해봅시다 같은 감탄·평가·응원 수사 금지, 근거→함의 논리만) 원칙을 지키고 필요하면 tools/tone_lint.py로 점검해줘. 학습 보조 이미지가 필요하다고 판단되면 위에서 고른 이미지 생성 방식으로 만들고, 이미지 안에는 논문 제목·헤더 같은 글자 없이 내용 도식만 나오게 해줘. 논문 분야를 먼저 파악해 config.json#domain 을 채우고 나에게 확인받은 뒤 그 분야의 용어·증거·메타 관행에 맞춰 작성해줘.`;
+    input.value = `방금 "${j.saved}" 를 올렸어. 기존 지침(CLAUDE.md·workflow.md·rules)에 따라 이 논문으로 새 papers 폴더를 만들고 v4 대시보드 8탭 학습 HTML을 생성해줘. 본문 구조화는 tools/structure_paper.py, figure/표 크롭은 tools/autocrop_assets.py(+--verify)로 결정적으로 처리하고, 디자인은 rules/design_v4_dashboard.md 정본을 따라 _build.py 조립 → tools/restyle_dash_v4.py 변환의 2단으로 만들어 (빌더 출발점 templates/paper_base/_build.py 를 복사해 TODO_PAPER 만 채우고, 데이터 형식은 samples/cares 예제를 따라). 캡션은 config.json#captions(한국어 번역)+captions_en(영어 원문)을 둘 다 채워. ①′ Paper Study(tab-study)는 필수라 Stage 11 tabs_data/study.json을 반드시 작성해 채워(셸은 작성 전 임시 상태일 뿐 산출물이 아니야), ⑤ Code·⑥ Q&A는 셸만. 빌드가 끝나면 workflow.md Stage 10 체인 순서대로 tools/restyle_dash_v4.py → tools/memo_layer_fix.py → tools/qa_button_inject.py · tools/study_review_inject.py · tools/reader_asset_chip.py 를 돌리고, 검사(check_html_escape → &lt;b&gt;·&amp;lt; 누출 grep → check_study_refs → tone_lint → check_memo_layer → check_paper_structure)까지 마쳐줘. HTML이 끝나면 rules/video_rules.md 에 따라 소개 영상(Stage 13, tools/video/make_video.py)도 만들어줘. codex로 이미지를 만들 때는 호출 전에 tools/check_image_prompts.py로 프롬프트를 게이트해줘. 번역을 뺀 모든 한국어 서술은 감성 온도 0(흥미롭게도·훌륭한·우아한·정말·~해봅시다 같은 감탄·평가·응원 수사 금지, 근거→함의 논리만) 원칙을 지키고 필요하면 tools/tone_lint.py로 점검해줘. 학습 보조 이미지가 필요하다고 판단되면 위에서 고른 이미지 생성 방식으로 만들고, 이미지 안에는 논문 제목·헤더 같은 글자 없이 내용 도식만 나오게 해줘. 논문 분야를 먼저 파악해 config.json#domain 을 채우고 나에게 확인받은 뒤 그 분야의 용어·증거·메타 관행에 맞춰 작성해줘.`;
     input.focus();
   } catch (e) {
     uploadMsg.className = "upload-msg err"; uploadMsg.textContent = "업로드 실패: " + e;
@@ -257,13 +262,32 @@ async function upload(file) {
 }
 
 /* ---------- 플로팅 논문 요약 (핵심 관찰 / 방법론) ---------- */
+/* dissection.json 카드 본문은 모델이 쓴 HTML(<strong>/<em> 강조 포함)이다. innerHTML 로 그대로
+   넣으면 <img onerror> 같은 마크업이 대시보드 origin 에서 실행되므로, 강조용 인라인 태그만
+   속성 없이 남기고 나머지는 텍스트로 풀어 넣는다. */
+const SAFE_INLINE = new Set(["STRONG", "EM", "B", "I", "CODE", "SUB", "SUP", "BR", "MARK", "SPAN"]);
+function setSafeInline(el, html) {
+  const tpl = document.createElement("template");
+  tpl.innerHTML = String(html || "");          // template 안은 비활성 문서 — 스크립트·이벤트 미실행
+  const walk = (src, dst) => {
+    for (const n of Array.from(src.childNodes)) {
+      if (n.nodeType === Node.TEXT_NODE) { dst.appendChild(document.createTextNode(n.textContent)); }
+      else if (n.nodeType === Node.ELEMENT_NODE) {
+        if (SAFE_INLINE.has(n.tagName)) { const c = document.createElement(n.tagName.toLowerCase()); walk(n, c); dst.appendChild(c); }
+        else { walk(n, dst); }                 // 허용 밖 태그는 벗기고 내용(텍스트)만 유지
+      }
+    }
+  };
+  el.textContent = "";
+  walk(tpl.content, el);
+}
 function fillRows(container, rows) {
   container.innerHTML = "";
   if (!rows || !rows.length) { container.innerHTML = '<p class="sum-empty">아직 생성 전…</p>'; return; }
   for (const r of rows) {
     const row = document.createElement("div"); row.className = "sum-row";
     const tag = document.createElement("span"); tag.className = "sum-tag"; tag.textContent = r.tag || "";
-    const body = document.createElement("div"); body.className = "sum-rb"; body.innerHTML = r.body || "";
+    const body = document.createElement("div"); body.className = "sum-rb"; setSafeInline(body, r.body);
     if (r.tag) row.appendChild(tag);
     row.appendChild(body); container.appendChild(row);
   }

@@ -120,6 +120,20 @@ if errorlevel 1 (
   echo [ OK ] codex       : !CXV!  ^(optional^)
 )
 
+rem ---- intro video tools (Stage 13; make_video.py also self-installs) -----
+if exist ".claude\skills\motion-broll\SKILL.md" (
+  echo [ OK ] video skill : .claude\skills\motion-broll installed
+) else (
+  echo [ -- ] video skill : not installed  ^(auto on first video, or 8_install_video.bat^)
+)
+set "TTSPY=tools\video\tts_env\Scripts\python.exe"
+if defined TTS_PY set "TTSPY=!TTS_PY!"
+if exist "!TTSPY!" (
+  echo [ OK ] video TTS   : !TTSPY! present
+) else (
+  echo [ -- ] video TTS   : not installed  ^(several GB; auto on first video, or 8_install_video.bat^)
+)
+
 rem ---- summary -----------------------------------------------------------
 echo.
 echo ------------------------------------------------------------------

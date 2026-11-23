@@ -9,7 +9,7 @@
 적용 대상 (모체·킷 공통, 파일 내용으로 세대를 판별한다):
   - papers/*/_build.py, samples/*/_build.py      : readerRender + readerClose + jumpToRef
   - papers/*/*_output.html, samples/*/*_output.html
-  - tools/study_runtime.py                        : renderReader + jumpTo (papers 1~3 자립형 런타임)
+  - tools/study_runtime.py                        : renderReader + jumpTo (모체 papers 1~3 자립형 런타임)
 
 성질: additive · idempotent · 업데이터(구버전 블록을 제거한 뒤 재주입).
 
@@ -154,7 +154,7 @@ A_OLD = "      clone.querySelectorAll('.asset-stack, .pid-tag').forEach(function
 A_NEW = ("      clone.querySelectorAll('.pid-tag').forEach(function(n){ n.remove(); });\n"
          "      prAssetChipify(clone);")
 
-# ------------------------------------------------- 세대 B: tools/study_runtime.py (papers 1~3)
+# ------------------------------------------------- 세대 B: tools/study_runtime.py (모체 papers 1~3)
 B_ANCHOR = "  function renderReader(){\n"
 B_OLD = ("      var clone = block.cloneNode(true);\n"
          "      clone.removeAttribute('id');\n"
@@ -223,6 +223,10 @@ def targets(argv):
 
 def main():
     argv = sys.argv[1:]
+    unknown = [a for a in argv if a.startswith("-") and a not in ("--check", "--all")]
+    if unknown:   # 모르는 플래그(--help 등)를 "전체 논문 대상"으로 해석해 모두 고치지 않는다
+        print(__doc__)
+        sys.exit(0 if set(unknown) <= {"-h", "--help"} else 2)
     check_only = "--check" in argv
     files = targets(argv)
     done, skipped, already = [], [], []

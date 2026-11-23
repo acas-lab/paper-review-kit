@@ -237,6 +237,23 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 6. 🔴 **픽셀 여백 패스 (`_refine_rect`)**: vector rect를 padding해 렌더한 뒤, **각 가장자리의 실제 콘텐츠 경계를 픽셀로 찾아 MARGIN_PX 여백을 남긴다.** vector bbox가 놓치는 미세 잘림(anti-aliasing·glyph ascender·plot marker·축 라벨)을 보정하고 **모든 변에 깨끗한 여백을 보장**. 세 가지 핵심: ① 스캔 anchor는 **콘텐츠 경계**(vector rect를 PAD만큼 안쪽)에서 시작 → 캡션-위 표 바로 아래 본문이 PAD만큼 가까워도 스캔이 본문 속에서 시작하지 않음. ② 여백은 **흰 픽셀로만, MARGIN_PX까지** 확장 → 표 바로 아래 본문이 MARGIN_PX보다 가까우면 그 gap까지만(본문 안 침범). ③ 바깥 확장은 figure=mid-gutter / full-width=페이지 여백 / 세로=인접 캡션·header-footer gap으로 제한. body text는 드로잉이 없고 스캔은 첫 흰 줄에서 멈추므로 누수 불가.
 7. `--verify`로 결과 PNG의 2px 테두리에 잉크가 닿는지(=여백 없음=잘림) 자동 점검. clean이면 OK.
 
+**한 컬럼 안에 세로로 쌓인 figure (stacked column, 2026-11 보강)**: full-width 그림 아래 한 단에 figure 두 장이 위아래로 쌓이고 각 캡션이 본체 아래에 있는 배치(예: 캡션 N−1 / 그림 N / 캡션 N / 그림 N+1 / 캡션 N+1). 이때 캡션 N−1과 캡션 N 사이의 그래픽은 캡션 N의 것이고, 도구는 맨 아래 캡션(아래쪽이 본문뿐)부터 위로 소유권 사슬(`_neighbour_owns`)을 따라 이를 판정한다. 이 사슬을 깨던 원인은 **흰색만 칠한 보이지 않는 path**(sub-figure 뒤에 깔린 흰 배경 rect — 컬럼 밖까지 번지고 이웃 캡션을 가로지름)였다. 그래서 2단계에서 **흰색만 칠하고 캡션 글자 영역과 겹치는 path는 제외**한다(캡션과 겹치지 않는 흰 틀은 텍스트형 figure의 유일한 경계일 수 있어 유지). 또 **캡션 폭이 페이지 절반을 넘으면 figure는 항상 full-width**로 본다(가운데가 비어 있는 2단 구성 그림이 반쪽으로 잘리는 것 방지).
+
+**수동 좌표 fallback — 도구가 못 다루는 레이아웃**: 다음 중 하나면 그 자산만 논문 폴더의 `_crop.py`에 **PDF pt 좌표를 명시**해 자른다(모체 `papers/25. visiondrop/_crop.py` 방식 — 모체 사례, 배포본 미포함; 골격은 `samples/cares/_crop.py`).
+- 크롭 출력에 `WARN … overlap`이 나왔고 두 PNG를 열어 보니 한쪽이 이웃 그림을 가져갔다.
+- 시각 검증에서 본체 누락·이웃 그림/본문 혼입이 보이고, 도구 수정으로 일반 해결이 안 된다.
+
+```python
+# _crop.py — autocrop 결과 중 틀린 자산만 덮어쓴다. 좌표 = PDF pt (x0, y0, x1, y1)
+import fitz; from pathlib import Path
+HERE = Path(__file__).parent
+MANUAL = [("fig_3", 3, 52, 205, 292, 359)]   # (stem, page(1-base), x0, y0, x1, y1)
+doc = fitz.open(HERE.parent.parent / "rawpaper" / "<논문>.pdf")
+for stem, pno, *r in MANUAL:
+    doc[pno - 1].get_pixmap(dpi=200, clip=fitz.Rect(*r)).save(HERE / "assets" / f"{stem}.png")
+```
+좌표는 `tools/detect_assets.py`(캡션·드로잉 bbox 덤프)로 읽고, 캡션 끝 +4pt·이웃 캡션 끝 +10pt 를 경계로 잡는다. 수동 자산도 `--verify`와 시각 검증을 똑같이 거친다. 도구로 일반화할 수 있는 패턴이면 `_crop.py`로 덮지 말고 도구를 고친다.
+
 **왜 `page.get_image_bbox` 단독으로는 부족한가**: 벡터 조판(LaTeX 등) 논문의 figure는 다이어그램·벡터 그래프·여러 sub-panel이 결합된 composite로 만들어져, PyMuPDF가 한 figure를 수십 개의 image object로 보고하는 경우가 많다. 예: SparseVLM(ICML 2025)의 Figure 2 한 장이 page 4에서 58개 image object로 분해되어 잡힘 (모체 사례 — 배포본 미포함). 이런 경우 `get_image_bbox`로는 사람이 인식하는 "한 그림"의 경계를 잡을 수 없다.
 
 > 정본 학습 사례 (2026-06-29): ① FastVLM 1차 — 좌표 하드코딩으로 fig_1 상단 subplot 잘림 / table_6 캡션만 / table_3 마지막 행만. ② VOILA-A — 미세 잘림(fig_1 상단·fig_2/5 좌측 라벨·fig_4 우측 절반·fig_3 좌측 본문 bleed): vector bbox가 가장자리 1~2px 못 담음 + 배경 패널 gutter 누수 + full/col 오분류. ③ **전 자산 점검**으로 더 발견 — FastVLM table_2/5 상단 잘림(thin 표 row band가 MIN_PANEL_H에 막힘), VOILA table_3 하단 본문 bleed(표↔본문 gap이 PAD보다 좁음), NAACL table_8/9/11 데이터 행 통째 잘림(borderless 표 본문이 두 rule 사이 GAP 초과). **해결**: 픽셀 여백 패스(anchor 콘텐츠 경계·흰 픽셀 여백) + wide-cluster·wide-to-wide(TABLE_GAP) bridge + CORE 기반 band(배경 패널 제외). **3개 논문(학회 템플릿 3종, Letter·A4) 48개 figure/table 전부 `--verify` clean.** **CLI·웹 공용 도구라 한쪽을 고치면 양쪽이 고쳐진다.** (모체 사례 — 배포본 미포함; 도구는 조판 형식에 의존하므로 분야와 무관하게 적용된다.)
@@ -250,7 +267,7 @@ python tools/autocrop_assets.py --verify "papers/N. name/assets"   # 여백(잘�
 | Figure | 본체 **아래** | y_top = 본체 top, y_bot = caption_bottom + 4~8pt 패딩 |
 | Table | 본체 **위** | y_top = caption_top − 3pt 패딩, y_bot = 표 데이터 마지막 행 + 4pt |
 
-> 🔴 **위 "Figure=아래 / Table=위"는 관행일 뿐, 자산 유형으로 단정하지 말 것.** 논문마다 다르다 — Table 데이터가 위, 캡션이 아래인 경우도 흔하다(FastVLM CVPR2025는 표 6개 전부 이 형태 — 모체 사례, 배포본 미포함). **반드시 좌표로 캡션-데이터 상대 위치를 자산별로 판별**한다: `detect_assets.py`로 캡션 `block_y`를 얻고, 같은 column band에서 캡션 위/아래 어느 쪽에 본체(이미지·드로잉·표 숫자 라인)가 있는지 확인한 뒤 crop 방향을 정한다. 유형만 믿고 관행대로 자르면 캡션+옆 본문만 담기고 본체를 통째로 놓친다.
+> 🔴 **위 "Figure=아래 / Table=위"는 관행일 뿐, 자산 유형으로 단정하지 말 것.** 논문마다, 같은 학회·같은 논문 안에서도 표마다 다르다(`rules/build_lessons.md` § 자산 크롭) — Table 데이터가 위, 캡션이 아래인 경우도 흔하다(FastVLM CVPR2025는 표 6개 전부 이 형태 — 모체 사례, 배포본 미포함). **반드시 좌표로 캡션-데이터 상대 위치를 자산별로 판별**한다: `detect_assets.py`로 캡션 `block_y`를 얻고, 같은 column band에서 캡션 위/아래 어느 쪽에 본체(이미지·드로잉·표 숫자 라인)가 있는지 확인한 뒤 crop 방향을 정한다. 유형만 믿고 관행대로 자르면 캡션+옆 본문만 담기고 본체를 통째로 놓친다.
 
 **검출 절차 (PyMuPDF)**:
 

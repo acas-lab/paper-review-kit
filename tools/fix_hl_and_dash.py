@@ -27,8 +27,8 @@
      주변 공백은 건드리지 않고 문자만 1:1 로 바꾼다.
 
 사용:
-    python tools/fix_hl_and_dash.py "papers/30. adaptvision"
-    python tools/fix_hl_and_dash.py --all
+    python tools/fix_hl_and_dash.py "samples/cares"
+    python tools/fix_hl_and_dash.py --all              # papers/ + samples/ + tools/*.py
     python tools/fix_hl_and_dash.py --all --dry-run
     python tools/fix_hl_and_dash.py --tools            # tools/*.py 만
     python tools/fix_hl_and_dash.py --all --only dash  # only: hotspot | dash | both
@@ -339,7 +339,7 @@ def verify_html(path: Path):
         problems.append(f"</body> x{s.count('</body>')}")
     if s.count("</html>") != 1:
         problems.append(f"</html> x{s.count('</html>')}")
-    # `<script ...>` 를 인용한 주석·문자열은 제외한다 (papers 2 의 FF_JS_BLOCK 주석 등)
+    # `<script ...>` 를 인용한 주석·문자열은 제외한다 (모체 papers 2 의 FF_JS_BLOCK 주석 등)
     op = len(re.findall(r"(?<![`&])<script\b", s))
     cl = s.count("</script>")
     if op != cl:
@@ -367,13 +367,16 @@ def paper_folders():
         if n == 0:
             continue                      # papers/0 은 35편 범위 밖 - 명시 지정 시에만
         out.append((n, p))
-    return [p for _, p in sorted(out)]
+    # samples/* (산출물이 있는 폴더) - 빈 배포본에서도 정본 samples/cares 를 대상에 넣는다
+    extra = [p for p in sorted((ROOT / "samples").iterdir())
+             if p.is_dir() and list(p.glob("*_output.html"))] if (ROOT / "samples").is_dir() else []
+    return [p for _, p in sorted(out)] + extra
 
 
 def main():
     ap = argparse.ArgumentParser(description="핫스팟 막대 제거 + 형광펜 우선 + em-dash 하이픈화")
-    ap.add_argument("folders", nargs="*", help='"papers/30. adaptvision" 형태')
-    ap.add_argument("--all", action="store_true", help="papers/ 전부 + tools/*.py")
+    ap.add_argument("folders", nargs="*", help='"papers/N. name" 또는 "samples/cares" 형태')
+    ap.add_argument("--all", action="store_true", help="papers/ + samples/ 전부 + tools/*.py")
     ap.add_argument("--tools", action="store_true", help="tools/*.py 만")
     ap.add_argument("--only", choices=["hotspot", "dash", "both"], default="both")
     ap.add_argument("--dry-run", action="store_true")

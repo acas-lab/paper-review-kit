@@ -72,7 +72,7 @@ def op_hl(text, is_builder):
         for old, new in ((base, HL_RULE), (dbl(base), dbl(HL_RULE))):
             if old in text:
                 return text.replace(old, new), text.count(old), "replaced"
-    # 핫스팟 전용 규칙이 없는 세대(papers 1·2) - .sent.user-hl 규칙 뒤에 붙인다.
+    # 핫스팟 전용 규칙이 없는 세대(모체 papers 1·2) - .sent.user-hl 규칙 뒤에 붙인다.
     for anchor, rule in ((HL_ANCHOR, HL_RULE), (dbl(HL_ANCHOR), dbl(HL_RULE))):
         if anchor in text:
             return text.replace(anchor, anchor + "\n" + rule, 1), 1, "appended"
@@ -153,10 +153,10 @@ def op_esc_builder(text, is_builder):
         text = text.replace("{beg_safe}", "{beg_raw}")
         text, k = BEG_SAFE_LINE_RE.subn(lambda m: m.group(1) + _BEG_RAW_SRC + m.group(2), text, count=1)
     else:
-        # 죽은 beg_safe 변수(정본 papers 26 계열은 계산만 하고 {beginner} 를 삽입한다) 정리
+        # 죽은 beg_safe 변수(정본 모체 papers 26 계열은 계산만 하고 {beginner} 를 삽입한다) 정리
         text, k = BEG_SAFE_LINE_RE.subn("", text)
         n += k
-    # (c) 자산 학습 가이드에 들어가는 초보자 해설도 같은 HTML 필드다 (papers 15)
+    # (c) 자산 학습 가이드에 들어가는 초보자 해설도 같은 HTML 필드다 (모체 papers 15)
     if "beg_html = esc(beginner)" in text:
         n += text.count("beg_html = esc(beginner)")
         text = text.replace("beg_html = esc(beginner)", "beg_html = beginner")
@@ -209,7 +209,7 @@ def op_eqcard(text, is_builder):
         return new, k, "extended"
     if EQCARD_RE.search(text):
         return text, 0, "already"
-    # .eq-card 기본 규칙 자체가 없는 세대(papers 1~3) - .eq-grid 규칙 뒤에 독립 규칙을 넣는다.
+    # .eq-card 기본 규칙 자체가 없는 세대(모체 papers 1~3) - .eq-grid 규칙 뒤에 독립 규칙을 넣는다.
     if ".eq-card{min-width:0}" in text or ".eq-card{{min-width:0}}" in text:
         return text, 0, "already"
     m = EQGRID_RE.search(text)
@@ -238,7 +238,7 @@ def op_lbz(text, is_builder):
 
 # ---------------------------------------------------------------- 6. closeModal 미정의
 #
-# papers 20·21 의 라이트박스 keydown 핸들러가 정의되지 않은 closeModal() 을 부른다.
+# 모체 papers 20·21 의 라이트박스 keydown 핸들러가 정의되지 않은 closeModal() 을 부른다.
 # 같은 세대(19·22~35)의 대응 코드는 else 분기 자체가 없고, 학습 가이드 드로어는
 # 자기 자신의 keydown 리스너로 이미 ESC 를 처리한다. 따라서 죽은 분기를 제거한다.
 
@@ -255,7 +255,7 @@ def op_esckey(text, is_builder):
 
 # ---------------------------------------------------------------- 7. 핫스팟 호버 피드백
 #
-# papers 3·20·21 은 pair-active 배경이 base 와 바이트 동일이라 호버해도 색이 안 변한다.
+# 모체 papers 3·20·21 은 pair-active 배경이 base 와 바이트 동일이라 호버해도 색이 안 변한다.
 # 다수파 값으로 통일한다. 빌더는 v3 색으로 쓰고 restyle_dash_v4 가 변환하므로
 # #fff4d6 -> #ffe4a1 (변환 후 #f6f1e6 -> #eee3c8) 로 맞춘다.
 
@@ -404,7 +404,10 @@ def main():
         def key(p):
             m = re.match(r"(\d+)", os.path.basename(p))
             return int(m.group(1)) if m else 999
-        dirs = sorted(cand, key=key)
+        # papers/* (번호 순) + samples/* (산출물이 있는 폴더) - 빈 배포본에서도 no-op 이 아니다
+        dirs = sorted(cand, key=key) + sorted(
+            d for d in glob.glob(os.path.join(ROOT, "samples", "*"))
+            if os.path.isdir(d) and glob.glob(os.path.join(d, "*_output.html")))
     else:
         dirs = [d if os.path.isabs(d) else os.path.join(ROOT, d) for d in a.targets]
     if not dirs:

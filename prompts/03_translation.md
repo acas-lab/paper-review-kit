@@ -37,13 +37,14 @@ import json, re
 from pathlib import Path
 ROOT = Path("papers/N. shortname")
 struct = json.loads((ROOT / "structured.json").read_text(encoding="utf-8"))
-fulltext = (ROOT / "fulltext.txt").read_text(encoding="utf-8")
+fulltext = (ROOT / "fulltext.txt").read_text(encoding="utf-8")  # structure_paper.py가 함께 쓴다
+fulltext = re.split(r"^\s*References\s*$", fulltext, flags=re.M)[0]
 
 # 본문 섹션 수 (Abstract 포함하면 +1)
-print(len(struct["sections"]), "vs", len(set(re.findall(r"^([0-9]+)\.\s+\S", fulltext, flags=re.M))))
+print(len(struct["sections"]), "vs", len(set(re.findall(r"^([0-9]{1,2})\.?[ \t]+[A-Z][a-z]", fulltext, flags=re.M))))
 
 # Subsection 수
-print(re.findall(r"^([0-9]+\.[0-9]+)\.?\s+\S", fulltext, flags=re.M))
+print(re.findall(r"^([0-9]+(?:\.[0-9]+)+)\.?[ \t]+[A-Z]", fulltext, flags=re.M))
 
 # 각 paragraph의 sentence count
 for sec in struct["sections"]:
@@ -68,7 +69,7 @@ for sec in struct["sections"]:
 }
 ```
 
-JSON 배열로 묶어 `translations/manual.json` 또는 `translations/refined.json`에 저장한다.
+이 객체들을 `{"sentences": [ ... ]}` 한 객체로 묶어 `translations/manual.json`에 저장한다(최상위가 배열이면 빌더의 `tr["sentences"]`가 TypeError로 멈춘다 — 정본 `samples/cares/translations/manual.json`). 빌더는 `manual.json`만 읽는다. `refined.json`(2차 다듬기)을 만들었다면 확정본을 `manual.json`에 다시 반영한다.
 
 `sentence_id`는 `{paragraph_id}_s{문장순번}` 형식 (예: `p3_s2`). **누락은 0건**이어야 한다.
 
